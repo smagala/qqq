@@ -4,7 +4,6 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { FALCO                       } from '../modules/ph-core/falco/main'
-include { FALCO as FALCO_DECONTAM     } from '../modules/ph-core/falco/main'
 include { HOSTILE_CLEAN               } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap            } from 'plugin/nf-schema'
@@ -50,15 +49,6 @@ workflow QQQ {
         ch_hostile_ref
     )
     ch_versions = ch_versions.mix(HOSTILE_CLEAN.out.versions.first())
-
-    //
-    // MODULE: Post-decontamination QC (falco again on clean reads)
-    //
-    FALCO_DECONTAM (
-        HOSTILE_CLEAN.out.fastq
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(FALCO_DECONTAM.out.txt.collect{it[1]})
-    ch_versions = ch_versions.mix(FALCO_DECONTAM.out.versions.first())
 
     //
     // Collate and save software versions
