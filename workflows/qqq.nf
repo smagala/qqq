@@ -3,12 +3,14 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_qqq_pipeline'
+include { FALCO                       } from '../modules/ph-core/falco/main'
+include { FALCO as FALCO_DECONTAM     } from '../modules/ph-core/falco/main'
+include { HOSTILE_CLEAN               } from '../modules/nf-core/hostile/clean/main'
+include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
+include { paramsSummaryMap            } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc        } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML      } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText      } from '../subworkflows/local/utils_nfcore_qqq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,14 +26,39 @@ workflow QQQ {
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
+
     //
-    // MODULE: Run FastQC
+    // MODULE: Pre-decontamination QC (falco)
     //
-    FASTQC (
+    FALCO (
         ch_samplesheet
     )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect{it[1]})
+    ch_versions = ch_versions.mix(FALCO.out.versions.first())
+
+    //
+    // MODULE: Host read removal (hostile clean)
+    //
+    // The reference index is a tuple of (name, directory) where the
+    // directory contains the pre-built bowtie2 index. The index name
+    // and path are set via params.hostile_index_name and params.hostile_index.
+    //
+    ch_hostile_ref = channel.value([ params.hostile_index_name, file(params.hostile_index) ])
+
+    HOSTILE_CLEAN (
+        ch_samplesheet,
+        ch_hostile_ref
+    )
+    ch_versions = ch_versions.mix(HOSTILE_CLEAN.out.versions.first())
+
+    //
+    // MODULE: Post-decontamination QC (falco again on clean reads)
+    //
+    FALCO_DECONTAM (
+        HOSTILE_CLEAN.out.fastq
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(FALCO_DECONTAM.out.txt.collect{it[1]})
+    ch_versions = ch_versions.mix(FALCO_DECONTAM.out.versions.first())
 
     //
     // Collate and save software versions
@@ -103,9 +130,10 @@ workflow QQQ {
         []
     )
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
-
+    emit:
+    clean_reads    = HOSTILE_CLEAN.out.fastq   // channel: [ meta, [ clean_R1, clean_R2 ] ]
+    multiqc_report = MULTIQC.out.report.toList()
+    versions       = ch_versions
 }
 
 /*

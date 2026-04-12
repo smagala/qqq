@@ -30,7 +30,7 @@ lint:
 template:
   org: smagala
   name: qqq
-  description: 'Quick Quality & Quarantine: read QC, host decontamination, and reporting'
+  description: "Quick Quality & Quarantine: read QC, host decontamination, and reporting"
   author: James Smagala
   version: 1.0.0dev
   force: true

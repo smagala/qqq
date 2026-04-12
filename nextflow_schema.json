@@ -43,42 +43,22 @@
                 }
             }
         },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "host_decontamination_options": {
+            "title": "Host decontamination options",
             "type": "object",
-            "fa_icon": "fas fa-dna",
-            "description": "Reference genome related files and options required for the workflow.",
+            "fa_icon": "fas fa-shield-virus",
+            "description": "Host read removal using hostile.",
             "properties": {
-                "genome": {
+                "hostile_index_name": {
                     "type": "string",
-                    "description": "Name of iGenomes reference.",
-                    "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
+                    "default": "human-t2t-hla.argos-bacteria-985_rs-viral-202401_ml-phage-202401",
+                    "description": "Name of the hostile reference index. Must match a directory inside hostile_index path.",
+                    "fa_icon": "fas fa-dna"
                 },
-                "fasta": {
+                "hostile_index": {
                     "type": "string",
-                    "format": "file-path",
-                    "exists": true,
-                    "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
-                    "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
-                    "fa_icon": "far fa-file-code"
-                },
-                "igenomes_ignore": {
-                    "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
-                },
-                "igenomes_base": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "The base path to the igenomes reference files",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "default": "s3://ngi-igenomes/igenomes/"
+                    "description": "Path to directory containing the pre-built hostile bowtie2 index. Set via environment overlay or --hostile_index.",
+                    "fa_icon": "fas fa-folder"
                 }
             }
         },
@@ -245,7 +225,7 @@
             "$ref": "#/$defs/input_output_options"
         },
         {
-            "$ref": "#/$defs/reference_genome_options"
+            "$ref": "#/$defs/host_decontamination_options"
         },
         {
             "$ref": "#/$defs/institutional_config_options"
