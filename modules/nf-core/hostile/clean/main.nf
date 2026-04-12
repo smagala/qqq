@@ -9,7 +9,7 @@ process HOSTILE_CLEAN {
 
     input:
     tuple val(meta)          , path(reads, stageAs: "input_reads/")
-    tuple val(reference_name), path(reference_dir)
+    tuple val(reference_name), path(reference_dir, stageAs: "hostile_index")
 
     output:
     tuple val(meta), path('*.fastq.gz'), emit: fastq
