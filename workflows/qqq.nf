@@ -3,7 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { SAMTOOLS_BAM2FQ        } from '../modules/nf-core/samtools/bam2fq/main'
 include { FALCO                  } from '../modules/ph-core/falco/main'
 include { HOSTILE_CLEAN          } from '../modules/nf-core/hostile/clean/main'
@@ -37,15 +36,6 @@ workflow QQQ {
     ch_reads = ch_samplesheet
 
     //
-    // MODULE: Run FastQC
-    //
-    FASTQC (
-        ch_reads
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-
-    //
     // MODULE: Falco QC (ph-core, classic versions.yml)
     //
     FALCO (
@@ -57,11 +47,12 @@ workflow QQQ {
     //
     // MODULE: Hostile clean — dehost reads (nf-core, classic versions.yml)
     //
-    ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db)])
+    ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
     HOSTILE_CLEAN (
         ch_reads,
         ch_hostile_ref
     )
+    ch_clean_reads = HOSTILE_CLEAN.out.fastq
     ch_multiqc_files = ch_multiqc_files.mix(HOSTILE_CLEAN.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(HOSTILE_CLEAN.out.versions.first())
 
@@ -135,7 +126,9 @@ workflow QQQ {
         []
     )
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    emit:
+    clean_reads    = ch_clean_reads              // channel: [ val(meta), path(fastq) ]
+    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }
