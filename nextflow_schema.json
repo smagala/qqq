@@ -130,6 +130,26 @@
                 }
             }
         },
+        "tool_options": {
+            "title": "Tool options",
+            "type": "object",
+            "fa_icon": "fas fa-tools",
+            "description": "Options for pipeline tools.",
+            "properties": {
+                "hostile_db": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Path to the hostile reference database directory.",
+                    "fa_icon": "fas fa-database"
+                },
+                "hostile_index": {
+                    "type": "string",
+                    "default": "human-t2t-hla.argos-bacteria-985_rs-viral-202401_ml-phage-202401",
+                    "description": "Name of the hostile reference index to use for dehosting. Default is a masked human reference excluding pathogen regions.",
+                    "fa_icon": "fas fa-book"
+                }
+            }
+        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -246,6 +266,9 @@
         },
         {
             "$ref": "#/$defs/reference_genome_options"
+        },
+        {
+            "$ref": "#/$defs/tool_options"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

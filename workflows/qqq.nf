@@ -3,7 +3,9 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
+include { SAMTOOLS_BAM2FQ        } from '../modules/nf-core/samtools/bam2fq/main'
+include { FALCO                  } from '../modules/ph-core/falco/main'
+include { HOSTILE_CLEAN          } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -24,14 +26,35 @@ workflow QQQ {
 
     ch_versions = channel.empty()
     ch_multiqc_files = channel.empty()
+
     //
-    // MODULE: Run FastQC
+    // Optional: samtools/bam2fq for BAM input (enabled when samplesheet provides BAM files)
+    // SAMTOOLS_BAM2FQ(ch_bam_input, 0)
+    // ch_reads = SAMTOOLS_BAM2FQ.out.reads
+    // ch_versions channel is topic-based; no manual mix needed for SAMTOOLS_BAM2FQ
     //
-    FASTQC (
-        ch_samplesheet
+    ch_reads = ch_samplesheet
+
+    //
+    // MODULE: Falco QC (ph-core, classic versions.yml)
+    //
+    FALCO (
+        ch_reads
     )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect{it[1]})
+    ch_versions = ch_versions.mix(FALCO.out.versions.first())
+
+    //
+    // MODULE: Hostile clean — dehost reads (nf-core, classic versions.yml)
+    //
+    ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+    HOSTILE_CLEAN (
+        ch_reads,
+        ch_hostile_ref
+    )
+    ch_clean_reads = HOSTILE_CLEAN.out.fastq
+    ch_multiqc_files = ch_multiqc_files.mix(HOSTILE_CLEAN.out.json.collect{it[1]})
+    ch_versions = ch_versions.mix(HOSTILE_CLEAN.out.versions.first())
 
     //
     // Collate and save software versions
@@ -103,7 +126,9 @@ workflow QQQ {
         []
     )
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    emit:
+    clean_reads    = ch_clean_reads              // channel: [ val(meta), path(fastq) ]
+    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }

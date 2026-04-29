@@ -14,47 +14,39 @@
 
 ## Introduction
 
-**cdcent/qqq** is a bioinformatics pipeline that ...
+**cdcent/qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for dehosting paired-end Illumina reads. It produces original read quality metrics, removes host reads, and generates an aggregated report. The pipeline is designed to be quick and easy to run across many samples that may contain host contamination.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+By default, qqq uses a masked human reference genome that excludes any region potentially overlapping with pathogen sequences, ensuring pathogen reads are never inadvertently discarded during dehosting.
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+The pipeline performs the following steps:
+
+1. Read QC ([`Falco`](https://falco.readthedocs.io/)) — quality metrics on raw reads before dehosting
+2. Host read removal ([`Hostile`](https://github.com/bede/hostile)) — decontaminate reads against a reference index
+3. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — combined QC and dehosting summary
 
 ## Usage
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
-
-First, prepare a samplesheet with your input data that looks as follows:
+Prepare a samplesheet with your input data:
 
 `samplesheet.csv`:
 
 ```csv
 sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+SAMPLE1,SAMPLE1_R1.fastq.gz,SAMPLE1_R2.fastq.gz
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Each row represents a pair of paired-end FASTQ files.
 
--->
-
-Now, you can run the pipeline using:
-
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+Run the pipeline:
 
 ```bash
 nextflow run cdcent/qqq \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
+   --hostile_db /path/to/hostile/index \
    --outdir <OUTDIR>
 ```
 
@@ -63,11 +55,7 @@ nextflow run cdcent/qqq \
 
 ## Credits
 
-cdcent/qqq was originally written by OAMD Bioinformatics.
-
-We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+cdcent/qqq was written by James Smagala (OAMD Bioinformatics).
 
 ## Contributions and Support
 
