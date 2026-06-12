@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: cron
+      cronjob: "0 3 * * 1"
+      timezone: UTC
+    cooldown:
+      default-days: 14
+    allow:
+      - dependency-type: all
+    pull-request-branch-name:
+      separator: "/"
+    reviewers:
+      - tzx3
+      - tazsharifi
+      - amygutierrez
+    labels:
+      - dependencies
+      - github-actions
