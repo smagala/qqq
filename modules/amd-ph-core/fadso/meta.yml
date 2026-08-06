@@ -1,0 +1,95 @@
+name: fadso
+description: |
+  Downsample FASTQ files to a fixed number of reads (or read pairs) using
+  s-leaping, an efficient approximate reservoir sampling algorithm. Paired-end
+  input is downsampled in lockstep so mates stay synchronised.
+
+  Callers are expected to route only the samples that exceed the cap to this
+  module; fadso always samples down to `max_reads` and does not pass larger
+  inputs through untouched.
+keywords:
+  - downsampling
+  - subsampling
+  - fastq
+  - reservoir sampling
+  - sequencing depth
+tools:
+  - fadso:
+      description: "FASTQ downsampler using s-leaping (efficient approximate reservoir
+        sampling). The upstream repository is named `sleaping`; the built executable
+        is `fadso`. Upstream publishes no releases or tags, so builds are pinned to
+        a source commit."
+      homepage: "https://github.com/hkuwahara/sleaping"
+      documentation: "https://github.com/hkuwahara/sleaping"
+      tool_dev_url: "https://github.com/hkuwahara/sleaping"
+      licence:
+        - "MIT"
+      identifier: ""
+      args_id: "$args"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: file
+        description: |
+          Mandatory. One FASTQ file for single-end data, or two mate files for
+          paired-end data.
+        pattern: "*.{fastq,fq}{,.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1930
+  - max_reads:
+      type: integer
+      description: |
+        Mandatory. Number of reads (single-end) or read pairs (paired-end) to
+        retain.
+  - seed:
+      type: integer
+      description: |
+        Mandatory. Random seed, so downsampling is deterministic across runs.
+output:
+  reads:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.downsampled.fastq.gz":
+          type: file
+          description: |
+            Downsampled, gzip-compressed FASTQ. One file for single-end input,
+            two mate-synchronised files for paired-end input.
+          pattern: "*.downsampled.fastq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_3989
+  versions_fadso:
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - fadso:
+          type: string
+          description: Tool name, emitted to the `versions` topic channel
+      - 1fedb59:
+          type: string
+          description: |
+            Pinned upstream source commit, used in place of a version because
+            upstream publishes no releases or tags.
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - fadso:
+          type: string
+          description: Tool name, emitted to the `versions` topic channel
+      - 1fedb59:
+          type: string
+          description: |
+            Pinned upstream source commit, used in place of a version because
+            upstream publishes no releases or tags.
+authors:
+  - "@smagala"
+maintainers:
+  - "@smagala"

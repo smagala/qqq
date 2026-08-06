@@ -140,6 +140,20 @@
                     "default": "human-t2t-hla.argos-bacteria-985_rs-viral-202401_ml-phage-202401",
                     "description": "Name of the hostile reference index to use for dehosting. Default is a masked human reference excluding pathogen regions.",
                     "fa_icon": "fas fa-book"
+                },
+                "max_reads": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Cap on reads (single-end) or read pairs (paired-end) retained per sample after dehosting.",
+                    "help_text": "Samples above this cap are downsampled to it with fadso (s-leaping reservoir sampling); smaller samples pass through unchanged. Applied after hostile dehosting and gated on hostile's own read counts, so no extra pass over the FASTQs is needed. Leave unset or set to 0 to disable downsampling.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "downsample_seed": {
+                    "type": "integer",
+                    "default": 42,
+                    "description": "Random seed for read downsampling, fixed for reproducibility.",
+                    "help_text": "Seed passed to fadso so downsampling is deterministic across runs. Only used when max_reads is set.",
+                    "fa_icon": "fas fa-dice"
                 }
             }
         },
