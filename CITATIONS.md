@@ -1,4 +1,4 @@
-# cdcent/qqq: Citations
+# cdcent/oamd-bio-qqq: Citations
 
 ## [nf-core](https://pubmed.ncbi.nlm.nih.gov/32055031/)
 
@@ -10,9 +10,13 @@
 
 ## Pipeline tools
 
-- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [Falco](https://pubmed.ncbi.nlm.nih.gov/33552473/)
 
-> Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
+> de Sena Brandine G, Smith AD. Falco: high-speed FastQC emulation for quality control of sequencing data. F1000Res. 2019;8:1874. doi: 10.12688/f1000research.21142.2. PubMed PMID: 33552473.
+
+- [Hostile](https://pubmed.ncbi.nlm.nih.gov/38039142/)
+
+> Constantinides B, Hunt M, Crook DW. Hostile: accurate decontamination of microbial host sequences. Bioinformatics. 2023 Dec 1;39(12):btad728. doi: 10.1093/bioinformatics/btad728. PubMed PMID: 38039142.
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 

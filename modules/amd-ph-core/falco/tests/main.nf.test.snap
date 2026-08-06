@@ -1,0 +1,252 @@
+{
+    "sarscov2 - fastq - single_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "FALCO",
+                        "falco",
+                        "1.2.5"
+                    ]
+                ],
+                "html": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "summary": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "txt": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_falco": [
+                    [
+                        "FALCO",
+                        "falco",
+                        "1.2.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-06T12:58:06.517348258",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - fastq - single_end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test_summary.txt:md5,577a4416052f18395552deafec6156c6"
+                ]
+            ],
+            [
+                [
+                    "FALCO",
+                    "falco",
+                    "1.2.5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-06T12:57:58.824937406",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - fastq - paired_end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test_1_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73",
+                        "test_2_fastqc_data.txt:md5,e57bc70afbbb6912d17b7c7325a1ae7d"
+                    ]
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test_1_summary.txt:md5,577a4416052f18395552deafec6156c6",
+                        "test_2_summary.txt:md5,509fc1fe165f565fec8376d2276c8cd8"
+                    ]
+                ]
+            ],
+            [
+                [
+                    "FALCO",
+                    "falco",
+                    "1.2.5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-06T12:58:02.897650264",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - fastq - paired_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "3": [
+                    [
+                        "FALCO",
+                        "falco",
+                        "1.2.5"
+                    ]
+                ],
+                "html": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "summary": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "txt": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "versions_falco": [
+                    [
+                        "FALCO",
+                        "falco",
+                        "1.2.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-06T12:58:10.218562072",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

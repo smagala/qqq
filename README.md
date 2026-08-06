@@ -1,8 +1,8 @@
-# cdcent/qqq
+# cdcent/oamd-bio-qqq
 
-[![Open in GitHub Codespaces](https://img.shields.io/badge/Open_In_GitHub_Codespaces-black?labelColor=grey&logo=github)](https://github.com/codespaces/new/cdcent/qqq)
-[![GitHub Actions CI Status](https://github.com/cdcent/qqq/actions/workflows/nf-test.yml/badge.svg)](https://github.com/cdcent/qqq/actions/workflows/nf-test.yml)
-[![GitHub Actions Linting Status](https://github.com/cdcent/qqq/actions/workflows/linting.yml/badge.svg)](https://github.com/cdcent/qqq/actions/workflows/linting.yml)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.XXXXXXX-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open_In_GitHub_Codespaces-black?labelColor=grey&logo=github)](https://github.com/codespaces/new/cdcent/oamd-bio-qqq)
+[![GitHub Actions CI Status](https://github.com/cdcent/oamd-bio-qqq/actions/workflows/nf-test.yml/badge.svg)](https://github.com/cdcent/oamd-bio-qqq/actions/workflows/nf-test.yml)
+[![GitHub Actions Linting Status](https://github.com/cdcent/oamd-bio-qqq/actions/workflows/linting.yml/badge.svg)](https://github.com/cdcent/oamd-bio-qqq/actions/workflows/linting.yml)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.XXXXXXX-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
@@ -10,11 +10,11 @@
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/cdcent/qqq)
+[![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/cdcent/oamd-bio-qqq)
 
 ## Introduction
 
-**cdcent/qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for dehosting paired-end Illumina reads. It produces original read quality metrics, removes host reads, and generates an aggregated report. The pipeline is designed to be quick and easy to run across many samples that may contain host contamination.
+**cdcent/oamd-bio-qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for dehosting paired-end Illumina reads. It produces original read quality metrics, removes host reads, and generates an aggregated report. The pipeline is designed to be quick and easy to run across many samples that may contain host contamination.
 
 By default, qqq uses a masked human reference genome that excludes any region potentially overlapping with pathogen sequences, ensuring pathogen reads are never inadvertently discarded during dehosting.
 
@@ -43,7 +43,7 @@ Each row represents a pair of paired-end FASTQ files.
 Run the pipeline:
 
 ```bash
-nextflow run cdcent/qqq \
+nextflow run cdcent/oamd-bio-qqq \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --hostile_db /path/to/hostile/index \
@@ -55,7 +55,7 @@ nextflow run cdcent/qqq \
 
 ## Credits
 
-cdcent/qqq was written by James Smagala (OAMD Bioinformatics).
+cdcent/oamd-bio-qqq was written by James Smagala (OAMD Bioinformatics).
 
 ## Contributions and Support
 
@@ -64,7 +64,7 @@ If you would like to contribute to this pipeline, please see the [contributing g
 ## Citations
 
 <!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use cdcent/qqq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+<!-- If you use cdcent/oamd-bio-qqq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
 
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 

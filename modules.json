@@ -1,13 +1,13 @@
 {
-    "name": "cdcent/qqq",
-    "homePage": "https://github.com/cdcent/qqq",
+    "name": "cdcent/oamd-bio-qqq",
+    "homePage": "https://github.com/cdcent/oamd-bio-qqq",
     "repos": {
-        "https://github.com/cdcent/oamd-bio-ph-core": {
+        "https://github.com/amd-ph-core/modules.git": {
             "modules": {
-                "ph-core": {
+                "amd-ph-core": {
                     "falco": {
-                        "branch": "master",
-                        "git_sha": "4a83903ed412759b6e16dec2fc07b825ae83e7ee",
+                        "branch": "feat/add-falco-fadso",
+                        "git_sha": "fff24d3fc7597bcf48cfe21a17fb02a06b918c35",
                         "installed_by": ["modules"]
                     }
                 }
@@ -18,17 +18,17 @@
                 "nf-core": {
                     "hostile/clean": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "14295214ba15060cf1e65bdba3e0c4b3a450d5b1",
                         "installed_by": ["modules"]
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "af27af1be706e6a2bb8fe454175b0cdf77f47b49",
+                        "git_sha": "98403d15b0e50edae1f3fec5eae5e24982f1fade",
                         "installed_by": ["modules"]
                     },
                     "samtools/bam2fq": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "9339809fcb90af8a8b7051e6cd914894d5c52002",
                         "installed_by": ["modules"]
                     }
                 }

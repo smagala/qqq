@@ -1,4 +1,4 @@
-# cdcent/qqq: Output
+# cdcent/oamd-bio-qqq: Output
 
 ## Introduction
 
@@ -6,28 +6,43 @@ This document describes the output produced by the pipeline. Most of the plots a
 
 The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-<!-- TODO nf-core: Write this documentation describing your workflow's output -->
-
 ## Pipeline overview
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
-- [FastQC](#fastqc) - Raw read QC
+- [Falco](#falco) - Raw read QC
+- [Hostile](#hostile) - Host read removal
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
-### FastQC
+### Falco
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `fastqc/`
-  - `*_fastqc.html`: FastQC report containing quality metrics.
-  - `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
+- `falco/`
+  - `*_fastqc_report.html`: FastQC-style report containing quality metrics, one per input FASTQ.
+  - `*_fastqc_data.txt`: Quality metrics as tab-delimited text, one per input FASTQ.
+  - `*_summary.txt`: Per-module pass/warn/fail summary, one per input FASTQ.
 
 </details>
 
-[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your sequenced reads. It provides information about the quality score distribution across your reads, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences. For further reading and documentation see the [FastQC help pages](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+[Falco](https://falco.readthedocs.io/) is a drop-in C++ reimplementation of FastQC. It gives general quality metrics about your sequenced reads: quality score distribution, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences. These metrics are computed on the **raw** reads, before dehosting.
+
+The `_fastqc_data.txt` files are what MultiQC reads. MultiQC has no separate Falco module — its FastQC module parses these files, recognises the `##Falco` header, and labels the report section "Falco".
+
+### Hostile
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `hostile/`
+  - `*.clean_1.fastq.gz` / `*.clean_2.fastq.gz`: Dehosted reads.
+  - `*.json`: Dehosting statistics, including reads in, reads out, and the proportion removed.
+
+</details>
+
+[Hostile](https://github.com/bede/hostile) removes reads that align to a host reference index. By default this pipeline uses a masked human reference that excludes regions potentially overlapping pathogen sequences, so pathogen reads are not inadvertently discarded. The JSON reports are picked up by MultiQC.
 
 ### MultiQC
 

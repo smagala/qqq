@@ -1,5 +1,5 @@
 //
-// Subworkflow with functionality specific to the cdcent/qqq pipeline
+// Subworkflow with functionality specific to the cdcent/oamd-bio-qqq pipeline
 //
 
 /*

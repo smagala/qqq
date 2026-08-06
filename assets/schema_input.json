@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/cdcent/qqq/main/assets/schema_input.json",
-    "title": "cdcent/qqq pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/cdcent/oamd-bio-qqq/main/assets/schema_input.json",
+    "title": "cdcent/oamd-bio-qqq pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {

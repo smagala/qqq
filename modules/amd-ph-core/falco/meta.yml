@@ -1,0 +1,104 @@
+name: falco
+description: |
+  Run falco on sequenced reads to produce FastQC-compatible quality control reports.
+  Derived from nf-core/falco, with paired-end handling fixed so each mate gets its
+  own output files instead of overwriting each other, and with output filenames that
+  MultiQC's FastQC parser will pick up (see the `txt` output for details).
+keywords:
+  - quality control
+  - qc
+  - adapters
+  - fastq
+  - illumina
+  - sequencing
+tools:
+  - falco:
+      description: "falco is a drop-in C++ implementation of FastQC to assess the quality
+        of sequence reads."
+      homepage: "https://github.com/smithlabcode/falco"
+      documentation: "https://falco.readthedocs.io/"
+      tool_dev_url: "https://github.com/smithlabcode/falco"
+      licence:
+        - "GPL v3"
+      identifier: biotools:falco-rna
+      args_id: "$args"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: file
+        description: |
+          Mandatory. List of input FastQ files of size 1 and 2 for single-end and
+          paired-end data, respectively.
+        pattern: "*.{fastq,fq}{,.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1930
+output:
+  html:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_fastqc_report.html":
+          type: file
+          description: FastQC-style HTML quality report, one per input FastQ
+          pattern: "*_fastqc_report.html"
+          ontologies: []
+  txt:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_fastqc_data.txt":
+          type: file
+          description: |
+            Falco QC metrics in FastQC's fastqc_data.txt format, one per input FastQ.
+            The `_fastqc_data.txt` suffix matches MultiQC's `fastqc/data` search
+            pattern (`*fastqc_data.txt`), so MultiQC parses these with its FastQC
+            module and labels the section "Falco". Requires MultiQC >= 1.32; earlier
+            versions match the filename `fastqc_data.txt` exactly and will ignore
+            these files.
+          pattern: "*_fastqc_data.txt"
+          ontologies: []
+  summary:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*_summary.txt":
+          type: file
+          description: Per-module pass/warn/fail summary, one per input FastQ
+          pattern: "*_summary.txt"
+          ontologies: []
+  versions_falco:
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - falco:
+          type: string
+          description: Tool name, emitted to the `versions` topic channel
+      - falco --version | sed '1!d;s/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - falco:
+          type: string
+          description: Tool name, emitted to the `versions` topic channel
+      - falco --version | sed '1!d;s/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@lucacozzuto"
+  - "@smagala"
+maintainers:
+  - "@smagala"
