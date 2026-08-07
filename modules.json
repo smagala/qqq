@@ -6,8 +6,8 @@
             "modules": {
                 "amd-ph-core": {
                     "fadso": {
-                        "branch": "feat/add-falco-fadso",
-                        "git_sha": "e90c1ce1a0358adb648535d943c2fb578643e279",
+                        "branch": "main",
+                        "git_sha": "6c06b879926314ba2f970776456ac792ffdee4c1",
                         "installed_by": ["modules"]
                     },
                     "falco": {

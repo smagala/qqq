@@ -24,7 +24,6 @@ tools:
       tool_dev_url: "https://github.com/hkuwahara/sleaping"
       licence:
         - "unlicensed"
-      identifier: ""
       args_id: "$args"
 input:
   - - meta:
