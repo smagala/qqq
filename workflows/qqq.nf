@@ -62,6 +62,20 @@ workflow QQQ {
         ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
     }
     else {
+        // Without this, a missing hostile_db surfaces as "Argument of `file()`
+        // function cannot be null", which says nothing about the actual cause:
+        // the pipeline configs from oamd-bio-nf-configs were not loaded.
+        if (!params.hostile_db) {
+            error(
+                "hostile_db is not set, so there is no reference index to dehost against.\n\n" +
+                "  Pass --hostile_db, or let oamd-bio-nf-configs supply it. For the latter,\n" +
+                "  both of these must be set, and neither has a safe default:\n" +
+                "    NF_PIPELINE_REPO=oamd-bio-qqq   (otherwise it falls back to oamd-bio-ph-core,\n" +
+                "                                     loading that pipeline's configs and workDir)\n" +
+                "    NF_CONFIGS_REPO=<checkout containing conf/pipeline/oamd-bio-qqq/>\n\n" +
+                "  See run-qqq-prda.sh, which sets both."
+            )
+        }
         ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
     }
 
