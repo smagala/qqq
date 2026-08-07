@@ -12,6 +12,10 @@ lint:
     - .github/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
     - assets/email_template.txt
+    # Diverges deliberately: this pipeline ships no logo PNG, so the template's
+    # unconditional read of one raised FileNotFoundException whenever --email was
+    # used. The image part is now emitted only when the file exists.
+    - assets/sendmail_template.txt
     - docs/README.md
   nextflow_config:
     - manifest.name

@@ -8,13 +8,20 @@ Content-Type: text/html; charset=utf-8
 
 $email_html
 
+<%
+// This pipeline ships no logo, unlike a stock nf-core template pipeline, so the
+// image part is emitted only when the file is actually present. Reading it
+// unconditionally threw whenever --email was used.
+def logo = new File("$projectDir/assets/cdcent-oamd-bio-qqq_logo_light.png")
+if (logo.exists()){
+out << """
 --nfcoremimeboundary
-Content-Type: image/png;name="cdcent-oamd-bio-qqq_logo.png"
+Content-Type: image/png;name=\"cdcent-oamd-bio-qqq_logo.png\"
 Content-Transfer-Encoding: base64
 Content-ID: <nfcorepipelinelogo>
-Content-Disposition: inline; filename="cdcent-oamd-bio-qqq_logo_light.png"
+Content-Disposition: inline; filename=\"cdcent-oamd-bio-qqq_logo_light.png\"
 
-<% out << new File("$projectDir/assets/cdcent-oamd-bio-qqq_logo_light.png").
+${logo.
     bytes.
     encodeBase64().
     toString().
@@ -23,7 +30,10 @@ Content-Disposition: inline; filename="cdcent-oamd-bio-qqq_logo_light.png"
     collate( 76 )*.
     collect { it.join() }.
     flatten().
-    join( '\n' ) %>
+    join( '\n' )}
+"""
+}
+%>
 
 <%
 if (mqcFile){

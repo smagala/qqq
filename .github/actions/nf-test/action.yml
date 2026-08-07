@@ -19,6 +19,16 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Singularity support was removed with the Apptainer setup step: the only
+    # maintained apptainer action is not on the enterprise allowed-actions list.
+    # Fail loudly here rather than several minutes later inside nf-test.
+    - name: Reject unsupported singularity profile
+      if: contains(inputs.profile, 'singularity')
+      shell: bash
+      run: |
+        echo "::error::The singularity profile is not supported in CI. Apptainer setup was removed because the action required is not allowlisted; see .github/workflows/nf-test.yml."
+        exit 1
+
     - name: Setup Nextflow
       uses: nf-core/setup-nextflow@v2
       with:
