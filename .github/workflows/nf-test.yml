@@ -21,8 +21,6 @@ env:
   NFT_VER: "0.9.3"
   NFT_WORKDIR: "~"
   NXF_ANSI_LOG: false
-  NXF_SINGULARITY_CACHEDIR: ${{ github.workspace }}/.singularity
-  NXF_SINGULARITY_LIBRARYDIR: ${{ github.workspace }}/.singularity
 
 jobs:
   nf-test-changes:
@@ -66,15 +64,17 @@ jobs:
       fail-fast: false
       matrix:
         shard: ${{ fromJson(needs.nf-test-changes.outputs.shard) }}
-        profile: [conda, docker, singularity]
+        # singularity is not tested in CI: it needs an Apptainer setup action,
+        # and the only maintained one is not on the enterprise allowed-actions
+        # list. Restore it here and in .github/actions/nf-test if a SHA-pinned
+        # apptainer action is ever allowlisted.
+        profile: [conda, docker]
         isMain:
           - ${{ github.base_ref == 'master' || github.base_ref == 'main' }}
-        # Exclude conda and singularity on dev
+        # Exclude conda on dev
         exclude:
           - isMain: false
             profile: "conda"
-          - isMain: false
-            profile: "singularity"
         NXF_VER:
           - "25.04.0"
           - "latest-everything"
