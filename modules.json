@@ -11,7 +11,7 @@
                         "installed_by": ["modules"]
                     },
                     "falco": {
-                        "branch": "feat/add-falco-fadso",
+                        "branch": "main",
                         "git_sha": "fff24d3fc7597bcf48cfe21a17fb02a06b918c35",
                         "installed_by": ["modules"]
                     }
