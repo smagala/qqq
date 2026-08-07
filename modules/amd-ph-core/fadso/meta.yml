@@ -23,7 +23,7 @@ tools:
       documentation: "https://github.com/hkuwahara/sleaping"
       tool_dev_url: "https://github.com/hkuwahara/sleaping"
       licence:
-        - "MIT"
+        - "unlicensed"
       identifier: ""
       args_id: "$args"
 input:
@@ -71,11 +71,9 @@ output:
       - fadso:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - 1fedb59:
-          type: string
-          description: |
-            Pinned upstream source commit, used in place of a version because
-            upstream publishes no releases or tags.
+      - echo 1fedb59:
+          type: eval
+          description: The expression to obtain the version of the tool
 topics:
   versions:
     - - ${task.process}:
@@ -84,11 +82,9 @@ topics:
       - fadso:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - 1fedb59:
-          type: string
-          description: |
-            Pinned upstream source commit, used in place of a version because
-            upstream publishes no releases or tags.
+      - echo 1fedb59:
+          type: eval
+          description: The expression to obtain the version of the tool
 authors:
   - "@smagala"
 maintainers:

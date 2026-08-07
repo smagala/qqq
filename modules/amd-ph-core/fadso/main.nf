@@ -13,9 +13,11 @@ process FADSO {
 
     output:
     tuple val(meta), path("*.downsampled.fastq.gz"), emit: reads
-    // fadso has no --version flag; upstream is unversioned, so the pinned
-    // source commit stands in for a version per ph-core guidance.
-    tuple val("${task.process}"), val('fadso'), val('1fedb59'), topic: versions, emit: versions_fadso
+    // fadso has no --version flag and upstream publishes no releases, so the
+    // pinned source commit stands in for a version per ph-core guidance. It is
+    // echoed rather than hardcoded as a val so the output matches the shape
+    // nf-core expects for the versions topic.
+    tuple val("${task.process}"), val('fadso'), eval("echo 1fedb59"), topic: versions, emit: versions_fadso
 
     when:
     task.ext.when == null || task.ext.when
