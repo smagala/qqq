@@ -1,0 +1,94 @@
+{
+    "sarscov2 - fastq - single_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "1": [
+                    [
+                        "FADSO",
+                        "fadso",
+                        "1fedb59"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "versions_fadso": [
+                    [
+                        "FADSO",
+                        "fadso",
+                        "1fedb59"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-06T23:03:24.378350475",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2 - fastq - paired_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        "FADSO",
+                        "fadso",
+                        "1fedb59"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "versions_fadso": [
+                    [
+                        "FADSO",
+                        "fadso",
+                        "1fedb59"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-06T23:03:20.881804118",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

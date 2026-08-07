@@ -22,7 +22,10 @@ The pipeline performs the following steps:
 
 1. Read QC ([`Falco`](https://falco.readthedocs.io/)) — quality metrics on raw reads before dehosting
 2. Host read removal ([`Hostile`](https://github.com/bede/hostile)) — decontaminate reads against a reference index
-3. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — combined QC and dehosting summary
+3. Read downsampling ([`fadso`](https://github.com/hkuwahara/sleaping)) — _optional_, cap the depth of the dehosted reads
+4. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — combined QC and dehosting summary
+
+Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts Hostile already reports, so no extra pass over the FASTQs is needed. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs.
 
 ## Usage
 
