@@ -16,6 +16,11 @@
         "https://github.com/nf-core/modules.git": {
             "modules": {
                 "nf-core": {
+                    "bowtie2/build": {
+                        "branch": "master",
+                        "git_sha": "a0961c41021561ac7cf139f86bd7812a2f99e994",
+                        "installed_by": ["modules"]
+                    },
                     "hostile/clean": {
                         "branch": "master",
                         "git_sha": "14295214ba15060cf1e65bdba3e0c4b3a450d5b1",

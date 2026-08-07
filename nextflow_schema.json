@@ -140,6 +140,15 @@
                     "default": "human-t2t-hla.argos-bacteria-985_rs-viral-202401_ml-phage-202401",
                     "description": "Name of the hostile reference index to use for dehosting. Default is a masked human reference excluding pathogen regions.",
                     "fa_icon": "fas fa-book"
+                },
+                "hostile_fasta": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.f(ast)?a(\\.gz)?$",
+                    "description": "Build the hostile index from this FASTA instead of using a prebuilt one at hostile_db.",
+                    "help_text": "Mainly for testing: a bowtie2 index is around 8 MB even for a very small genome, so the test profiles build one on the fly rather than depend on hosted binaries. When set, hostile_db and hostile_index are ignored and the index name is taken from the FASTA basename. Leave unset for real runs and point hostile_db at a prebuilt index.",
+                    "fa_icon": "fas fa-dna"
                 }
             }
         },

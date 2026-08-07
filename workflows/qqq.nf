@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
+include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { HOSTILE_CLEAN          } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -46,7 +47,23 @@ workflow QQQ {
     //
     // MODULE: Hostile clean — dehost reads
     //
-    ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+    // A prebuilt index is the normal case. --hostile_fasta builds one instead,
+    // which is what the test profiles use: a bowtie2 index is ~8 MB even for a
+    // tiny genome, so building it is cheaper than hosting one as test data.
+    if (params.hostile_fasta) {
+        def hostile_fasta = file(params.hostile_fasta, checkIfExists: true)
+        BOWTIE2_BUILD (
+            channel.value([[id: hostile_fasta.baseName], hostile_fasta])
+        )
+        // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
+        // so the index name hostile is given must match that basename.
+        // Already a value channel, since BOWTIE2_BUILD's input is one.
+        ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
+    }
+    else {
+        ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+    }
+
     HOSTILE_CLEAN (
         ch_reads,
         ch_hostile_ref
