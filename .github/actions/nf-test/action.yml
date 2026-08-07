@@ -35,17 +35,6 @@ runs:
         version: "${{ env.NFT_VER }}"
         install-pdiff: true
 
-    - name: Setup apptainer
-      if: contains(inputs.profile, 'singularity')
-      uses: eWaterCycle/setup-apptainer@main
-
-    - name: Set up Singularity
-      if: contains(inputs.profile, 'singularity')
-      shell: bash
-      run: |
-        mkdir -p $NXF_SINGULARITY_CACHEDIR
-        mkdir -p $NXF_SINGULARITY_LIBRARYDIR
-
     - name: Conda setup
       if: contains(inputs.profile, 'conda')
       uses: conda-incubator/setup-miniconda@505e6394dae86d6a5c7fbb6e3fb8938e3e863830 # v3
