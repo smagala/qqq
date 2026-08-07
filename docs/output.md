@@ -12,6 +12,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 - [Falco](#falco) - Raw read QC
 - [Hostile](#hostile) - Host read removal
+- [fadso](#fadso) - Optional read downsampling
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
@@ -43,6 +44,18 @@ The `_fastqc_data.txt` files are what MultiQC reads. MultiQC has no separate Fal
 </details>
 
 [Hostile](https://github.com/bede/hostile) removes reads that align to a host reference index. By default this pipeline uses a masked human reference that excludes regions potentially overlapping pathogen sequences, so pathogen reads are not inadvertently discarded. The JSON reports are picked up by MultiQC.
+
+### fadso
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `fadso/`
+  - `*.downsampled.fastq.gz`: Downsampled reads.
+
+</details>
+
+[fadso](https://github.com/hkuwahara/sleaping) caps per-sample depth using s-leaping approximate reservoir sampling. This step only runs when `--max_reads` is set, and only for samples that exceed the cap — samples below it bypass the step entirely and appear unchanged in the pipeline's output reads. Paired-end mates are downsampled in lockstep so they stay synchronised.
 
 ### MultiQC
 

@@ -149,6 +149,20 @@
                     "description": "Build the hostile index from this FASTA instead of using a prebuilt one at hostile_db.",
                     "help_text": "Mainly for testing: a bowtie2 index is around 8 MB even for a very small genome, so the test profiles build one on the fly rather than depend on hosted binaries. When set, hostile_db and hostile_index are ignored and the index name is taken from the FASTA basename. Leave unset for real runs and point hostile_db at a prebuilt index.",
                     "fa_icon": "fas fa-dna"
+                },
+                "max_reads": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Cap on reads (single-end) or read pairs (paired-end) retained per sample after dehosting.",
+                    "help_text": "Samples above this cap are downsampled to it with fadso (s-leaping reservoir sampling); smaller samples pass through unchanged. Applied after hostile dehosting and gated on hostile's own read counts, so no extra pass over the FASTQs is needed. Leave unset or set to 0 to disable downsampling.",
+                    "fa_icon": "fas fa-compress-arrows-alt"
+                },
+                "downsample_seed": {
+                    "type": "integer",
+                    "default": 42,
+                    "description": "Random seed for read downsampling, fixed for reproducibility.",
+                    "help_text": "Seed passed to fadso so downsampling is deterministic across runs. Only used when max_reads is set.",
+                    "fa_icon": "fas fa-dice"
                 }
             }
         },

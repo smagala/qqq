@@ -5,6 +5,11 @@
         "https://github.com/amd-ph-core/modules.git": {
             "modules": {
                 "amd-ph-core": {
+                    "fadso": {
+                        "branch": "main",
+                        "git_sha": "6c06b879926314ba2f970776456ac792ffdee4c1",
+                        "installed_by": ["modules"]
+                    },
                     "falco": {
                         "branch": "main",
                         "git_sha": "fff24d3fc7597bcf48cfe21a17fb02a06b918c35",

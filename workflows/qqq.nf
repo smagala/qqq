@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
+include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { HOSTILE_CLEAN          } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
@@ -70,7 +71,50 @@ workflow QQQ {
     )
     ch_multiqc_files = ch_multiqc_files.mix(HOSTILE_CLEAN.out.json.collect { meta, json -> json })
 
-    ch_clean_reads = HOSTILE_CLEAN.out.fastq
+    //
+    // MODULE: Fadso — cap depth of the dehosted reads (optional)
+    //
+    // Gated per sample on HOSTILE_CLEAN's own read count, so no extra pass over
+    // the FASTQs is needed. Only samples above the cap are routed to FADSO;
+    // everything else bypasses the module entirely and is merged back after.
+    // Disabled when params.max_reads is null or 0.
+    //
+    if (params.max_reads) {
+        ch_read_counts = HOSTILE_CLEAN.out.json
+            .map { meta, json ->
+                // HOSTILE_CLEAN's stub emits an empty report. Treat that as
+                // "under the cap" so -stub-run still exercises this path; a
+                // non-empty but malformed report is a real error and throws.
+                def report = json.text.trim()
+                def reads_out = report
+                    ? new groovy.json.JsonSlurper().parseText(report)[0].reads_out as long
+                    : 0L
+                // Hostile counts alignment records (`samtools view -F 2304 -c`),
+                // so for paired-end input reads_out is twice the number of pairs.
+                [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
+            }
+
+        ch_gated = HOSTILE_CLEAN.out.fastq
+            .map { meta, reads -> [meta.id, meta, reads] }
+            .join(ch_read_counts)
+            .branch { id, meta, reads, count ->
+                downsample: count > params.max_reads
+                    return [meta, reads]
+                keep: true
+                    return [meta, reads]
+            }
+
+        FADSO (
+            ch_gated.downsample,
+            params.max_reads,
+            params.downsample_seed
+        )
+
+        ch_clean_reads = ch_gated.keep.mix(FADSO.out.reads)
+    }
+    else {
+        ch_clean_reads = HOSTILE_CLEAN.out.fastq
+    }
 
     //
     // Collate and save software versions
