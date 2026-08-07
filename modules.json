@@ -7,12 +7,12 @@
                 "amd-ph-core": {
                     "fadso": {
                         "branch": "main",
-                        "git_sha": "6c06b879926314ba2f970776456ac792ffdee4c1",
+                        "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
                         "installed_by": ["modules"]
                     },
                     "falco": {
                         "branch": "main",
-                        "git_sha": "fff24d3fc7597bcf48cfe21a17fb02a06b918c35",
+                        "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
                         "installed_by": ["modules"]
                     }
                 }

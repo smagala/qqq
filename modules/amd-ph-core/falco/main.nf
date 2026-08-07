@@ -3,7 +3,9 @@ process FALCO {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container 'cdc-amd/falco:1.2.5_e65d786_v1'
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/falco:1.2.5--h077b44d_0'
+        : 'biocontainers/falco:1.2.5--h077b44d_0'}"
 
     input:
     tuple val(meta), path(reads)
