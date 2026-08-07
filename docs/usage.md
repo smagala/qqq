@@ -4,7 +4,61 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+qqq takes paired-end Illumina reads, records their quality with Falco, removes host
+reads with Hostile, and aggregates the result into a single MultiQC report. It can
+optionally cap the depth of the dehosted output.
+
+### Running on AMDP
+
+Pipeline configuration (container tags, the Hostile index location, resource labels)
+lives in [oamd-bio-nf-configs](https://github.com/cdcent/oamd-bio-nf-configs) rather
+than in this repository, and is loaded at runtime:
+
+```bash
+export NF_PIPELINE_REPO=oamd-bio-qqq          # selects conf/pipeline/oamd-bio-qqq/
+export NF_CONFIGS_REPO=/abs/path/to/oamd-bio-nf-configs
+export AWS_PROFILE=<profile for the target tier>
+
+nextflow -c "$NF_CONFIGS_REPO/conf/pipeline/custom.config" \
+  run cdcent/oamd-bio-qqq \
+  -profile prdanalysis \
+  --input samplesheet.csv \
+  --outdir s3://<bucket>/<prefix>
+```
+
+Three things about those variables are easy to get wrong, and none of them fail
+loudly on their own:
+
+- **`NF_PIPELINE_REPO` has no safe default.** Unset, it falls back to
+  `oamd-bio-ph-core`, which silently selects that pipeline's configuration and
+  sends `workDir` to `s3://amdp-<tier>-bio-development-work/oamd-bio-ph-core/`.
+- **`NF_CONFIGS_REPO` must be an absolute path.** It is interpolated into
+  `includeConfig`, which resolves relative paths against the config file's own
+  directory rather than your working directory, producing a doubled path.
+- **The checkout it points at must contain `conf/pipeline/oamd-bio-qqq/`.** If it
+  does not, the configs are skipped without error and the run reaches Hostile with
+  no reference index.
+
+`run-qqq-prda.sh` in the parent directory of a standard checkout sets all three
+correctly for the prd-analysis tier.
+
+### Dehosting reference
+
+`--hostile_db` must point at the directory that *contains the index files
+themselves* (`<index>.*.bt2`), not at its parent. `--hostile_index` is the index
+name, which is also the basename of those files.
+
+Alternatively `--hostile_fasta` builds an index from a FASTA at runtime. That is
+what the test profiles use, and it means no prebuilt index has to be hosted for
+testing.
+
+### Downsampling
+
+`--max_reads` caps how many reads (single-end) or read pairs (paired-end) each
+sample keeps after dehosting; `--downsample_seed` (default `42`) makes the
+sampling reproducible. Only samples above the cap are downsampled, and the
+decision reuses the read counts Hostile already reports. Leave it unset to
+disable the step entirely.
 
 ## Samplesheet input
 

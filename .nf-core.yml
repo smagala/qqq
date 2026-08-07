@@ -23,6 +23,11 @@ lint:
   multiqc_config:
     - report_comment
   files_exist:
+    # This pipeline uses no reference genomes, so the iGenomes machinery was
+    # removed. Its schema validation also stat-ed s3://ngi-igenomes/, which the
+    # AMDP credentials cannot read, blocking every run.
+    - conf/igenomes.config
+    - conf/igenomes_ignored.config
     - CODE_OF_CONDUCT.md
     - assets/nf-core-oamd-bio-qqq_logo_light.png
     - docs/images/nf-core-oamd-bio-qqq_logo_light.png
