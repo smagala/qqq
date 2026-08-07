@@ -19,31 +19,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_qqq_
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    NAMED WORKFLOWS FOR PIPELINE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-//
-// WORKFLOW: Run main analysis pipeline depending on type of input
-//
-workflow CDCENT_QQQ {
-
-    take:
-    samplesheet // channel: samplesheet read in from --input
-
-    main:
-
-    //
-    // WORKFLOW: Run pipeline
-    //
-    QQQ (
-        samplesheet
-    )
-    emit:
-    multiqc_report = QQQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-}
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -69,7 +44,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    CDCENT_QQQ (
+    QQQ (
         PIPELINE_INITIALISATION.out.samplesheet
     )
     //
@@ -81,7 +56,7 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        CDCENT_QQQ.out.multiqc_report
+        QQQ.out.multiqc_report
     )
 }
 
