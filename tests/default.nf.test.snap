@@ -122,19 +122,13 @@
                 "genome.rev.1.bt2:md5,52be6950579598a990570fbcf5372184",
                 "genome.rev.2.bt2:md5,e3b4ef343dea4dd571642010a7d09597",
                 "test2_1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
-                "test2_1_fastqc_report.html:md5,dcda32b0d29ce9b863c4a96e1aaebdaf",
                 "test2_1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
                 "test2_2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
-                "test2_2_fastqc_report.html:md5,d9069f7f85f5f68371d51e3f672ec164",
                 "test2_2_summary.txt:md5,5d147910524a0203415267731b691bf7",
                 "test_1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
-                "test_1_fastqc_report.html:md5,bebdbab286d8707ba93f394e18ea13b0",
                 "test_1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
                 "test_2_fastqc_data.txt:md5,daad784a9237a9987dd43b1444a4524f",
-                "test_2_fastqc_report.html:md5,de124cbbbfe94fa6131862f5cdb876b2",
                 "test_2_summary.txt:md5,3fd2c2b8925809d2da9352c3b3cd0ace",
-                "test.json:md5,9516fc4b95acdf22163ccfd5902e5129",
-                "test2.json:md5,2eb01fee1a6506e3130c3e5343a91cee",
                 "test2_1.clean_1.fastq.gz:md5,78b566f63fbd4e4c29902c6217993e03",
                 "test2_2.clean_2.fastq.gz:md5,641919946a0e572ca7483f6e54476f3b",
                 "test_1.clean_1.fastq.gz:md5,6de988b85909e6529bad0022703bcab2",
@@ -152,11 +146,10 @@
                 "he_reads_plots.txt:md5,9518d64d9e95f4a88476a6f56859bbaf",
                 "multiqc_citations.txt:md5,7799f7f18ad862ce3c9d66ec358a7b34",
                 "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
-                "multiqc_general_stats.txt:md5,c67844827c6f92e62ff4bbf884de22c7",
-                "multiqc_hostile.txt:md5,11e844d7d15c7d76b370dcd1e95d5a1d"
+                "multiqc_general_stats.txt:md5,c67844827c6f92e62ff4bbf884de22c7"
             ]
         ],
-        "timestamp": "2026-08-07T10:47:31.523225929",
+        "timestamp": "2026-08-07T11:23:23.536427572",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
