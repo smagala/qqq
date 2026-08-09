@@ -134,6 +134,14 @@
                     "description": "Random seed for read downsampling, fixed for reproducibility.",
                     "help_text": "Seed passed to fadso so downsampling is deterministic across runs. Only used when max_reads is set.",
                     "fa_icon": "fas fa-dice"
+                },
+                "hostile_large_input_bytes": {
+                    "type": "integer",
+                    "default": 1000000000,
+                    "minimum": 0,
+                    "description": "Total read bytes above which a sample is dehosted by the larger-resourced HOSTILE_CLEAN copy.",
+                    "help_text": "Hostile's peak memory plateaus rather than tracking input size: samples spanning 15-22 GB of R1 all peaked at the same 43.6 GB, while samples under 100 MB peaked under 5 GB. Samples are therefore routed to one of two resource tiers rather than given a size-scaled allocation. Resources for each tier are set on HOSTILE_CLEAN_SMALL and HOSTILE_CLEAN_LARGE in the pipeline config.",
+                    "fa_icon": "fas fa-balance-scale"
                 }
             }
         },

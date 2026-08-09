@@ -6,7 +6,8 @@
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
-include { HOSTILE_CLEAN          } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -79,11 +80,34 @@ workflow QQQ {
         ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
     }
 
-    HOSTILE_CLEAN (
-        ch_reads,
+    // Hostile's peak memory plateaus rather than tracking input size: measured
+    // on prd-analysis, three samples spanning 15-22 GB of R1 all peaked at
+    // 43.6 GB, while samples under 100 MB peaked under 5 GB. A single
+    // allocation therefore either starves the large samples or wastes tens of
+    // GB on the small ones, and on a typical samplesheet most samples are
+    // small.
+    //
+    // So route by input size to two aliases of the same module. Resources are
+    // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
+    // the module itself is untouched.
+    ch_sized = ch_reads.branch { meta, reads ->
+        large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
+        small: true
+    }
+
+    HOSTILE_CLEAN_SMALL (
+        ch_sized.small,
         ch_hostile_ref
     )
-    ch_multiqc_files = ch_multiqc_files.mix(HOSTILE_CLEAN.out.json.collect { meta, json -> json })
+    HOSTILE_CLEAN_LARGE (
+        ch_sized.large,
+        ch_hostile_ref
+    )
+
+    ch_hostile_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
+    ch_hostile_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+
+    ch_multiqc_files = ch_multiqc_files.mix(ch_hostile_json.collect { meta, json -> json })
 
     //
     // MODULE: Fadso — cap depth of the dehosted reads (optional)
@@ -94,7 +118,7 @@ workflow QQQ {
     // Disabled when params.max_reads is null or 0.
     //
     if (params.max_reads) {
-        ch_read_counts = HOSTILE_CLEAN.out.json
+        ch_read_counts = ch_hostile_json
             .map { meta, json ->
                 // HOSTILE_CLEAN's stub emits an empty report. Treat that as
                 // "under the cap" so -stub-run still exercises this path; a
@@ -108,7 +132,7 @@ workflow QQQ {
                 [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
-        ch_gated = HOSTILE_CLEAN.out.fastq
+        ch_gated = ch_hostile_fastq
             .map { meta, reads -> [meta.id, meta, reads] }
             .join(ch_read_counts)
             .branch { id, meta, reads, count ->
@@ -127,7 +151,7 @@ workflow QQQ {
         ch_clean_reads = ch_gated.keep.mix(FADSO.out.reads)
     }
     else {
-        ch_clean_reads = HOSTILE_CLEAN.out.fastq
+        ch_clean_reads = ch_hostile_fastq
     }
 
     //
@@ -149,7 +173,10 @@ workflow QQQ {
 
     def topic_versions_string = topic_versions.versions_tuple
         .map { process, tool, version ->
-            [process[process.lastIndexOf(':') + 1..-1], "  ${tool}: ${version}"]
+            // Strip the size-tier suffix so the two HOSTILE_CLEAN aliases report
+            // one hostile version rather than two identical ones.
+            def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)$/, '')
+            [name, "  ${tool}: ${version}"]
         }
         .groupTuple(by: 0)
         .map { process, tool_versions ->
