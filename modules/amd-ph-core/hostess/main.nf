@@ -2,11 +2,15 @@ process HOSTESS {
     tag "${meta.id}"
     label 'process_medium'
 
-    // hostess needs bowtie2, minimap2 and samtools, all of which the published
-    // hostile image already carries, plus Python standard library only. There
-    // is no hostess image yet, so this pins the internal build that adds the
-    // hostess entry point to that same base.
-    container 'oamd-bio-hostess:0.1.0_9890e5d_v0'
+    // hostess ships inside the hostile image rather than one of its own. It
+    // needs bowtie2, minimap2 and samtools, which that image already carries,
+    // and no third-party Python packages, so it adds well under a megabyte;
+    // a separate image would only duplicate the aligners.
+    //
+    // No public image exists: hostess has no conda package and no BioContainer.
+    // Consumers override the registry and the exact tag via their own config,
+    // as with the other AMDP images.
+    container 'oamd-bio-hostile:2.0.2'
 
     input:
     tuple val(meta), path(reads, stageAs: "input_reads/")

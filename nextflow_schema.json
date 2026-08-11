@@ -145,13 +145,14 @@
                 },
                 "dehoster": {
                     "type": "string",
-                    "default": "hostile",
+                    "default": "hostess",
                     "enum": [
+                        "hostess",
                         "hostile",
-                        "hostess"
+                        "none"
                     ],
-                    "description": "Which host-removal implementation to run.",
-                    "help_text": "hostile is the default. hostess applies the same method - align against the host index, keep what aligns to nothing - but reads the alignment stream once instead of duplicating it, so it can write the removed reads out as a sorted BAM. Producing the same artefacts it measured 2.4x faster than running hostile twice and realigning.",
+                    "description": "Which host-removal implementation to run, or none to skip host removal.",
+                    "help_text": "hostess is the default. It applies the same method as hostile - align against the host index, keep what aligns to nothing - but reads the alignment stream once instead of duplicating it, so it can write the removed reads out as a sorted BAM. Producing the same artefacts it measured 2.4x faster than running hostile twice and realigning.\n\nnone skips host removal entirely, reducing the pipeline to optional BAM-to-FASTQ conversion, falco read QC, and multiqc. No host index is required in that case, so hostile_db and hostile_fasta are ignored.",
                     "fa_icon": "fas fa-exchange-alt"
                 },
                 "host_bam": {

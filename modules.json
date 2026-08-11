@@ -17,7 +17,7 @@
                     },
                     "hostess": {
                         "branch": "feat/add-hostess",
-                        "git_sha": "52e2a5cb49f926309dbad904764c585222319b44",
+                        "git_sha": "6842a662d4c8f72ff82e0afdb22002340fcc662b",
                         "installed_by": ["modules"]
                     }
                 }

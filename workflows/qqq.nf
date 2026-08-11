@@ -49,126 +49,148 @@ workflow QQQ {
     ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { meta, txt -> txt })
 
     //
-    // MODULE: Hostile clean — dehost reads
+    // Read removal
     //
-    // A prebuilt index is the normal case. --hostile_fasta builds one instead,
-    // which is what the test profiles use: a bowtie2 index is ~8 MB even for a
-    // tiny genome, so building it is cheaper than hosting one as test data.
-    if (params.hostile_fasta) {
-        def hostile_fasta = file(params.hostile_fasta, checkIfExists: true)
-        BOWTIE2_BUILD (
-            channel.value([[id: hostile_fasta.baseName], hostile_fasta])
-        )
-        // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
-        // so the index name hostile is given must match that basename.
-        // Already a value channel, since BOWTIE2_BUILD's input is one.
-        ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
+    // --dehoster selects the implementation, or turns the step off entirely.
+    // With 'none' the pipeline reduces to its minimum: optional bam2fq
+    // conversion, falco, and multiqc. Nothing below this point needs a host
+    // index in that case, so index resolution is inside the branch — asking for
+    // one when no alignment will happen is how this used to fail.
+    if (params.dehoster == 'none') {
+        ch_dehosted_fastq = ch_reads
+        ch_dehosted_json  = channel.empty()
+        ch_host_bam       = channel.empty()
+        ch_host_bai       = channel.empty()
     }
     else {
-        // Without this, a missing hostile_db surfaces as "Argument of `file()`
-        // function cannot be null", which says nothing about the actual cause:
-        // the pipeline configs from oamd-bio-nf-configs were not loaded.
-        if (!params.hostile_db) {
-            error(
-                "hostile_db is not set, so there is no reference index to dehost against.\n\n" +
-                "  Pass --hostile_db, or let oamd-bio-nf-configs supply it. For the latter,\n" +
-                "  both of these must be set, and neither has a safe default:\n" +
-                "    NF_PIPELINE_REPO=oamd-bio-qqq   (otherwise it falls back to oamd-bio-ph-core,\n" +
-                "                                     loading that pipeline's configs and workDir)\n" +
-                "    NF_CONFIGS_REPO=<checkout containing conf/pipeline/oamd-bio-qqq/>\n\n" +
-                "  See run-qqq-prda.sh, which sets both."
+        // A prebuilt index is the normal case. --hostile_fasta builds one instead,
+        // which is what the test profiles use: a bowtie2 index is ~8 MB even for a
+        // tiny genome, so building it is cheaper than hosting one as test data.
+        if (params.hostile_fasta) {
+            def hostile_fasta = file(params.hostile_fasta, checkIfExists: true)
+            BOWTIE2_BUILD (
+                channel.value([[id: hostile_fasta.baseName], hostile_fasta])
+            )
+            // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
+            // so the index name hostile is given must match that basename.
+            // Already a value channel, since BOWTIE2_BUILD's input is one.
+            ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
+        }
+        else {
+            // Without this, a missing hostile_db surfaces as "Argument of `file()`
+            // function cannot be null", which says nothing about the actual cause:
+            // the pipeline configs from oamd-bio-nf-configs were not loaded.
+            if (!params.hostile_db) {
+                error(
+                    "hostile_db is not set, so there is no reference index to dehost against.\n\n" +
+                    "  Pass --hostile_db, or let oamd-bio-nf-configs supply it. For the latter,\n" +
+                    "  both of these must be set, and neither has a safe default:\n" +
+                    "    NF_PIPELINE_REPO=oamd-bio-qqq   (otherwise it falls back to oamd-bio-ph-core,\n" +
+                    "                                     loading that pipeline's configs and workDir)\n" +
+                    "    NF_CONFIGS_REPO=<checkout containing conf/pipeline/oamd-bio-qqq/>\n\n" +
+                    "  See run-qqq-prda.sh, which sets both."
+                )
+            }
+            ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+        }
+
+        // Hostile's peak memory plateaus rather than tracking input size: measured
+        // on prd-analysis, three samples spanning 15-22 GB of R1 all peaked at
+        // 43.6 GB, while samples under 100 MB peaked under 5 GB. A single
+        // allocation therefore either starves the large samples or wastes tens of
+        // GB on the small ones, and on a typical samplesheet most samples are
+        // small.
+        //
+        // So route by input size to two aliases of the same module. Resources are
+        // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
+        // the module itself is untouched.
+        ch_sized = ch_reads.branch { meta, reads ->
+            large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
+            small: true
+        }
+
+        // hostess is the default: it removes host reads in one alignment pass and
+        // can keep the removed reads as a sorted BAM, which hostile cannot do
+        // without a second pass. --host_bam only has an effect with hostess.
+        if (params.dehoster == 'hostess') {
+            HOSTESS_SMALL (
+                ch_sized.small,
+                ch_hostile_ref
+            )
+            HOSTESS_LARGE (
+                ch_sized.large,
+                ch_hostile_ref
+            )
+            ch_dehosted_fastq = HOSTESS_SMALL.out.fastq.mix(HOSTESS_LARGE.out.fastq)
+            ch_dehosted_json = HOSTESS_SMALL.out.json.mix(HOSTESS_LARGE.out.json)
+
+            // Only produced when --host_bam is set; the module declares them
+            // optional, so these channels are simply empty otherwise.
+            ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
+            ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
+
+            // samtools stats and flagstat are parsed by MultiQC's samtools module
+            // with no configuration, so they go straight into the report.
+            ch_multiqc_files = ch_multiqc_files.mix(
+                HOSTESS_SMALL.out.flagstat.mix(HOSTESS_LARGE.out.flagstat).collect { meta, file -> file }.ifEmpty([])
+            )
+            ch_multiqc_files = ch_multiqc_files.mix(
+                HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
             )
         }
-        ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+        else {
+            HOSTILE_CLEAN_SMALL (
+                ch_sized.small,
+                ch_hostile_ref
+            )
+            HOSTILE_CLEAN_LARGE (
+                ch_sized.large,
+                ch_hostile_ref
+            )
+            ch_dehosted_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
+            ch_dehosted_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+            ch_host_bam = channel.empty()
+            ch_host_bai = channel.empty()
+        }
     }
 
-    // Hostile's peak memory plateaus rather than tracking input size: measured
-    // on prd-analysis, three samples spanning 15-22 GB of R1 all peaked at
-    // 43.6 GB, while samples under 100 MB peaked under 5 GB. A single
-    // allocation therefore either starves the large samples or wastes tens of
-    // GB on the small ones, and on a typical samplesheet most samples are
-    // small.
-    //
-    // So route by input size to two aliases of the same module. Resources are
-    // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
-    // the module itself is untouched.
-    ch_sized = ch_reads.branch { meta, reads ->
-        large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
-        small: true
-    }
-
-    // --dehoster selects the implementation. hostess removes host reads in one
-    // alignment pass and can keep the removed reads as a sorted BAM, which
-    // hostile cannot do without a second pass. Both take the same inputs and
-    // emit the same fastq and json channels, so everything downstream is
-    // unchanged; --host_bam only has an effect with hostess.
-    if (params.dehoster == 'hostess') {
-        HOSTESS_SMALL (
-            ch_sized.small,
-            ch_hostile_ref
-        )
-        HOSTESS_LARGE (
-            ch_sized.large,
-            ch_hostile_ref
-        )
-        ch_hostile_fastq = HOSTESS_SMALL.out.fastq.mix(HOSTESS_LARGE.out.fastq)
-        ch_hostile_json = HOSTESS_SMALL.out.json.mix(HOSTESS_LARGE.out.json)
-
-        // Only produced when --host_bam is set; the module declares them
-        // optional, so these channels are simply empty otherwise.
-        ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
-        ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
-
-        // samtools stats and flagstat are parsed by MultiQC's samtools module
-        // with no configuration, so they go straight into the report.
-        ch_multiqc_files = ch_multiqc_files.mix(
-            HOSTESS_SMALL.out.flagstat.mix(HOSTESS_LARGE.out.flagstat).collect { meta, file -> file }.ifEmpty([])
-        )
-        ch_multiqc_files = ch_multiqc_files.mix(
-            HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
-        )
-    }
-    else {
-        HOSTILE_CLEAN_SMALL (
-            ch_sized.small,
-            ch_hostile_ref
-        )
-        HOSTILE_CLEAN_LARGE (
-            ch_sized.large,
-            ch_hostile_ref
-        )
-        ch_hostile_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
-        ch_hostile_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
-        ch_host_bam = channel.empty()
-        ch_host_bai = channel.empty()
-    }
-
-    ch_multiqc_files = ch_multiqc_files.mix(ch_hostile_json.collect { meta, json -> json })
+    ch_multiqc_files = ch_multiqc_files.mix(ch_dehosted_json.collect { meta, json -> json }.ifEmpty([]))
 
     //
     // MODULE: Fadso — cap depth of the dehosted reads (optional)
     //
-    // Gated per sample on HOSTILE_CLEAN's own read count, so no extra pass over
-    // the FASTQs is needed. Only samples above the cap are routed to FADSO;
-    // everything else bypasses the module entirely and is merged back after.
-    // Disabled when params.max_reads is null or 0.
+    // Disabled when params.max_reads is null or 0, which is the default.
     //
-    if (params.max_reads) {
-        ch_read_counts = ch_hostile_json
+    if (params.max_reads && params.dehoster == 'none') {
+        // No dehoster means no read count to gate on, so every sample is routed
+        // through fadso. Samples already under the cap come out unchanged, so
+        // this costs a pass over the FASTQs rather than changing the result.
+        FADSO (
+            ch_dehosted_fastq,
+            params.max_reads,
+            params.downsample_seed
+        )
+        ch_clean_reads = FADSO.out.reads
+    }
+    else if (params.max_reads) {
+        // Gated per sample on the dehoster's own read count, so no extra pass
+        // over the FASTQs is needed. Only samples above the cap are routed to
+        // FADSO; everything else bypasses the module and is merged back after.
+        ch_read_counts = ch_dehosted_json
             .map { meta, json ->
-                // HOSTILE_CLEAN's stub emits an empty report. Treat that as
-                // "under the cap" so -stub-run still exercises this path; a
-                // non-empty but malformed report is a real error and throws.
+                // The dehoster stubs emit an empty report. Treat that as "under
+                // the cap" so -stub-run still exercises this path; a non-empty
+                // but malformed report is a real error and throws.
                 def report = json.text.trim()
                 def reads_out = report
                     ? new groovy.json.JsonSlurper().parseText(report)[0].reads_out as long
                     : 0L
-                // Hostile counts alignment records (`samtools view -F 2304 -c`),
-                // so for paired-end input reads_out is twice the number of pairs.
+                // Both dehosters count alignment records, so for paired-end
+                // input reads_out is twice the number of pairs.
                 [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
-        ch_gated = ch_hostile_fastq
+        ch_gated = ch_dehosted_fastq
             .map { meta, reads -> [meta.id, meta, reads] }
             .join(ch_read_counts)
             .branch { id, meta, reads, count ->
@@ -187,7 +209,7 @@ workflow QQQ {
         ch_clean_reads = ch_gated.keep.mix(FADSO.out.reads)
     }
     else {
-        ch_clean_reads = ch_hostile_fastq
+        ch_clean_reads = ch_dehosted_fastq
     }
 
     //
@@ -209,8 +231,8 @@ workflow QQQ {
 
     def topic_versions_string = topic_versions.versions_tuple
         .map { process, tool, version ->
-            // Strip the size-tier suffix so the two HOSTILE_CLEAN aliases report
-            // one hostile version rather than two identical ones.
+            // Strip the size-tier suffix so the two dehoster aliases report one
+            // version rather than two identical ones.
             def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)$/, '')
             [name, "  ${tool}: ${version}"]
         }
