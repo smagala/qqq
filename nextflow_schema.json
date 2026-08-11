@@ -157,8 +157,9 @@
                 },
                 "host_bam": {
                     "type": "boolean",
+                    "default": true,
                     "description": "Keep the removed host reads as a coordinate-sorted, indexed BAM.",
-                    "help_text": "Requires dehoster = hostess and has no effect otherwise, since hostile discards the host reads and can only recover them with a second alignment pass. The BAM loads directly in IGV against the host reference, so an over-aggressive index can be seen rather than inferred from counts.",
+                    "help_text": "On by default. Requires dehoster = hostess and has no effect otherwise, since hostile discards the host reads and can only recover them with a second alignment pass. The BAM loads directly in IGV against the host reference, so an over-aggressive index can be seen rather than inferred from counts. Set false to skip it, along with the samtools flagstat and stats taken over it.",
                     "fa_icon": "fas fa-file-medical-alt"
                 }
             }
