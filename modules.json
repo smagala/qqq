@@ -14,6 +14,11 @@
                         "branch": "main",
                         "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
                         "installed_by": ["modules"]
+                    },
+                    "hostess": {
+                        "branch": "feat/add-hostess",
+                        "git_sha": "52e2a5cb49f926309dbad904764c585222319b44",
+                        "installed_by": ["modules"]
                     }
                 }
             }

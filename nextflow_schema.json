@@ -142,6 +142,23 @@
                     "description": "Total read bytes above which a sample is dehosted by the larger-resourced HOSTILE_CLEAN copy.",
                     "help_text": "Hostile's peak memory plateaus rather than tracking input size: samples spanning 15-22 GB of R1 all peaked at the same 43.6 GB, while samples under 100 MB peaked under 5 GB. Samples are therefore routed to one of two resource tiers rather than given a size-scaled allocation. Resources for each tier are set on HOSTILE_CLEAN_SMALL and HOSTILE_CLEAN_LARGE in the pipeline config.",
                     "fa_icon": "fas fa-balance-scale"
+                },
+                "dehoster": {
+                    "type": "string",
+                    "default": "hostile",
+                    "enum": [
+                        "hostile",
+                        "hostess"
+                    ],
+                    "description": "Which host-removal implementation to run.",
+                    "help_text": "hostile is the default. hostess applies the same method - align against the host index, keep what aligns to nothing - but reads the alignment stream once instead of duplicating it, so it can write the removed reads out as a sorted BAM. Producing the same artefacts it measured 2.4x faster than running hostile twice and realigning.",
+                    "fa_icon": "fas fa-exchange-alt"
+                },
+                "host_bam": {
+                    "type": "boolean",
+                    "description": "Keep the removed host reads as a coordinate-sorted, indexed BAM.",
+                    "help_text": "Requires dehoster = hostess and has no effect otherwise, since hostile discards the host reads and can only recover them with a second alignment pass. The BAM loads directly in IGV against the host reference, so an over-aggressive index can be seen rather than inferred from counts.",
+                    "fa_icon": "fas fa-file-medical-alt"
                 }
             }
         },

@@ -6,6 +6,8 @@
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
+include { HOSTESS as HOSTESS_SMALL             } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_LARGE             } from '../modules/amd-ph-core/hostess/main'
 include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
 include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
@@ -95,17 +97,51 @@ workflow QQQ {
         small: true
     }
 
-    HOSTILE_CLEAN_SMALL (
-        ch_sized.small,
-        ch_hostile_ref
-    )
-    HOSTILE_CLEAN_LARGE (
-        ch_sized.large,
-        ch_hostile_ref
-    )
+    // --dehoster selects the implementation. hostess removes host reads in one
+    // alignment pass and can keep the removed reads as a sorted BAM, which
+    // hostile cannot do without a second pass. Both take the same inputs and
+    // emit the same fastq and json channels, so everything downstream is
+    // unchanged; --host_bam only has an effect with hostess.
+    if (params.dehoster == 'hostess') {
+        HOSTESS_SMALL (
+            ch_sized.small,
+            ch_hostile_ref
+        )
+        HOSTESS_LARGE (
+            ch_sized.large,
+            ch_hostile_ref
+        )
+        ch_hostile_fastq = HOSTESS_SMALL.out.fastq.mix(HOSTESS_LARGE.out.fastq)
+        ch_hostile_json = HOSTESS_SMALL.out.json.mix(HOSTESS_LARGE.out.json)
 
-    ch_hostile_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
-    ch_hostile_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+        // Only produced when --host_bam is set; the module declares them
+        // optional, so these channels are simply empty otherwise.
+        ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
+        ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
+
+        // samtools stats and flagstat are parsed by MultiQC's samtools module
+        // with no configuration, so they go straight into the report.
+        ch_multiqc_files = ch_multiqc_files.mix(
+            HOSTESS_SMALL.out.flagstat.mix(HOSTESS_LARGE.out.flagstat).collect { meta, file -> file }.ifEmpty([])
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(
+            HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
+        )
+    }
+    else {
+        HOSTILE_CLEAN_SMALL (
+            ch_sized.small,
+            ch_hostile_ref
+        )
+        HOSTILE_CLEAN_LARGE (
+            ch_sized.large,
+            ch_hostile_ref
+        )
+        ch_hostile_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
+        ch_hostile_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+        ch_host_bam = channel.empty()
+        ch_host_bai = channel.empty()
+    }
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_hostile_json.collect { meta, json -> json })
 
@@ -242,6 +278,8 @@ workflow QQQ {
     )
 
     emit:
+    host_bam       = ch_host_bam                                      // channel: [ val(meta), path(bam) ]
+    host_bai       = ch_host_bai                                      // channel: [ val(meta), path(bai) ]
     clean_reads    = ch_clean_reads                                   // channel: [ val(meta), path(fastq) ]
     multiqc_report = MULTIQC.out.report.map { meta, report -> report } // channel: /path/to/multiqc_report.html
 
