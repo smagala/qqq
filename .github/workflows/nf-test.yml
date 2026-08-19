@@ -76,6 +76,7 @@ jobs:
           - isMain: false
             profile: "conda"
         NXF_VER:
+          - "25.04.8"
           - "25.10.4"
           - "26.04.0"
           - "latest-everything"
