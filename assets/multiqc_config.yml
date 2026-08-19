@@ -37,10 +37,16 @@ disable_version_detection: true
 # there is no host BAM, and without --host_bam hostess does not write one.
 # Single-end input needs none of them, since falco emits one row per sample
 # under the sample's own name already.
+# ".deacon" is here for the same reason as ".host". MultiQC takes the sample
+# name from the filename, and the report is <sample>.deacon.json, so its Deacon
+# data lands on a row called <sample>.deacon. The Hostile module needs no
+# equivalent: it contributes no General Statistics columns, so a hostile or
+# hostess run never creates a row of its own to merge back.
 table_sample_merge:
   "R1": "_R1"
   "R2": "_R2"
   "Host": ".host"
+  "Deacon": ".deacon"
 
 # The host BAM holds only the reads the dehoster pulled out, so most of what
 # samtools reports about it is a statement about the extraction rather than

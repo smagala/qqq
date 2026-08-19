@@ -293,10 +293,10 @@
                 "fastqc_sequence_length_distribution_plot.txt:md5,80d56b9a8e90cffc19e6af4e5bfed3a2",
                 "multiqc_citations.txt:md5,b2cef7032b87dbfe16638cd4b0d23e0c",
                 "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
-                "multiqc_general_stats.txt:md5,c17e10eb83724243aaa3f4eb4ec431fb"
+                "multiqc_general_stats.txt:md5,0bd5487de62c581e7b23d179b438ab60"
             ]
         ],
-        "timestamp": "2026-08-19T15:33:12.088730297",
+        "timestamp": "2026-08-19T16:01:28.335470126",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
