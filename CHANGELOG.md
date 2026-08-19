@@ -12,6 +12,13 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 - Optional read downsampling after dehosting with `fadso`, controlled by `--max_reads` and `--downsample_seed`. Only samples above the cap are routed to the module; the decision reuses the read counts Hostile already reports, so nothing makes an extra pass over the FASTQs. Disabled by default. ([AMD-31664](https://cdc-oamd.atlassian.net/browse/AMD-31664))
 - `--hostile_fasta`, which builds the Hostile index at runtime instead of using a prebuilt one. Used by the test profiles so they do not depend on hosted binaries. ([AMD-31686](https://cdc-oamd.atlassian.net/browse/AMD-31686))
 - Falco and Hostile citations in `CITATIONS.md`, replacing FastQC.
+- `Clean reads` and `% Host` columns in the MultiQC General Statistics table, reduced from the dehoster's own JSON into a custom-content file. Both dehosters already report these numbers, but MultiQC's Hostile module renders them only as a stacked bar plot and contributes no columns to the top table, so the headline result of the pipeline was the one number a reviewer had to go looking for.
+
+### `Changed`
+
+- The MultiQC General Statistics table is one row per sample. Falco reports per read file and the host BAM's `samtools stats` reports per sample, so a report previously carried three rows per sample, each filling a different third of the columns. The per-mate values are still there, under the expander on the row.
+- Trimmed the host BAM columns in that table down to what dehosting QC actually turns on. The BAM holds only the reads the dehoster extracted, so `% Mapped`, `% Proper pairs`, error rate, MQ0 and non-primary describe the extraction rather than the sample. `Host reads` and `Mean insert` are kept but hidden; the full detail is unchanged in the Samtools section.
+- `samtools flagstat` is no longer sent to MultiQC. Everything MultiQC took from it duplicated `samtools stats`, at the cost of a second set of General Statistics columns and a redundant report section. The file is still produced and published.
 
 ### `Fixed`
 
@@ -26,14 +33,14 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 
 ### `Dependencies`
 
-| Tool           | Old version | New version |
-| -------------- | ----------- | ----------- |
-| MultiQC        | 1.31        | 1.35        |
-| samtools       | 1.22.1_v9   | 1.22.1_v11  |
-| falco          |             | 1.2.5       |
-| hostile        |             | 2.0.2       |
-| fadso          |             | 20230810    |
-| bowtie2        |             | 2.5.4       |
+| Tool     | Old version | New version |
+| -------- | ----------- | ----------- |
+| MultiQC  | 1.31        | 1.35        |
+| samtools | 1.22.1_v9   | 1.22.1_v11  |
+| falco    |             | 1.2.5       |
+| hostile  |             | 2.0.2       |
+| fadso    |             | 20230810    |
+| bowtie2  |             | 2.5.4       |
 
 - `falco` now comes from the public [amd-ph-core/modules](https://github.com/amd-ph-core/modules) repository rather than the private ph-core one.
 - `hostile/clean`, `samtools/bam2fq` and `multiqc` updated to versions that emit tool versions through the `versions` topic channel. Every module in the pipeline now uses the topic; MultiQC deliberately does not, because its input depends on that topic resolving and emitting to it would deadlock the pipeline.

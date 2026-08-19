@@ -12,3 +12,82 @@ report_section_order:
 export_plots: true
 
 disable_version_detection: true
+
+# The General Statistics table gets its rows from two different things: falco,
+# which reports per read file (<sample>_R1, <sample>_R2), and samtools stats on
+# the host BAM that hostess writes under --host_bam (<sample>.host). Left alone
+# that is three rows per sample, each one filling a different set of columns.
+#
+# Grouping folds all three onto a single row per sample. falco's counts are
+# summed and its percentages weighted-averaged across the mates; clicking the
+# row header expands it to show the individual R1/R2 values again. Only tables
+# are affected, so the per-file traces in the falco plots are unchanged.
+#
+# The mate patterns are the literal _R1/_R2 that AMDP submissions use, and not
+# the looser "[_.][Rr]?1$" that MultiQC's own documentation suggests, because
+# that one also matches the end of a sample name. Sample IDs like
+# negative_control_1 and negative_control_2 are normal here, and under the loose
+# pattern the rows keyed on the ID alone — the host_removal_mqc.tsv ones — were
+# grouped as mates of each other under a sample called negative_control, which
+# left both of their real rows without those columns. Data named _1/_2 instead
+# of _R1/_R2 therefore stays ungrouped: no merge is a cosmetic problem, and the
+# wrong merge is a wrong report.
+#
+# The patterns are harmless when they match nothing: with --dehoster hostile
+# there is no host BAM, and without --host_bam hostess does not write one.
+# Single-end input needs none of them, since falco emits one row per sample
+# under the sample's own name already.
+table_sample_merge:
+  "R1": "_R1"
+  "R2": "_R2"
+  "Host": ".host"
+
+# The host BAM holds only the reads the dehoster pulled out, so most of what
+# samtools reports about it is a statement about the extraction rather than
+# about the sample: "% Mapped" sat between 90 and 100% across a 49-sample run,
+# and error rate, proper pairs, MQ0 and non-primary say nothing about whether
+# dehosting worked.
+#
+# What is left is kept but hidden. Host reads is exact, but it is also exactly
+# the read count the dehoster already reports as removed — the two agreed to the
+# read on every sample of that run — so % Host below carries it. Insert size is
+# the one number here that comes from nothing else, for anyone chasing a
+# fragmentation question. Both are a click away in the column configuration.
+general_stats_columns:
+  falco:
+    columns:
+      total_sequences: {}
+      percent_gc: {}
+      percent_duplicates: {}
+      median_sequence_length: {}
+  samtools:
+    columns:
+      reads_mapped:
+        hidden: true
+      insert_size_average:
+        hidden: true
+
+# The outer key here is the namespace as it is displayed in the table, not the
+# module name that general_stats_columns takes. "Custom content: Dehost" is the
+# host_removal_mqc.tsv the workflow writes from the dehoster's own JSON; MultiQC
+# always prefixes a custom-content namespace with the module name.
+table_columns_name:
+  "Falco":
+    total_sequences: "Input reads"
+  "Samtools: stats":
+    reads_mapped: "Host reads"
+
+# Reads in, reads out, how much of the difference was host — then the read-level
+# QC, then the hidden host BAM columns.
+table_columns_placement:
+  "Falco":
+    total_sequences: 100
+    percent_gc: 400
+    percent_duplicates: 410
+    median_sequence_length: 420
+  "Custom content: Dehost":
+    clean_reads: 110
+    pct_host: 120
+  "Samtools: stats":
+    reads_mapped: 200
+    insert_size_average: 210

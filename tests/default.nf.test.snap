@@ -146,10 +146,10 @@
                 "he_reads_plots.txt:md5,9518d64d9e95f4a88476a6f56859bbaf",
                 "multiqc_citations.txt:md5,7799f7f18ad862ce3c9d66ec358a7b34",
                 "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
-                "multiqc_general_stats.txt:md5,c67844827c6f92e62ff4bbf884de22c7"
+                "multiqc_general_stats.txt:md5,fd7a480c98607ffd1f7354832eb9492d"
             ]
         ],
-        "timestamp": "2026-08-07T11:23:23.536427572",
+        "timestamp": "2026-08-12T23:55:14.884504643",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"

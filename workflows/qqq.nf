@@ -129,11 +129,15 @@ workflow QQQ {
             ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
             ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
 
-            // samtools stats and flagstat are parsed by MultiQC's samtools module
-            // with no configuration, so they go straight into the report.
-            ch_multiqc_files = ch_multiqc_files.mix(
-                HOSTESS_SMALL.out.flagstat.mix(HOSTESS_LARGE.out.flagstat).collect { meta, file -> file }.ifEmpty([])
-            )
+            // samtools stats is parsed by MultiQC's samtools module with no
+            // configuration, so it goes straight into the report.
+            //
+            // flagstat is deliberately not sent. Everything MultiQC takes from it
+            // duplicates stats — its "Reads mapped" was the same number as the one
+            // from stats for every sample of a 49-sample run — so it bought a
+            // second set of General Statistics columns and a redundant report
+            // section. The file is still produced and published for anyone who
+            // wants it.
             ch_multiqc_files = ch_multiqc_files.mix(
                 HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
             )
@@ -155,6 +159,45 @@ workflow QQQ {
     }
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_dehosted_json.collect { meta, json -> json }.ifEmpty([]))
+
+    // Both dehosters write the same JSON, and MultiQC's hostile module turns it
+    // into a stacked bar plot. That plot is the only place the report says how
+    // much of a sample was host: the module adds no columns to the General
+    // Statistics table, and no MultiQC config can make it, so the number a
+    // reviewer looks for first is the one they have to go hunting for.
+    //
+    // Reduce the same JSON to a MultiQC custom-content file to put it on the
+    // sample's own row. The `_mqc.tsv` suffix is what makes MultiQC pick the file
+    // up, and `plot_type: generalstats` in the header sends it to the top table
+    // instead of a section of its own. The first column is meta.id, which is what
+    // assets/multiqc_config.yml collapses the per-mate falco rows down to, so
+    // these values join the existing row rather than adding another one.
+    //
+    // The JSON is parsed here rather than in a process because it is three fields
+    // out of a few hundred bytes; a process would need a container and a task per
+    // sample to do the same thing.
+    ch_multiqc_files = ch_multiqc_files.mix(
+        ch_dehosted_json
+            .map { meta, json -> [meta, json.text.trim()] }
+            // The hostile stub touches an empty report. A stub run has no counts
+            // to put in the table, so it contributes no rows instead of rows of
+            // zeroes, and with every report empty no file is written at all.
+            .filter { meta, report -> report }
+            .map { meta, report ->
+                // Both tools write a single-element array.
+                def summary = new groovy.json.JsonSlurper().parseText(report)[0]
+                // From the counts rather than the tool's own reads_removed_proportion,
+                // which is rounded, and to keep an empty input from dividing by zero.
+                def pct_host = summary.reads_in ? 100.0 * summary.reads_removed / summary.reads_in : 0.0
+                [meta.id, summary.reads_out, String.format('%.4f', pct_host)].join('\t')
+            }
+            .collectFile(
+                name: 'host_removal_mqc.tsv',
+                seed: hostRemovalHeader(),
+                newLine: true,
+                sort: true
+            )
+    )
 
     //
     // MODULE: Fadso — cap depth of the dehosted reads (optional)
@@ -305,6 +348,42 @@ workflow QQQ {
     clean_reads    = ch_clean_reads                                   // channel: [ val(meta), path(fastq) ]
     multiqc_report = MULTIQC.out.report.map { meta, report -> report } // channel: /path/to/multiqc_report.html
 
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+//
+// Header for host_removal_mqc.tsv: the comment block MultiQC reads as custom
+// content configuration, then the column names for the rows the workflow
+// appends. `namespace` is what the General Statistics column configuration
+// groups these two columns under, and MultiQC displays it prefixed with the
+// module name, as "Custom content: Dehost".
+//
+def hostRemovalHeader() {
+    [
+        '# id: "host_removal"',
+        '# plot_type: "generalstats"',
+        '# namespace: "Dehost"',
+        '# pconfig:',
+        '#     - clean_reads:',
+        '#         title: "Clean reads"',
+        '#         description: "Reads remaining after host removal"',
+        '#         shared_key: "read_count"',
+        '#         scale: "BuGn"',
+        '#     - pct_host:',
+        '#         title: "% Host"',
+        '#         description: "Percentage of input reads removed as host"',
+        '#         min: 0',
+        '#         max: 100',
+        '#         suffix: "%"',
+        '#         format: "{:,.2f}"',
+        '#         scale: "OrRd"',
+        ['Sample', 'clean_reads', 'pct_host'].join('\t'),
+    ].join('\n')
 }
 
 /*
