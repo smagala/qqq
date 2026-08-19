@@ -1,6 +1,6 @@
 repository_type: pipeline
 
-nf_core_version: 3.5.1
+nf_core_version: 4.1.0
 
 lint:
   files_unchanged:
@@ -9,7 +9,7 @@ lint:
     - docs/images/nf-core-oamd-bio-qqq_logo_light.png
     - docs/images/nf-core-oamd-bio-qqq_logo_dark.png
     - .github/ISSUE_TEMPLATE/bug_report.yml
-    - .github/CONTRIBUTING.md
+    - docs/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
     - assets/email_template.txt
     # Diverges deliberately: this pipeline ships no logo PNG, so the template's
@@ -42,6 +42,6 @@ template:
   description: OAMD bioinformatics pipeline qqq
   author: OAMD Bioinformatics
   version: 1.0.0dev
-  force: true
-  outdir: /tmp/qqq-pipeline
+  force: false
+  outdir: .
   is_nfcore: false
