@@ -9,6 +9,7 @@ lint:
     - docs/images/nf-core-oamd-bio-qqq_logo_light.png
     - docs/images/nf-core-oamd-bio-qqq_logo_dark.png
     - .github/ISSUE_TEMPLATE/bug_report.yml
+    - .github/ISSUE_TEMPLATE/config.yml
     - docs/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
     # Adds .nf-test*, which the template does not carry: nf-test writes its
