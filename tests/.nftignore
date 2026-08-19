@@ -18,3 +18,11 @@ falco/*_fastqc_report.html
 hostile/*.json
 # Derived from the hostile JSON above, so unstable for the same reason.
 multiqc/multiqc_data/multiqc_hostile.txt
+# Deacon's summary records how long the run took and how fast it went
+# (time, seqs_per_second, bp_per_second), so its content changes every run.
+# Read counts are asserted via the MultiQC custom-content table instead.
+deacon/*.deacon.json
+# Derived from the deacon JSON above, so unstable for the same reason.
+multiqc/multiqc_data/multiqc_deacon.txt
+multiqc/multiqc_data/deacon_statistics_table.txt
+multiqc/multiqc_data/deacon_sequences_removed_vs_kept_plot.txt

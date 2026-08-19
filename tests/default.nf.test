@@ -30,4 +30,37 @@ nextflow_pipeline {
             )
         }
     }
+
+    //
+    // deacon is the default and is what the test profile above covers. This
+    // runs the same data through the aligning path instead, so BOWTIE2_BUILD,
+    // the size-routed HOSTILE_CLEAN tiers and the array-shaped hostile report
+    // keep their coverage now that they are no longer the default. The two
+    // dehosters write their read counts under different names and in different
+    // JSON shapes, and the workflow reduces both to the same two General
+    // Statistics columns — a snapshot of each is what checks that.
+    //
+    test("-profile test, --dehoster hostile") {
+
+        config "tests/hostile.config"
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def stable_path = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
+            def stable_content = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
+            assert workflow.success
+            assertAll(
+                { assert snapshot(
+                    removeNextflowVersion("$outputDir/pipeline_info/qqq_software_mqc_versions.yml"),
+                    stable_path,
+                    stable_content
+                ).match() }
+            )
+        }
+    }
 }

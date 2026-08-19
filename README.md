@@ -16,16 +16,21 @@
 
 **cdcent/oamd-bio-qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for dehosting paired-end Illumina reads. It produces original read quality metrics, removes host reads, and generates an aggregated report. The pipeline is designed to be quick and easy to run across many samples that may contain host contamination.
 
-By default, qqq uses a masked human reference genome that excludes any region potentially overlapping with pathogen sequences, ensuring pathogen reads are never inadvertently discarded during dehosting.
+Host removal is done by [Deacon](https://github.com/bede/deacon) by default, which matches read minimizers
+against a prebuilt index rather than aligning, making it substantially faster than an aligner at the cost of
+being approximate. `--dehoster hostess` and `--dehoster hostile` select bowtie2-based alternatives, and are
+the ones to reach for when exactness matters or when the removed reads are wanted as a BAM; `--dehoster none`
+turns the step off. See [usage](docs/usage.md#choosing-a-dehoster) for the trade-offs, including the fact that
+each dehoster uses a differently masked reference and so will not remove exactly the same reads.
 
 The pipeline performs the following steps:
 
 1. Read QC ([`Falco`](https://falco.readthedocs.io/)) — quality metrics on raw reads before dehosting
-2. Host read removal ([`Hostile`](https://github.com/bede/hostile)) — decontaminate reads against a reference index
+2. Host read removal ([`Deacon`](https://github.com/bede/deacon), [`Hostile`](https://github.com/bede/hostile)) — decontaminate reads against a reference index
 3. Read downsampling ([`fadso`](https://github.com/hkuwahara/sleaping)) — _optional_, cap the depth of the dehosted reads
 4. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — combined QC and dehosting summary
 
-Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts Hostile already reports, so no extra pass over the FASTQs is needed. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs.
+Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts the dehoster already reports, so no extra pass over the FASTQs is needed. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs.
 
 ## Usage
 
@@ -49,7 +54,7 @@ Run the pipeline:
 nextflow run cdcent/oamd-bio-qqq \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --hostile_db /path/to/hostile/index \
+   --deacon_db /path/to/panhuman-1.k31w15.idx \
    --outdir <OUTDIR>
 ```
 

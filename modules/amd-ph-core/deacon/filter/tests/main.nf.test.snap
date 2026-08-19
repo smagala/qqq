@@ -1,0 +1,193 @@
+{
+    "sarscov2 - fastq - single_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.clean.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.deacon.json:md5,513fa2d7fe3aa083c238554b52561bc7"
+                    ]
+                ],
+                "2": [
+                    [
+                        "DEACON_FILTER",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ],
+                "fastq": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.clean.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "json": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.deacon.json:md5,513fa2d7fe3aa083c238554b52561bc7"
+                    ]
+                ],
+                "versions_deacon": [
+                    [
+                        "DEACON_FILTER",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-19T14:31:00.087666648",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "compression_is_bgzf": {
+        "content": [
+            false
+        ],
+        "timestamp": "2026-08-19T14:33:43.841898046",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - fastq - paired_end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": false
+                    },
+                    [
+                        "test.clean_1.fq.gz:md5,bf1aa22249e7e2b462c6be1a53ac55e9",
+                        "test.clean_2.fq.gz:md5,d3106ad7395c78a212e6214177d5c054"
+                    ]
+                ]
+            ],
+            [
+                [
+                    "DEACON_FILTER",
+                    "deacon",
+                    "0.17.0"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-19T14:30:44.214248711",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - fastq - single_end": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test",
+                        "single_end": true
+                    },
+                    "test.clean.fq.gz:md5,2250e99ec61fca0e28e2dcb5124d1a16"
+                ]
+            ],
+            [
+                [
+                    "DEACON_FILTER",
+                    "deacon",
+                    "0.17.0"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-19T14:30:48.102546751",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - fastq - paired_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test.clean_1.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test.clean_2.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.deacon.json:md5,513fa2d7fe3aa083c238554b52561bc7"
+                    ]
+                ],
+                "2": [
+                    [
+                        "DEACON_FILTER",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ],
+                "fastq": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test.clean_1.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test.clean_2.fq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "json": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.deacon.json:md5,513fa2d7fe3aa083c238554b52561bc7"
+                    ]
+                ],
+                "versions_deacon": [
+                    [
+                        "DEACON_FILTER",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-19T14:30:56.109146705",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

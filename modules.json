@@ -5,6 +5,16 @@
         "https://github.com/amd-ph-core/modules.git": {
             "modules": {
                 "amd-ph-core": {
+                    "deacon/filter": {
+                        "branch": "feat/add-deacon",
+                        "git_sha": "685fb97c2742b321aaad20f6d9d5fe4c7e737a85",
+                        "installed_by": ["modules"]
+                    },
+                    "deacon/index": {
+                        "branch": "feat/add-deacon",
+                        "git_sha": "685fb97c2742b321aaad20f6d9d5fe4c7e737a85",
+                        "installed_by": ["modules"]
+                    },
                     "fadso": {
                         "branch": "main",
                         "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
@@ -29,16 +39,6 @@
                     "bowtie2/build": {
                         "branch": "master",
                         "git_sha": "a0961c41021561ac7cf139f86bd7812a2f99e994",
-                        "installed_by": ["modules"]
-                    },
-                    "deacon/filter": {
-                        "branch": "master",
-                        "git_sha": "719abfd0ec41bcc7e2f540b4fd5c8150fdfe228e",
-                        "installed_by": ["modules"]
-                    },
-                    "deacon/index": {
-                        "branch": "master",
-                        "git_sha": "719abfd0ec41bcc7e2f540b4fd5c8150fdfe228e",
                         "installed_by": ["modules"]
                     },
                     "hostile/clean": {

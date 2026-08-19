@@ -5,12 +5,12 @@
 ## Introduction
 
 qqq takes paired-end Illumina reads, records their quality with Falco, removes host
-reads with Hostile, and aggregates the result into a single MultiQC report. It can
+reads, and aggregates the result into a single MultiQC report. It can
 optionally cap the depth of the dehosted output.
 
 ### Running on AMDP
 
-Pipeline configuration (container tags, the Hostile index location, resource labels)
+Pipeline configuration (container tags, the dehosting index locations, resource labels)
 lives in [oamd-bio-nf-configs](https://github.com/cdcent/oamd-bio-nf-configs) rather
 than in this repository, and is loaded at runtime:
 
@@ -36,28 +36,61 @@ loudly on their own:
   `includeConfig`, which resolves relative paths against the config file's own
   directory rather than your working directory, producing a doubled path.
 - **The checkout it points at must contain `conf/pipeline/oamd-bio-qqq/`.** If it
-  does not, the configs are skipped without error and the run reaches Hostile with
-  no reference index.
+  does not, the configs are skipped without error and the run reaches the dehoster
+  with no reference index.
 
 `run-qqq-prda.sh` in the parent directory of a standard checkout sets all three
 correctly for the prd-analysis tier.
 
+### Choosing a dehoster
+
+`--dehoster` selects the host removal implementation, or turns the step off.
+
+| `--dehoster` | Method                        | Removed reads kept? | Notes                                              |
+| ------------ | ----------------------------- | ------------------- | -------------------------------------------------- |
+| `deacon`     | minimizer matching, no aligner | no                  | the default; much the fastest, and approximate      |
+| `hostess`    | bowtie2, single stream         | yes, sorted BAM     | the option when you need the removed reads          |
+| `hostile`    | bowtie2                       | no                  | same method as hostess, without the single-pass BAM |
+| `none`       | —                             | —                   | falco and multiqc only; no index required           |
+
+`deacon` does not align. It counts how many of each read's minimizers appear in a
+prebuilt index and drops the read when enough of them do, which is why it is so
+much faster than the other two — and why it is approximate where they are exact.
+
+Its output is BGZF when the image carries `bgzip`, as the AMDP image does, and
+plain gzip otherwise; both are valid gzip. `--ordered` is passed by default so a
+rerun reproduces the same bytes, which deacon does not otherwise guarantee.
+
+Two consequences are worth knowing before switching:
+
+- **`--host_bam` has no effect under `deacon`.** There is no alignment to keep.
+  Use `--dehoster hostess` if you need the removed reads as a BAM.
+- **The reference is not the same one.** The default deacon index is `panhuman-1`,
+  published with deacon and built from a human pangenome with FDA-ARGOS bacteria
+  and RefSeq viruses subtracted. The hostile index this pipeline uses subtracts
+  those *and* phage, and subtracts far more aggressively. The two therefore do not
+  remove the same reads, and a sample's `% Host` will differ between them.
+
 ### Dehosting reference
 
-`--hostile_db` must point at the directory that *contains the index files
-themselves* (`<index>.*.bt2`), not at its parent. `--hostile_index` is the index
-name, which is also the basename of those files.
+For `deacon`, `--deacon_db` is the path to a single minimizer index file
+(`*.idx`).
 
-Alternatively `--hostile_fasta` builds an index from a FASTA at runtime. That is
-what the test profiles use, and it means no prebuilt index has to be hosted for
-testing.
+For `hostile` and `hostess`, `--hostile_db` must point at the directory that
+*contains the index files themselves* (`<index>.*.bt2`), not at its parent, and
+`--hostile_index` is the index name, which is also the basename of those files.
+
+Alternatively `--host_fasta` builds an index from a FASTA at runtime, in whatever
+format the selected dehoster needs. That is what the test profiles use, and it
+means no prebuilt index has to be hosted for testing. When it is set, `--deacon_db`
+and `--hostile_db` are ignored.
 
 ### Downsampling
 
 `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each
 sample keeps after dehosting; `--downsample_seed` (default `42`) makes the
 sampling reproducible. Only samples above the cap are downsampled, and the
-decision reuses the read counts Hostile already reports. Leave it unset to
+decision reuses the read counts the dehoster already reports. Leave it unset to
 disable the step entirely.
 
 ## Samplesheet input

@@ -1,0 +1,67 @@
+{
+    "sarscov2 - genome - fasta": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "sarscov2"
+                    },
+                    "sarscov2.idx:md5,84e4985c91800686db9c9dca28fabd1a"
+                ]
+            ],
+            [
+                [
+                    "DEACON_INDEX",
+                    "deacon",
+                    "0.17.0"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-19T14:31:03.490328616",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - genome - fasta - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "sarscov2"
+                        },
+                        "sarscov2.idx:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "DEACON_INDEX",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ],
+                "index": [
+                    [
+                        {
+                            "id": "sarscov2"
+                        },
+                        "sarscov2.idx:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_deacon": [
+                    [
+                        "DEACON_INDEX",
+                        "deacon",
+                        "0.17.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-19T14:31:07.441068839",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

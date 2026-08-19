@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::deacon=0.17.0
+  # Optional at runtime: the module falls back to deacon's own gzip writer when
+  # bgzip is absent. Pulled in here so a conda-built environment gets the BGZF
+  # path rather than silently taking the fallback.
+  - bioconda::htslib=1.23.1

@@ -100,10 +100,27 @@
             "fa_icon": "fas fa-tools",
             "description": "Options for pipeline tools.",
             "properties": {
+                "host_fasta": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.f(ast)?a(\\.gz)?$",
+                    "description": "Build the host index from this FASTA instead of using a prebuilt one.",
+                    "help_text": "Shared by every dehoster: each builds the index format its own tool needs, so the same reference works whichever one is selected. Mainly for testing \u2014 the test profiles build from a small genome rather than depending on hosted index binaries. When set, deacon_db and hostile_db are ignored. Leave unset for real runs.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "deacon_db": {
+                    "type": "string",
+                    "format": "file-path",
+                    "pattern": "^\\S+\\.idx$",
+                    "description": "Path to a prebuilt deacon minimizer index file.",
+                    "help_text": "Used when dehoster is deacon. Unlike hostile, deacon's index is a single file, so this is a path to that file rather than a directory plus an index name. The default in the AMDP configs is panhuman-1 (k=31, w=15), the prebuilt index published with deacon. Note that it masks far less than the hostile index does, so the two dehosters do not remove the same reads.",
+                    "fa_icon": "fas fa-database"
+                },
                 "hostile_db": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "Path to the hostile reference database directory.",
+                    "description": "Path to the hostile reference database directory. Used when dehoster is hostile or hostess.",
                     "fa_icon": "fas fa-database"
                 },
                 "hostile_index": {
@@ -111,15 +128,6 @@
                     "default": "human-t2t-hla.argos-bacteria-985_rs-viral-202401_ml-phage-202401",
                     "description": "Name of the hostile reference index to use for dehosting. Default is a masked human reference excluding pathogen regions.",
                     "fa_icon": "fas fa-book"
-                },
-                "hostile_fasta": {
-                    "type": "string",
-                    "format": "file-path",
-                    "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.f(ast)?a(\\.gz)?$",
-                    "description": "Build the hostile index from this FASTA instead of using a prebuilt one at hostile_db.",
-                    "help_text": "Mainly for testing: a bowtie2 index is around 8 MB even for a very small genome, so the test profiles build one on the fly rather than depend on hosted binaries. When set, hostile_db and hostile_index are ignored and the index name is taken from the FASTA basename. Leave unset for real runs and point hostile_db at a prebuilt index.",
-                    "fa_icon": "fas fa-dna"
                 },
                 "max_reads": {
                     "type": "integer",
@@ -139,27 +147,28 @@
                     "type": "integer",
                     "default": 1000000000,
                     "minimum": 0,
-                    "description": "Total read bytes above which a sample is dehosted by the larger-resourced HOSTILE_CLEAN copy.",
-                    "help_text": "Hostile's peak memory plateaus rather than tracking input size: samples spanning 15-22 GB of R1 all peaked at the same 43.6 GB, while samples under 100 MB peaked under 5 GB. Samples are therefore routed to one of two resource tiers rather than given a size-scaled allocation. Resources for each tier are set on HOSTILE_CLEAN_SMALL and HOSTILE_CLEAN_LARGE in the pipeline config.",
+                    "description": "Total read bytes above which a sample is dehosted by the larger-resourced HOSTILE_CLEAN or HOSTESS copy.",
+                    "help_text": "Hostile's peak memory plateaus rather than tracking input size: samples spanning 15-22 GB of R1 all peaked at the same 43.6 GB, while samples under 100 MB peaked under 5 GB. Samples are therefore routed to one of two resource tiers rather than given a size-scaled allocation. Resources for each tier are set on the _SMALL and _LARGE aliases in the pipeline config. Does not apply to deacon, whose memory is set by the index rather than by the sample, so it runs as a single unrouted process.",
                     "fa_icon": "fas fa-balance-scale"
                 },
                 "dehoster": {
                     "type": "string",
-                    "default": "hostess",
+                    "default": "deacon",
                     "enum": [
+                        "deacon",
                         "hostess",
                         "hostile",
                         "none"
                     ],
                     "description": "Which host-removal implementation to run, or none to skip host removal.",
-                    "help_text": "hostess is the default. It applies the same method as hostile - align against the host index, keep what aligns to nothing - but reads the alignment stream once instead of duplicating it, so it can write the removed reads out as a sorted BAM. Producing the same artefacts it measured 2.4x faster than running hostile twice and realigning.\n\nnone skips host removal entirely, reducing the pipeline to optional BAM-to-FASTQ conversion, falco read QC, and multiqc. No host index is required in that case, so hostile_db and hostile_fasta are ignored.",
+                    "help_text": "deacon is the default. It does not align: it counts how many of each read's minimizers appear in a prebuilt index and drops the read when enough of them do. That makes it substantially faster than the two aligning dehosters, and correspondingly approximate. It keeps no removed reads, so host_bam has no effect under it, and it uses its own reference (panhuman-1 by default), which masks less than the hostile index.\n\nhostess aligns against the host index and keeps what aligns to nothing, reading the alignment stream once instead of duplicating it so it can write the removed reads out as a sorted BAM. Producing the same artefacts it measured 2.4x faster than running hostile twice and realigning.\n\nhostile applies the same method as hostess but cannot produce the removed-read BAM without a second pass.\n\nnone skips host removal entirely, reducing the pipeline to optional BAM-to-FASTQ conversion, falco read QC, and multiqc. No host index is required in that case, so every index option is ignored.",
                     "fa_icon": "fas fa-exchange-alt"
                 },
                 "host_bam": {
                     "type": "boolean",
                     "default": true,
                     "description": "Keep the removed host reads as a coordinate-sorted, indexed BAM.",
-                    "help_text": "On by default. Requires dehoster = hostess and has no effect otherwise, since hostile discards the host reads and can only recover them with a second alignment pass. The BAM loads directly in IGV against the host reference, so an over-aggressive index can be seen rather than inferred from counts. Set false to skip it, along with the samtools flagstat and stats taken over it.",
+                    "help_text": "On by default. Requires dehoster = hostess and has no effect otherwise: hostile discards the host reads and can only recover them with a second alignment pass, and deacon never aligns at all. The BAM loads directly in IGV against the host reference, so an over-aggressive index can be seen rather than inferred from counts. Set false to skip it, along with the samtools flagstat and stats taken over it.",
                     "fa_icon": "fas fa-file-medical-alt"
                 }
             }

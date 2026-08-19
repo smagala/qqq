@@ -1,0 +1,169 @@
+nextflow_process {
+
+    name "Test Process DEACON_FILTER"
+    script "../main.nf"
+    process "DEACON_FILTER"
+
+    tag "modules"
+    tag "modules_amdphcore"
+    tag "deacon"
+    tag "deacon/filter"
+    tag "deacon/index"
+
+    setup {
+        run("DEACON_INDEX") {
+            script "../../index/main.nf"
+            process {
+                """
+                input[0] = Channel.value([
+                    [ id:'sarscov2' ],
+                    file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
+                ])
+                """
+            }
+        }
+    }
+
+    test("sarscov2 - fastq - paired_end") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = DEACON_INDEX.out.index.map { _meta, index -> index }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // Both mates come back, mate 1 first. The stageAs glob makes no
+                // ordering promise, so getting this wrong swaps the output mates.
+                { assert process.out.fastq[0][1].size() == 2 },
+                { assert process.out.fastq[0][1][0] ==~ ".*/test.clean_1.fq.gz" },
+                { assert process.out.fastq[0][1][1] ==~ ".*/test.clean_2.fq.gz" },
+                { assert snapshot(
+                    process.out.fastq,
+                    process.out.versions_deacon
+                ).match() }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - single_end") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:true ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = DEACON_INDEX.out.index.map { _meta, index -> index }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // Single-end takes -o only; deacon rejects -O without a second input.
+                { assert process.out.fastq[0][1] ==~ ".*/test.clean.fq.gz" },
+                { assert snapshot(
+                    process.out.fastq,
+                    process.out.versions_deacon
+                ).match() }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - paired_end - output is BGZF when bgzip is present") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = DEACON_INDEX.out.index.map { _meta, index -> index }
+                """
+            }
+        }
+
+        then {
+            // The BioContainer this module pins carries no bgzip, so the fallback
+            // is what normally runs here and the output is plain gzip. Either way
+            // the file must be a readable gzip stream — that is what this asserts,
+            // along with recording which path was taken, so a container that gains
+            // or loses bgzip shows up as a visible change rather than silently
+            // altering the published format.
+            def header = new File(process.out.fastq[0][1][0] as String).newInputStream().withCloseable { stream -> stream.readNBytes(4) }
+            def is_bgzf = header[0] == (byte) 0x1f && header[1] == (byte) 0x8b && header[3] == (byte) 0x04
+            assertAll(
+                { assert process.success },
+                { assert header[0] == (byte) 0x1f && header[1] == (byte) 0x8b },
+                { assert snapshot(is_bgzf).match("compression_is_bgzf") }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - paired_end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = DEACON_INDEX.out.index.map { _meta, index -> index }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // The stub must mirror the real paired-end naming, or a stub run
+                // exercises a different channel shape than a real one.
+                { assert process.out.fastq[0][1][0] ==~ ".*/test.clean_1.fq.gz" },
+                { assert process.out.fastq[0][1][1] ==~ ".*/test.clean_2.fq.gz" },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - single_end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:true ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = DEACON_INDEX.out.index.map { _meta, index -> index }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

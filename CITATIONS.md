@@ -14,6 +14,10 @@
 
 > de Sena Brandine G, Smith AD. Falco: high-speed FastQC emulation for quality control of sequencing data. F1000Res. 2019;8:1874. doi: 10.12688/f1000research.21142.2. PubMed PMID: 33552473.
 
+- [Deacon](https://www.biorxiv.org/content/10.1101/2025.06.09.658732v1)
+
+> Constantinides B, Lees J, Crook DW. Deacon: fast sequence filtering and contaminant depletion. bioRxiv. 2025 Jun 12. doi: 10.1101/2025.06.09.658732.
+
 - [Hostile](https://pubmed.ncbi.nlm.nih.gov/38039142/)
 
 > Constantinides B, Hunt M, Crook DW. Hostile: accurate decontamination of microbial host sequences. Bioinformatics. 2023 Dec 1;39(12):btad728. doi: 10.1093/bioinformatics/btad728. PubMed PMID: 38039142.

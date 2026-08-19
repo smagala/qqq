@@ -6,6 +6,8 @@
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
+include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
+include { DEACON_FILTER          } from '../modules/amd-ph-core/deacon/filter/main'
 include { HOSTESS as HOSTESS_SMALL             } from '../modules/amd-ph-core/hostess/main'
 include { HOSTESS as HOSTESS_LARGE             } from '../modules/amd-ph-core/hostess/main'
 include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
@@ -54,22 +56,78 @@ workflow QQQ {
     // --dehoster selects the implementation, or turns the step off entirely.
     // With 'none' the pipeline reduces to its minimum: optional bam2fq
     // conversion, falco, and multiqc. Nothing below this point needs a host
-    // index in that case, so index resolution is inside the branch — asking for
-    // one when no alignment will happen is how this used to fail.
+    // index in that case, so index resolution is inside each branch — asking
+    // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
         ch_dehosted_fastq = ch_reads
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
     }
+    else if (params.dehoster == 'deacon') {
+        // deacon is the default. It does not align: it counts how many of a
+        // read's minimizers are present in a prebuilt index and drops the read
+        // when enough of them are, which is where the speed over the two
+        // bowtie2-based dehosters comes from.
+        //
+        // Two things follow from that. There is no alignment to keep, so
+        // --host_bam does nothing here and hostess remains the option for
+        // anyone who needs the removed reads. And the reference is a different
+        // one: the index below is panhuman-1, whose masking subtracts far less
+        // than the hostile index does, so the two do not remove the same reads.
+        //
+        // deacon's index is a single file rather than a directory of bowtie2
+        // parts, so it takes a path rather than the db/name pair hostile needs.
+        if (params.host_fasta) {
+            def host_fasta = file(params.host_fasta, checkIfExists: true)
+            DEACON_INDEX (
+                channel.value([[id: host_fasta.baseName], host_fasta])
+            )
+            // Already a value channel, since DEACON_INDEX's input is one.
+            ch_deacon_index = DEACON_INDEX.out.index.map { meta, index -> index }
+        }
+        else {
+            // Same failure mode as hostile_db below: without this the missing
+            // path surfaces as "Argument of `file()` function cannot be null",
+            // which says nothing about the configs not having been loaded.
+            if (!params.deacon_db) {
+                error(
+                    "deacon_db is not set, so there is no reference index to dehost against.\n\n" +
+                    "  Pass --deacon_db, or let oamd-bio-nf-configs supply it. For the latter,\n" +
+                    "  both of these must be set, and neither has a safe default:\n" +
+                    "    NF_PIPELINE_REPO=oamd-bio-qqq   (otherwise it falls back to oamd-bio-ph-core,\n" +
+                    "                                     loading that pipeline's configs and workDir)\n" +
+                    "    NF_CONFIGS_REPO=<checkout containing conf/pipeline/oamd-bio-qqq/>\n\n" +
+                    "  See run-qqq-prda.sh, which sets both.\n\n" +
+                    "  --host_fasta builds an index instead, which is what the test profiles do."
+                )
+            }
+            ch_deacon_index = channel.value(file(params.deacon_db, checkIfExists: true))
+        }
+
+        // No size routing here, unlike the two hostile tiers below. deacon
+        // holds the index in memory and streams the reads past it, so its
+        // footprint is set by the index rather than by the sample: upstream
+        // measures ~5 GB filtering against the 3.3 GB panhuman-1 index, and
+        // that figure does not move with input size. One allocation is
+        // therefore the right shape for it.
+        DEACON_FILTER (
+            ch_reads,
+            ch_deacon_index
+        )
+        ch_dehosted_fastq = DEACON_FILTER.out.fastq
+        ch_dehosted_json  = DEACON_FILTER.out.json
+        ch_host_bam       = channel.empty()
+        ch_host_bai       = channel.empty()
+    }
     else {
-        // A prebuilt index is the normal case. --hostile_fasta builds one instead,
+        // A prebuilt index is the normal case. --host_fasta builds one instead,
         // which is what the test profiles use: a bowtie2 index is ~8 MB even for a
         // tiny genome, so building it is cheaper than hosting one as test data.
-        if (params.hostile_fasta) {
-            def hostile_fasta = file(params.hostile_fasta, checkIfExists: true)
+        if (params.host_fasta) {
+            def host_fasta = file(params.host_fasta, checkIfExists: true)
             BOWTIE2_BUILD (
-                channel.value([[id: hostile_fasta.baseName], hostile_fasta])
+                channel.value([[id: host_fasta.baseName], host_fasta])
             )
             // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
             // so the index name hostile is given must match that basename.
@@ -160,16 +218,19 @@ workflow QQQ {
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_dehosted_json.collect { meta, json -> json }.ifEmpty([]))
 
-    // Both dehosters write the same JSON, and MultiQC's hostile module turns it
-    // into a stacked bar plot. That plot is the only place the report says how
-    // much of a sample was host: the module adds no columns to the General
-    // Statistics table, and no MultiQC config can make it, so the number a
-    // reviewer looks for first is the one they have to go hunting for.
+    // Every dehoster writes a JSON report, and MultiQC parses it: the hostile
+    // module for hostile and hostess, the deacon module for deacon. Neither
+    // puts the headline number — how much of a sample was host — where a
+    // reviewer looks first. The hostile module renders only a stacked bar plot
+    // and contributes no General Statistics columns at all, and while the
+    // deacon module does contribute some, they are its own names and scaling,
+    // so the report would change shape with --dehoster.
     //
-    // Reduce the same JSON to a MultiQC custom-content file to put it on the
-    // sample's own row. The `_mqc.tsv` suffix is what makes MultiQC pick the file
-    // up, and `plot_type: generalstats` in the header sends it to the top table
-    // instead of a section of its own. The first column is meta.id, which is what
+    // Reduce the reports to one MultiQC custom-content file instead, so the
+    // same two columns appear on the sample's own row whichever dehoster ran.
+    // The `_mqc.tsv` suffix is what makes MultiQC pick the file up, and
+    // `plot_type: generalstats` in the header sends it to the top table instead
+    // of a section of its own. The first column is meta.id, which is what
     // assets/multiqc_config.yml collapses the per-mate falco rows down to, so
     // these values join the existing row rather than adding another one.
     //
@@ -178,18 +239,16 @@ workflow QQQ {
     // sample to do the same thing.
     ch_multiqc_files = ch_multiqc_files.mix(
         ch_dehosted_json
-            .map { meta, json -> [meta, json.text.trim()] }
-            // The hostile stub touches an empty report. A stub run has no counts
+            .map { meta, json -> [meta, dehostCounts(json.text.trim())] }
+            // The dehoster stubs touch an empty report. A stub run has no counts
             // to put in the table, so it contributes no rows instead of rows of
             // zeroes, and with every report empty no file is written at all.
-            .filter { meta, report -> report }
-            .map { meta, report ->
-                // Both tools write a single-element array.
-                def summary = new groovy.json.JsonSlurper().parseText(report)[0]
-                // From the counts rather than the tool's own reads_removed_proportion,
+            .filter { meta, counts -> counts }
+            .map { meta, counts ->
+                // From the counts rather than the tool's own removed proportion,
                 // which is rounded, and to keep an empty input from dividing by zero.
-                def pct_host = summary.reads_in ? 100.0 * summary.reads_removed / summary.reads_in : 0.0
-                [meta.id, summary.reads_out, String.format('%.4f', pct_host)].join('\t')
+                def pct_host = counts.reads_in ? 100.0 * counts.reads_removed / counts.reads_in : 0.0
+                [meta.id, counts.reads_out, String.format('%.4f', pct_host)].join('\t')
             }
             .collectFile(
                 name: 'host_removal_mqc.tsv',
@@ -224,12 +283,10 @@ workflow QQQ {
                 // The dehoster stubs emit an empty report. Treat that as "under
                 // the cap" so -stub-run still exercises this path; a non-empty
                 // but malformed report is a real error and throws.
-                def report = json.text.trim()
-                def reads_out = report
-                    ? new groovy.json.JsonSlurper().parseText(report)[0].reads_out as long
-                    : 0L
-                // Both dehosters count alignment records, so for paired-end
-                // input reads_out is twice the number of pairs.
+                def counts = dehostCounts(json.text.trim())
+                def reads_out = (counts ? counts.reads_out : 0L) as long
+                // Every dehoster counts records rather than pairs, so for
+                // paired-end input reads_out is twice the number of pairs.
                 [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
@@ -355,6 +412,31 @@ workflow QQQ {
     FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+//
+// Read counts from a dehoster's JSON report, normalised across the two
+// families. hostile and hostess write a single-element array of reads_in /
+// reads_out / reads_removed; deacon writes a bare object of seqs_in /
+// seqs_out / seqs_removed. Both count records rather than pairs, so the
+// numbers mean the same thing once the names line up.
+//
+// Returns null for the empty report the stubs write, so a caller can tell
+// "nothing was measured" from "measured zero reads". A malformed non-empty
+// report throws, which is what should happen.
+//
+def dehostCounts(report) {
+    if (!report) {
+        return null
+    }
+    def summary = new groovy.json.JsonSlurper().parseText(report)
+    // hostile and hostess wrap theirs in an array; deacon does not.
+    if (summary instanceof List) {
+        summary = summary[0]
+    }
+    return summary.containsKey('seqs_in')
+        ? [reads_in: summary.seqs_in, reads_out: summary.seqs_out, reads_removed: summary.seqs_removed]
+        : [reads_in: summary.reads_in, reads_out: summary.reads_out, reads_removed: summary.reads_removed]
+}
 
 //
 // Header for host_removal_mqc.tsv: the comment block MultiQC reads as custom

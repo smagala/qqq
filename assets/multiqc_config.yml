@@ -91,3 +91,24 @@ table_columns_placement:
   "Samtools: stats":
     reads_mapped: 200
     insert_size_average: 210
+
+# MultiQC's Deacon module adds its own General Statistics columns — "Seqs kept"
+# and "Seqs removed", both scaled to millions — where the Hostile module adds
+# none. Left alone, the table would change shape with --dehoster: the same two
+# numbers under different names and units, next to the Clean reads and % Host
+# columns the workflow writes from every dehoster's report.
+#
+# Hide Deacon's, so the dehosting result is reported one way regardless of which
+# tool produced it. Nothing is lost: the Deacon section of the report still has
+# them, with the input and base-pair counts besides.
+#
+# This uses custom_table_header_config rather than table_columns_visible or
+# general_stats_columns. Neither of those has any effect on these columns in
+# MultiQC 1.35 — the module adds them through general_stats_addcols, which they
+# do not reach.
+custom_table_header_config:
+  general_stats_table:
+    seqs_out:
+      hidden: true
+    seqs_removed:
+      hidden: true

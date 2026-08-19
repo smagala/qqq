@@ -1,0 +1,115 @@
+name: "deacon_filter"
+description: |
+  Deplete host sequences from FASTQ reads by minimizer matching against a prebuilt
+  deacon index.
+
+  Derived from nf-core/deacon_filter, with three changes. Compression uses bgzip
+  when the image provides it, so the output is BGZF — block-compressed, indexable,
+  and the same format hostess produces through samtools — and falls back to
+  deacon's own parallel gzip writer otherwise; the upstream module always shells
+  out to plain `gzip`. The reference index is a separate input rather than a third
+  element of the sample tuple, so it does not have to be combined onto every
+  sample. And single-end versus paired-end is decided by `meta.single_end` rather
+  than by inspecting the reads value.
+
+  Depletion (`--deplete`) is always on: this module exists to remove host reads,
+  not to search for matches.
+
+  Note that deacon's output record order is not deterministic unless `--ordered`
+  is passed through `ext.args`. Without it, two runs over the same input return
+  the same reads in a different order.
+keywords:
+  - filter
+  - decontamination
+  - dehosting
+  - fastq
+  - minimizer
+  - host depletion
+tools:
+  - deacon:
+      description: "Fast alignment-free sequence filtering and contaminant depletion."
+      homepage: "https://github.com/bede/deacon"
+      documentation: "https://github.com/bede/deacon#readme"
+      tool_dev_url: "https://github.com/bede/deacon"
+      doi: "10.1101/2025.06.09.658732"
+      licence:
+        - "MIT"
+      identifier: ""
+      args_id: "$args"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: file
+        description: |
+          One FASTQ file for single-end data, or two for paired-end. Paired reads
+          are sorted by name before use so mate 1 is always passed first.
+        pattern: "*.{fastq,fq}{,.gz}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1930" # FASTQ
+  - index:
+      type: file
+      description: Deacon minimizer index to deplete against
+      pattern: "*.idx"
+      ontologies:
+        - edam: "http://edamontology.org/data_3210" # Genome index
+output:
+  fastq:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.clean*.fq.gz":
+          type: file
+          description: |
+            Reads remaining after host depletion. One file for single-end input,
+            two for paired-end. BGZF when the image carries bgzip, plain gzip
+            otherwise; both are valid gzip streams.
+          pattern: "*.clean*.fq.gz"
+          ontologies:
+            - edam: "http://edamontology.org/format_1930" # FASTQ
+            - edam: http://edamontology.org/format_3989 # GZIP format
+  json:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.deacon.json":
+          type: file
+          description: |
+            Deacon summary report. Counts records rather than pairs, so for
+            paired-end input seqs_in and seqs_out are twice the number of pairs.
+            Parsed by MultiQC's deacon module.
+          pattern: "*.deacon.json"
+          ontologies:
+            - edam: "http://edamontology.org/format_3464" # JSON
+  versions_deacon:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deacon:
+          type: string
+          description: The name of the tool
+      - deacon --version | sed 's/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deacon:
+          type: string
+          description: The name of the tool
+      - deacon --version | sed 's/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@smagala"
+maintainers:
+  - "@smagala"

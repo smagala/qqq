@@ -1,5 +1,5 @@
 {
-    "-profile test": {
+    "-profile test, --dehoster hostile": {
         "content": [
             {
                 "BOWTIE2_BUILD": {
@@ -149,10 +149,157 @@
                 "multiqc_general_stats.txt:md5,fd7a480c98607ffd1f7354832eb9492d"
             ]
         ],
-        "timestamp": "2026-08-12T23:55:14.884504643",
+        "timestamp": "2026-08-19T13:40:51.239516934",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
+        }
+    },
+    "-profile test": {
+        "content": [
+            {
+                "DEACON_FILTER": {
+                    "deacon": "0.17.0"
+                },
+                "DEACON_INDEX": {
+                    "deacon": "0.17.0"
+                },
+                "FALCO": {
+                    "falco": "1.2.5"
+                },
+                "Workflow": {
+                    "cdcent/oamd-bio-qqq": "v1.0.0dev"
+                }
+            },
+            [
+                "deacon",
+                "deacon/genome.idx",
+                "deacon/test.clean_1.fq.gz",
+                "deacon/test.clean_2.fq.gz",
+                "deacon/test.deacon.json",
+                "deacon/test2.clean_1.fq.gz",
+                "deacon/test2.clean_2.fq.gz",
+                "deacon/test2.deacon.json",
+                "falco",
+                "falco/test2_1_fastqc_data.txt",
+                "falco/test2_1_fastqc_report.html",
+                "falco/test2_1_summary.txt",
+                "falco/test2_2_fastqc_data.txt",
+                "falco/test2_2_fastqc_report.html",
+                "falco/test2_2_summary.txt",
+                "falco/test_1_fastqc_data.txt",
+                "falco/test_1_fastqc_report.html",
+                "falco/test_1_summary.txt",
+                "falco/test_2_fastqc_data.txt",
+                "falco/test_2_fastqc_report.html",
+                "falco/test_2_summary.txt",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/deacon_sequences_removed_vs_kept_plot.txt",
+                "multiqc/multiqc_data/deacon_statistics_table.txt",
+                "multiqc/multiqc_data/falco-status-check-heatmap.txt",
+                "multiqc/multiqc_data/falco_adapter_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_n_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_sequence_quality_plot.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Counts.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Percentages.txt",
+                "multiqc/multiqc_data/falco_per_sequence_quality_scores_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_counts_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_duplication_levels_plot.txt",
+                "multiqc/multiqc_data/fastqc_sequence_length_distribution_plot.txt",
+                "multiqc/multiqc_data/llms-full.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc.parquet",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_deacon.txt",
+                "multiqc/multiqc_data/multiqc_fastqc.txt",
+                "multiqc/multiqc_data/multiqc_general_stats.txt",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/deacon_sequences_removed_vs_kept_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/deacon_sequences_removed_vs_kept_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/deacon_statistics_table.pdf",
+                "multiqc/multiqc_plots/pdf/falco-status-check-heatmap.pdf",
+                "multiqc/multiqc_plots/pdf/falco_adapter_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_n_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_sequence_quality_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Counts.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Percentages.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_quality_scores_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_duplication_levels_plot.pdf",
+                "multiqc/multiqc_plots/pdf/fastqc_sequence_length_distribution_plot.pdf",
+                "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/deacon_sequences_removed_vs_kept_plot-cnt.png",
+                "multiqc/multiqc_plots/png/deacon_sequences_removed_vs_kept_plot-pct.png",
+                "multiqc/multiqc_plots/png/deacon_statistics_table.png",
+                "multiqc/multiqc_plots/png/falco-status-check-heatmap.png",
+                "multiqc/multiqc_plots/png/falco_adapter_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_n_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_sequence_quality_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Counts.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Percentages.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_quality_scores_plot.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-cnt.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-pct.png",
+                "multiqc/multiqc_plots/png/falco_sequence_duplication_levels_plot.png",
+                "multiqc/multiqc_plots/png/fastqc_sequence_length_distribution_plot.png",
+                "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/deacon_sequences_removed_vs_kept_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/deacon_sequences_removed_vs_kept_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/deacon_statistics_table.svg",
+                "multiqc/multiqc_plots/svg/falco-status-check-heatmap.svg",
+                "multiqc/multiqc_plots/svg/falco_adapter_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_n_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_sequence_quality_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Counts.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Percentages.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_quality_scores_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_duplication_levels_plot.svg",
+                "multiqc/multiqc_plots/svg/fastqc_sequence_length_distribution_plot.svg",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/qqq_software_mqc_versions.yml"
+            ],
+            [
+                "genome.idx:md5,84e4985c91800686db9c9dca28fabd1a",
+                "test.clean_1.fq.gz:md5,6de988b85909e6529bad0022703bcab2",
+                "test.clean_2.fq.gz:md5,539acd65e93bf16a5ace7d6034e704c7",
+                "test2.clean_1.fq.gz:md5,78b566f63fbd4e4c29902c6217993e03",
+                "test2.clean_2.fq.gz:md5,641919946a0e572ca7483f6e54476f3b",
+                "test2_1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test2_1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test2_2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
+                "test2_2_summary.txt:md5,5d147910524a0203415267731b691bf7",
+                "test_1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
+                "test_1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
+                "test_2_fastqc_data.txt:md5,daad784a9237a9987dd43b1444a4524f",
+                "test_2_summary.txt:md5,3fd2c2b8925809d2da9352c3b3cd0ace",
+                "falco-status-check-heatmap.txt:md5,3943fb7a321b244c1d948b1f99815a82",
+                "falco_adapter_content_plot.txt:md5,4ae9307af779d048d927d1e949992cfb",
+                "falco_per_base_n_content_plot.txt:md5,5ed5e31a014bbcccffda4044089eddf3",
+                "falco_per_base_sequence_quality_plot.txt:md5,2a2290f0bbde8d20ab7cb5510a349173",
+                "falco_per_sequence_gc_content_plot_Counts.txt:md5,11405718c79f59ef9d33502328b144a4",
+                "falco_per_sequence_gc_content_plot_Percentages.txt:md5,f4c2fa5028e6ba273dec3eb99e6aa619",
+                "falco_per_sequence_quality_scores_plot.txt:md5,5c0a3dfa43543adb8a1d8280f67627ad",
+                "falco_sequence_counts_plot.txt:md5,03b4fcb30e2eb3a244668793016cfbeb",
+                "falco_sequence_duplication_levels_plot.txt:md5,0ebfb828cf8c37ce18006ad53d9763d6",
+                "fastqc_sequence_length_distribution_plot.txt:md5,80d56b9a8e90cffc19e6af4e5bfed3a2",
+                "multiqc_citations.txt:md5,b2cef7032b87dbfe16638cd4b0d23e0c",
+                "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
+                "multiqc_general_stats.txt:md5,c17e10eb83724243aaa3f4eb4ec431fb"
+            ]
+        ],
+        "timestamp": "2026-08-19T15:33:12.088730297",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
         }
     }
 }

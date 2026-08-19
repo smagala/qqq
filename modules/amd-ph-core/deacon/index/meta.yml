@@ -1,0 +1,83 @@
+name: "deacon_index"
+description: |
+  Build a deacon minimizer index from a FASTA.
+
+  Derived from nf-core/deacon_index. It writes the index with deacon's own
+  `--output` rather than redirecting stdout, and is labelled process_medium
+  because indexing takes 2-4x the memory filtering does.
+
+  Prebuilt indexes are published upstream (panhuman-1, panmouse-1) and are
+  usually the better choice for host depletion; this module is for building an
+  index from a reference that has none, and for tests that would otherwise have
+  to host index binaries.
+keywords:
+  - index
+  - minimizer
+  - fasta
+  - reference
+  - decontamination
+tools:
+  - deacon:
+      description: "Fast alignment-free sequence filtering and contaminant depletion."
+      homepage: "https://github.com/bede/deacon"
+      documentation: "https://github.com/bede/deacon#readme"
+      tool_dev_url: "https://github.com/bede/deacon"
+      doi: "10.1101/2025.06.09.658732"
+      licence:
+        - "MIT"
+      identifier: ""
+      args_id: "$args"
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing reference information
+          e.g. [ id:'panhuman-1' ]
+    - fasta:
+        type: file
+        description: FASTA or FASTQ to index, optionally compressed
+        pattern: "*.{fa,fasta,fna,fq,fastq}{,.gz,.zst,.xz}"
+        ontologies:
+          - edam: "http://edamontology.org/format_1929" # FASTA
+          - edam: http://edamontology.org/format_1930 # FASTQ
+output:
+  index:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing reference information
+            e.g. [ id:'panhuman-1' ]
+      - "*.idx":
+          type: file
+          description: |
+            Deacon minimizer index. The format is versioned and checked at load
+            time: format 3 is used by deacon 0.11.0 and above, and an index built
+            by one format version cannot be read by a deacon expecting another.
+          pattern: "*.idx"
+          ontologies:
+            - edam: "http://edamontology.org/data_3210" # Genome index
+  versions_deacon:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deacon:
+          type: string
+          description: The name of the tool
+      - deacon --version | sed 's/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - deacon:
+          type: string
+          description: The name of the tool
+      - deacon --version | sed 's/.* //':
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@smagala"
+maintainers:
+  - "@smagala"
