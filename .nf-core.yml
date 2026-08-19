@@ -11,6 +11,9 @@ lint:
     - .github/ISSUE_TEMPLATE/bug_report.yml
     - docs/CONTRIBUTING.md
     - .github/PULL_REQUEST_TEMPLATE.md
+    # Adds .nf-test*, which the template does not carry: nf-test writes its
+    # work directory and log into the repository root.
+    - .gitignore
     - assets/email_template.txt
     # Diverges deliberately: this pipeline ships no logo PNG, so the template's
     # unconditional read of one raised FileNotFoundException whenever --email was
