@@ -6,13 +6,13 @@
             "modules": {
                 "amd-ph-core": {
                     "deacon/filter": {
-                        "branch": "feat/add-deacon",
-                        "git_sha": "685fb97c2742b321aaad20f6d9d5fe4c7e737a85",
+                        "branch": "main",
+                        "git_sha": "bee52da03eabe3264a386913207b1409ad13517f",
                         "installed_by": ["modules"]
                     },
                     "deacon/index": {
-                        "branch": "feat/add-deacon",
-                        "git_sha": "685fb97c2742b321aaad20f6d9d5fe4c7e737a85",
+                        "branch": "main",
+                        "git_sha": "bee52da03eabe3264a386913207b1409ad13517f",
                         "installed_by": ["modules"]
                     },
                     "fadso": {

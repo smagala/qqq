@@ -5,7 +5,7 @@ process DEACON_FILTER {
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
         ? 'https://depot.galaxyproject.org/singularity/deacon:0.17.0--h3edb6b3_0'
-        : 'quay.io/biocontainers/deacon:0.17.0--h3edb6b3_0'}"
+        : 'biocontainers/deacon:0.17.0--h3edb6b3_0'}"
 
     input:
     tuple val(meta), path(reads, stageAs: "input_reads/")
@@ -66,11 +66,14 @@ process DEACON_FILTER {
     }
 
     if command -v bgzip > /dev/null 2>&1; then
+        # On any exit path, not just the happy one. Under `set -e` a deacon that
+        # fails skips the waits and the rm below, leaving the FIFOs behind and
+        # the bgzip consumers blocked on them.
+        trap 'rm -f ${fifos.join(' ')}; jobs -p | xargs -r kill 2>/dev/null || true' EXIT
         mkfifo ${fifos.join(' ')}
         ${consumers}
         run_deacon ${fifo_args}
         ${waits}
-        rm -f ${fifos.join(' ')}
     else
         run_deacon ${gz_args}
     fi

@@ -105,7 +105,9 @@ nextflow_process {
             // or loses bgzip shows up as a visible change rather than silently
             // altering the published format.
             def header = new File(process.out.fastq[0][1][0] as String).newInputStream().withCloseable { stream -> stream.readNBytes(4) }
-            def is_bgzf = header[0] == (byte) 0x1f && header[1] == (byte) 0x8b && header[3] == (byte) 0x04
+            // BGZF sets FEXTRA in the gzip FLG byte, but other flags may be set
+            // alongside it, so this is a bitmask test rather than an equality one.
+            def is_bgzf = header[0] == (byte) 0x1f && header[1] == (byte) 0x8b && (header[3] & 0x04) != 0
             assertAll(
                 { assert process.success },
                 { assert header[0] == (byte) 0x1f && header[1] == (byte) 0x8b },
