@@ -21,7 +21,7 @@ against a prebuilt index rather than aligning, making it substantially faster th
 being approximate. `--dehoster hostess` and `--dehoster hostile` select bowtie2-based alternatives, and are
 the ones to reach for when exactness matters or when the removed reads are wanted as a BAM; `--dehoster none`
 turns the step off. See [usage](docs/usage.md#choosing-a-dehoster) for the trade-offs, including the fact that
-each dehoster uses a differently masked reference and so will not remove exactly the same reads.
+`deacon` is approximate and so will not remove exactly the reads an aligner would, even off the same reference.
 
 The pipeline performs the following steps:
 
@@ -54,7 +54,7 @@ Run the pipeline:
 nextflow run cdcent/oamd-bio-qqq \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --deacon_db /path/to/panhuman-1.k31w15.idx \
+   --deacon_db /path/to/host.k31w15.idx \
    --outdir <OUTDIR>
 ```
 

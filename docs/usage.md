@@ -65,11 +65,18 @@ Two consequences are worth knowing before switching:
 
 - **`--host_bam` has no effect under `deacon`.** There is no alignment to keep.
   Use `--dehoster hostess` if you need the removed reads as a BAM.
-- **The reference is not the same one.** The default deacon index is `panhuman-1`,
-  published with deacon and built from a human pangenome with FDA-ARGOS bacteria
-  and RefSeq viruses subtracted. The hostile index this pipeline uses subtracts
-  those *and* phage, and subtracts far more aggressively. The two therefore do not
-  remove the same reads, and a sample's `% Host` will differ between them.
+- **The reference matters, and it is yours to choose.** The pipeline ships no
+  default index: `--deacon_db` and `--hostile_db` are unset unless a deployment
+  config supplies them. Point every dehoster at builds of the *same* reference
+  unless you have a reason not to, or `% Host` will not be comparable between
+  them. AMDP deployments do exactly that, via `oamd-bio-nf-configs`.
+- **`deacon` will not agree with the aligners exactly, even on one reference.**
+  It is approximate by design. Measured across the 49-sample talos set with all
+  three reading the same masked reference, deacon kept about 0.5% fewer reads
+  than `hostile`/`hostess`, and 0.36% fewer on the worst single sample. Reading
+  `panhuman-1` instead — a *different* reference, masked less aggressively —
+  roughly doubled that gap, to 0.7–0.95% typical and 1.54% worst-case.
+  `hostile` and `hostess` agree with each other read for read.
 
 ### Dehosting reference
 
