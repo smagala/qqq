@@ -22,7 +22,7 @@
                     },
                     "falco": {
                         "branch": "main",
-                        "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
+                        "git_sha": "580d92f8c9f4d23ac6f4278692874b7c02580587",
                         "installed_by": ["modules"]
                     },
                     "hostess": {
