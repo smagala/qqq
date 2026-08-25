@@ -7,7 +7,8 @@ include { FALCO                  } from '../modules/amd-ph-core/falco/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
-include { DEACON_FILTER          } from '../modules/amd-ph-core/deacon/filter/main'
+include { DEACON_FILTER as DEACON_FILTER_SMALL } from '../modules/amd-ph-core/deacon/filter/main'
+include { DEACON_FILTER as DEACON_FILTER_LARGE } from '../modules/amd-ph-core/deacon/filter/main'
 include { HOSTESS as HOSTESS_SMALL             } from '../modules/amd-ph-core/hostess/main'
 include { HOSTESS as HOSTESS_LARGE             } from '../modules/amd-ph-core/hostess/main'
 include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
@@ -105,18 +106,48 @@ workflow QQQ {
             ch_deacon_index = channel.value(file(params.deacon_db, checkIfExists: true))
         }
 
-        // No size routing here, unlike the two hostile tiers below. deacon
-        // holds the index in memory and streams the reads past it, so its
-        // footprint is set by the index rather than by the sample: upstream
-        // measures ~5 GB filtering against the 3.3 GB panhuman-1 index, and
-        // that figure does not move with input size. One allocation is
-        // therefore the right shape for it.
-        DEACON_FILTER (
-            ch_reads,
+        // Routed by input size into two aliases, like the aligning dehosters
+        // below, but for a different reason than they are.
+        //
+        // Memory genuinely does not need it. deacon holds the index in memory
+        // and streams reads past it, so its footprint follows the index rather
+        // than the sample: on a prd-analysis run, peak RSS sat at 4.2-4.5 GB
+        // for every sample from 644 KB to 3.5 GB of R1. Both tiers therefore
+        // get the same memory, and only the CPU count differs.
+        //
+        // CPU does need it, because of how the module is built. It compresses
+        // deacon's output with one bgzip per mate, and deacon and both bgzips
+        // are each handed task.cpus threads, so a paired-end task asks for up
+        // to three times its allocation. What it actually uses tracks the
+        // sample: measured at cpus = 2, %cpu ran 107% on the 644 KB sample and
+        // 451% on the 3.5 GB one, climbing monotonically in between. That is
+        // the bgzip pair saturating while deacon blocks on FIFO backpressure —
+        // the task is compression-bound, and compression scales with the input
+        // where deacon's own filtering barely does.
+        //
+        // This replaces a single 2-CPU allocation whose measurement was taken
+        // on 2.1M read pairs. At that size loading the index is a fixed ~6s and
+        // most of the task, so extra threads multiplied a cost no thread count
+        // could reduce. On the 3.5 GB sample the same load is 6s of 7m28s, and
+        // the conclusion inverts with it.
+        //
+        // Resources are set per alias in oamd-bio-nf-configs; nothing here
+        // hardcodes them, and the module itself is untouched.
+        ch_deacon_sized = ch_reads.branch { meta, reads ->
+            large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
+            small: true
+        }
+
+        DEACON_FILTER_SMALL (
+            ch_deacon_sized.small,
             ch_deacon_index
         )
-        ch_dehosted_fastq = DEACON_FILTER.out.fastq
-        ch_dehosted_json  = DEACON_FILTER.out.json
+        DEACON_FILTER_LARGE (
+            ch_deacon_sized.large,
+            ch_deacon_index
+        )
+        ch_dehosted_fastq = DEACON_FILTER_SMALL.out.fastq.mix(DEACON_FILTER_LARGE.out.fastq)
+        ch_dehosted_json  = DEACON_FILTER_SMALL.out.json.mix(DEACON_FILTER_LARGE.out.json)
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
     }
