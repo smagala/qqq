@@ -75,8 +75,11 @@ jobs:
         exclude:
           - isMain: false
             profile: "conda"
+        # 25.10.0 is the manifest floor: nf-schema 2.7.3 declares
+        # Plugin-Requires >=25.10.0, so anything below it fails at plugin load
+        # before the workflow starts. Keep the first entry equal to the floor.
         NXF_VER:
-          - "25.04.0"
+          - "25.10.0"
           - "25.10.4"
           - "26.04.0"
           - "latest-everything"
