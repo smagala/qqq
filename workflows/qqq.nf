@@ -4,6 +4,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
+include { FASTP                  } from '../modules/nf-core/fastp/main'
+include { FASTPLONG              } from '../modules/nf-core/fastplong/main'
+include { CAT_FASTQ              } from '../modules/nf-core/cat/fastq/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
@@ -36,6 +39,68 @@ workflow QQQ {
 
     ch_reads = ch_samplesheet
 
+    // Identify and branch reads by platform
+    // (short-read vs long-read)
+    //
+    short_platforms = [
+        "illumina",
+        "ls454",
+        "abi_solid",
+        "bgiseq",
+        "complete_genomics",
+        "dnbseq",
+        "element",
+        "genapsys",
+        "genemind",
+        "helicos",
+        "ion_torrent",
+        "tapestri",
+        "ultima",
+        "vela_diagnostics",
+        "capillary"
+    ]
+
+    long_platforms = [
+        "nanopore",
+        "ont",
+        "pacbio",
+        "pacbio_smrt",
+        "oxford_nanopore"
+    ]
+
+    ch_reads
+        .map { meta, reads ->
+
+            def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
+            def type
+
+            if (platform in long_platforms) {
+                type = "long"
+            } else if (platform in short_platforms || !platform) {
+                type = "short"
+            } else {
+                error "Unknown sequencing platform '${meta.platform}' for sample '${meta.id}'"
+            }
+
+            if (
+                type == "long" &&
+                reads instanceof List &&
+                reads.size() > 1
+            ) {
+                error "Sample '${meta.id}' has platform '${meta.platform}' (long-read) but provides ${reads.size()} FASTQ files. Long-read platforms expect a single FASTQ file per sample. Check your samplesheet."
+            }
+
+            [
+                meta + [
+                    type: type
+                ],
+                reads
+            ]
+        }
+        .set { ch_reads_mix }
+
+
+
     //
     // MODULE: Falco — QC on raw reads
     //
@@ -47,9 +112,104 @@ workflow QQQ {
     // come from the data files too, so the summary files are not needed here.
     //
     FALCO (
-        ch_reads
+        ch_reads_mix
     )
     ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { meta, txt -> txt })
+
+    // MODULE: Fastp / Fastplong
+    // Quality control and trimming
+    //
+    if (!params.skip_fastp) {
+
+        ch_short_reads = ch_reads_mix.filter { meta, reads ->
+            meta.type == 'short'
+        }
+
+        ch_long_reads = ch_reads_mix.filter { meta, reads ->
+            meta.type == 'long'
+        }
+
+        FASTP (
+            ch_short_reads.map { meta, reads ->
+                tuple(meta, reads, [])
+            },
+            false,
+            false,
+            false
+        )
+
+        FASTPLONG (
+            ch_long_reads.map { meta, reads ->
+                tuple(meta, reads)
+            },
+            [],
+            false,
+            false
+        )
+
+        ch_reads_mix = FASTP.out.reads.mix(
+            FASTPLONG.out.reads
+        )
+    }
+
+    //
+    // Group reads by sample ID + sequencing platform
+    //
+    ch_reads_by_sample = ch_reads_mix
+        .map { meta, reads ->
+
+            def platform =
+                meta.platform?.toLowerCase()?.trim() ?: "illumina"
+
+            [
+                [meta.id, platform],
+                meta,
+                reads
+            ]
+        }
+        .groupTuple(by: 0)
+
+
+    //
+    // Separate single-run samples from multi-run samples
+    //
+    ch_reads_by_sample
+        .branch { key, metas, reads_list ->
+
+            single:
+                reads_list.size() == 1
+
+                return [
+                    metas[0],
+                    reads_list[0]
+                ]
+
+            multiple:
+                true
+
+                return [
+                    metas[0],
+                    reads_list.flatten()
+                ]
+        }
+        .set { ch_reads_grouped }
+
+
+    //
+    // Merge samples that have multiple runs
+    //
+    CAT_FASTQ (
+        ch_reads_grouped.multiple
+    )
+
+
+    //
+    // Combine:
+    //   - merged multi-run samples
+    //   - single-run samples that do not require merging
+    //
+    ch_merged_reads = CAT_FASTQ.out.reads
+        .mix(ch_reads_grouped.single)
 
     //
     // Read removal
@@ -60,7 +220,7 @@ workflow QQQ {
     // index in that case, so index resolution is inside each branch — asking
     // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
-        ch_dehosted_fastq = ch_reads
+        ch_dehosted_fastq = ch_merged_reads
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
@@ -133,7 +293,7 @@ workflow QQQ {
         //
         // Resources are set per alias in oamd-bio-nf-configs; nothing here
         // hardcodes them, and the module itself is untouched.
-        ch_deacon_sized = ch_reads.branch { meta, reads ->
+        ch_deacon_sized = ch_merged_reads.branch { meta, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
@@ -193,7 +353,7 @@ workflow QQQ {
         // So route by input size to two aliases of the same module. Resources are
         // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
         // the module itself is untouched.
-        ch_sized = ch_reads.branch { meta, reads ->
+        ch_sized = ch_merged_reads.branch { meta, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }

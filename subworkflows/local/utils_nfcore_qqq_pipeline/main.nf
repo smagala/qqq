@@ -92,29 +92,33 @@ workflow PIPELINE_INITIALISATION {
     //
 
     channel
-        .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
             meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+            def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
+            
+            if (!fastq_2) {
+                return [ [meta.id, platform], meta + [ platform: platform, single_end:true ], [ fastq_1 ] ]
                 } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                    return [ [meta.id, platform], meta + [ platform: platform, single_end:false ], [ fastq_1, fastq_2 ] ]
                 }
         }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
+        .groupTuple(by: 0)
+        .map { key, metas, fastqs ->
+        validateInputSamplesheet([key, metas, fastqs])
+        [key, metas, fastqs]
         }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
+        .flatMap { key, metas, fastqs ->
+        metas.indices.collect { i ->
+        [metas[i], fastqs[i]]
+            }
         }
         .set { ch_samplesheet }
-
+                    
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
-}
+    }
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,16 +179,25 @@ def validateInputParameters() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
+    def (key, metas, fastqs) = input
+    def sample = key[0]
+    def platform = key[1]
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
+    def all_fastqs = fastqs.flatten()
+
     if (!endedness_ok) {
         error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
-    }
+        }
+    
+    if (all_fastqs.size() != all_fastqs.unique().size()) {
+        error( "Please check input samplesheet -> Duplicate FASTQ files detected for sample: ${metas[0].id}")
+        }
 
     return [ metas[0], fastqs ]
 }
+
 //
 // Generate methods description for MultiQC
 //

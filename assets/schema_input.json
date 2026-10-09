@@ -26,6 +26,34 @@
                 "exists": true,
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "platform": {
+                "type": "string",
+                "enum": [
+                    "illumina",
+                    "ls454",
+                    "abi_solid",
+                    "bgiseq",
+                    "complete_genomics",
+                    "dnbseq",
+                    "element",
+                    "genapsys",
+                    "genemind",
+                    "helicos",
+                    "ion_torrent",
+                    "tapestri",
+                    "ultima",
+                    "vela_diagnostics",
+                    "capillary",
+                    "nanopore",
+                    "ont",
+                    "pacbio",
+                    "pacbio_smrt",
+                    "oxford_nanopore"
+                ],
+                "default": "illumina",
+                "meta": ["platform"],
+                "errorMessage": "Platform must be one of: illumina, ls454, abi_solid, bgiseq, complete_genomics, dnbseq, element, genapsys, genemind, helicos, ion_torrent, tapestri, ultima, vela_diagnostics, capillary, nanopore, ont, pacbio, pacbio_smrt, oxford_nanopore.  If left blank, QQQ defaults to 'illumina'."
             }
         },
         "required": ["sample", "fastq_1"]
