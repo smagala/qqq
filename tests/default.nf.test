@@ -41,15 +41,12 @@ nextflow_pipeline {
     // Statistics columns — a snapshot of each is what checks that.
     //
     test("-profile test, --dehoster hostile") {
-
         config "tests/hostile.config"
-
         when {
             params {
                 outdir = "$outputDir"
+                }
             }
-        }
-
         then {
             def stable_path = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
             def stable_content = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
@@ -59,8 +56,33 @@ nextflow_pipeline {
                     removeNextflowVersion("$outputDir/pipeline_info/qqq_software_mqc_versions.yml"),
                     stable_path,
                     stable_content
-                ).match() }
+                    ).match() }
+                )
+            }
+        }
+    test("-profile test, --skip_fastp") {
+        when {
+        params {
+            outdir = "$outputDir"
+            skip_fastp = true
+            dehoster = "none"
+            }
+        }
+    then {
+        assert workflow.success
+        def stable_path = getAllFilesFromDir(
+            params.outdir,
+            relative: true,
+            includeDir: true,
+            ignore: ['pipeline_info/*.{html,json,txt}']
             )
+        assert stable_path.any {
+            it.toString().contains(".merged.fastq.gz")
+            }
+        assert !stable_path.any {
+            it.toString().contains(".fastp.json")
+            }
+        assert snapshot(stable_path).match()
         }
     }
 }

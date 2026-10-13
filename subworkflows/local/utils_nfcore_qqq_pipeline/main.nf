@@ -110,7 +110,7 @@ workflow PIPELINE_INITIALISATION {
         }
         .flatMap { key, metas, fastqs ->
         metas.indices.collect { i ->
-        [metas[i], fastqs[i]]
+        [metas[i]+ [run: i + 1], fastqs[i]]
             }
         }
         .set { ch_samplesheet }

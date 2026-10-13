@@ -12,10 +12,14 @@ include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
 include { DEACON_FILTER as DEACON_FILTER_SMALL } from '../modules/amd-ph-core/deacon/filter/main'
 include { DEACON_FILTER as DEACON_FILTER_LARGE } from '../modules/amd-ph-core/deacon/filter/main'
-include { HOSTESS as HOSTESS_SMALL             } from '../modules/amd-ph-core/hostess/main'
-include { HOSTESS as HOSTESS_LARGE             } from '../modules/amd-ph-core/hostess/main'
-include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
-include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE } from '../modules/nf-core/hostile/clean/main'
+include { HOSTESS as HOSTESS_SMALL_SHORT } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_LARGE_SHORT } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_SMALL_LONG } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_LARGE_LONG } from '../modules/amd-ph-core/hostess/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL_SHORT } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE_SHORT } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL_LONG } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE_LONG } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -323,9 +327,16 @@ workflow QQQ {
             // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
             // so the index name hostile is given must match that basename.
             // Already a value channel, since BOWTIE2_BUILD's input is one.
-            ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
-        }
-        else {
+            ch_hostile_ref_short = BOWTIE2_BUILD.out.index.map { meta, index ->
+            [meta.id, index]
+            }
+
+            // Long reads: use the original FASTA
+            ch_hostile_ref_long = channel.value([
+                host_fasta.name,
+                host_fasta
+                ])
+        } else {
             // Without this, a missing hostile_db surfaces as "Argument of `file()`
             // function cannot be null", which says nothing about the actual cause:
             // the pipeline configs from oamd-bio-nf-configs were not loaded.
@@ -340,7 +351,18 @@ workflow QQQ {
                     "  See run-qqq-prda.sh, which sets both."
                 )
             }
-            ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+            
+            def hostile_db = file(params.hostile_db, checkIfExists: true)
+            
+            ch_hostile_ref_short = channel.value([
+                params.hostile_index,
+                hostile_db
+                ])
+            
+            ch_hostile_ref_long = channel.value([
+                params.hostile_index,
+                hostile_db
+                ])
         }
 
         // Hostile's peak memory plateaus rather than tracking input size: measured
@@ -357,26 +379,46 @@ workflow QQQ {
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
+        ch_small = ch_sized.small.branch { meta, reads ->
+        short_reads: meta.type == 'short'
+        long_reads:  meta.type == 'long'
+        }
+
+        ch_large = ch_sized.large.branch { meta, reads ->
+        short_reads: meta.type == 'short'
+        long_reads:  meta.type == 'long'
+        }
 
         // hostess is the default: it removes host reads in one alignment pass and
         // can keep the removed reads as a sorted BAM, which hostile cannot do
         // without a second pass. --host_bam only has an effect with hostess.
         if (params.dehoster == 'hostess') {
-            HOSTESS_SMALL (
-                ch_sized.small,
-                ch_hostile_ref
+            HOSTESS_SMALL_SHORT (
+            ch_small.short_reads,
+            ch_hostile_ref_short
             )
-            HOSTESS_LARGE (
-                ch_sized.large,
-                ch_hostile_ref
+
+            HOSTESS_LARGE_SHORT (
+            ch_large.short_reads,
+            ch_hostile_ref_short
             )
-            ch_dehosted_fastq = HOSTESS_SMALL.out.fastq.mix(HOSTESS_LARGE.out.fastq)
-            ch_dehosted_json = HOSTESS_SMALL.out.json.mix(HOSTESS_LARGE.out.json)
+
+            HOSTESS_SMALL_LONG (
+            ch_small.long_reads,
+            ch_hostile_ref_long
+            )
+
+            HOSTESS_LARGE_LONG (
+            ch_large.long_reads,
+            ch_hostile_ref_long
+            )
+            ch_dehosted_fastq = HOSTESS_SMALL_SHORT.out.fastq.mix(HOSTESS_LARGE_SHORT.out.fastq).mix(HOSTESS_SMALL_LONG.out.fastq).mix(HOSTESS_LARGE_LONG.out.fastq)
+            ch_dehosted_json = HOSTESS_SMALL_SHORT.out.json.mix(HOSTESS_LARGE_SHORT.out.json).mix(HOSTESS_SMALL_LONG.out.json).mix(HOSTESS_LARGE_LONG.out.json)
 
             // Only produced when --host_bam is set; the module declares them
             // optional, so these channels are simply empty otherwise.
-            ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
-            ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
+            ch_host_bam = HOSTESS_SMALL_SHORT.out.bam.mix(HOSTESS_LARGE_SHORT.out.bam).mix(HOSTESS_SMALL_LONG.out.bam).mix(HOSTESS_LARGE_LONG.out.bam)
+            ch_host_bai = HOSTESS_SMALL_SHORT.out.bai.mix(HOSTESS_LARGE_SHORT.out.bai).mix(HOSTESS_SMALL_LONG.out.bai).mix(HOSTESS_LARGE_LONG.out.bai)
 
             // samtools stats is parsed by MultiQC's samtools module with no
             // configuration, so it goes straight into the report.
@@ -388,20 +430,32 @@ workflow QQQ {
             // section. The file is still produced and published for anyone who
             // wants it.
             ch_multiqc_files = ch_multiqc_files.mix(
-                HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
+                HOSTESS_SMALL_SHORT.out.stats.mix(HOSTESS_LARGE_SHORT.out.stats).mix(HOSTESS_SMALL_LONG.out.stats).mix(HOSTESS_LARGE_LONG.out.stats).collect { meta, file -> file }.ifEmpty([])
             )
         }
         else {
-            HOSTILE_CLEAN_SMALL (
-                ch_sized.small,
-                ch_hostile_ref
+            HOSTILE_CLEAN_SMALL_SHORT (
+            ch_small.short_reads,
+            ch_hostile_ref_short
             )
-            HOSTILE_CLEAN_LARGE (
-                ch_sized.large,
-                ch_hostile_ref
+
+            HOSTILE_CLEAN_LARGE_SHORT (
+            ch_large.short_reads,
+            ch_hostile_ref_short
             )
-            ch_dehosted_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
-            ch_dehosted_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+
+            HOSTILE_CLEAN_SMALL_LONG (
+            ch_small.long_reads,
+            ch_hostile_ref_long
+            )
+
+            HOSTILE_CLEAN_LARGE_LONG (
+            ch_large.long_reads,
+            ch_hostile_ref_long
+            )
+            
+            ch_dehosted_fastq = HOSTILE_CLEAN_SMALL_SHORT.out.fastq.mix(HOSTILE_CLEAN_LARGE_SHORT.out.fastq).mix(HOSTILE_CLEAN_SMALL_LONG.out.fastq).mix(HOSTILE_CLEAN_LARGE_LONG.out.fastq)
+            ch_dehosted_json = HOSTILE_CLEAN_SMALL_SHORT.out.json.mix(HOSTILE_CLEAN_LARGE_SHORT.out.json).mix(HOSTILE_CLEAN_SMALL_LONG.out.json).mix(HOSTILE_CLEAN_LARGE_LONG.out.json)
             ch_host_bam = channel.empty()
             ch_host_bai = channel.empty()
         }

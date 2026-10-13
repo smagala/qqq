@@ -22,10 +22,12 @@ process HOSTILE_CLEAN {
     script:
     def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
+    def index_ref = meta.type == 'long' ? reference_dir.toString() : reference_name
+    def cache_dir = meta.type == 'long' ? '.' : reference_dir.toString()
     def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.simpleName }
     def reads_cmd    = meta.single_end ? "--fastq1 ${sorted_reads[0]}" : "--fastq1 ${sorted_reads[0]} --fastq2 ${sorted_reads[1]}"
     """
-    export HOSTILE_CACHE_DIR=${reference_dir}
+    export HOSTILE_CACHE_DIR=${cache_dir}
 
     ## Reorder the reads for reproducibility
     ## Set offline as we never want this process to auto-download reference files as required input channel
@@ -34,7 +36,7 @@ process HOSTILE_CLEAN {
         ${args} \\
         --threads ${task.cpus} \\
         ${reads_cmd} \\
-        --index ${reference_name} \\
+        --index ${index_ref} \\
         --output . \\
         --reorder \\
         --airplane \\
@@ -45,7 +47,7 @@ process HOSTILE_CLEAN {
     def prefix       = task.ext.prefix ?: "${meta.id}"
     def fake_read2   = !meta.single_end ? "echo '' | gzip > ${prefix}.clean_2.fastq.gz" : ""
     """
-    export HOSTILE_CACHE_DIR=${reference_dir}
+    export HOSTILE_CACHE_DIR=${cache_dir}
     echo "" | gzip > ${prefix}.clean_1.fastq.gz
     ${fake_read2}
 
