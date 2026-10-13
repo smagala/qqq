@@ -578,7 +578,7 @@ workflow QQQ {
         .map { process, tool, version ->
             // Strip the size-tier suffix so the two dehoster aliases report one
             // version rather than two identical ones.
-            def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)$/, '')
+            def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)_(SHORT|LONG)$/, '')
             [name, "  ${tool}: ${version}"]
         }
         .groupTuple(by: 0)

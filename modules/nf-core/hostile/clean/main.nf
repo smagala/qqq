@@ -45,6 +45,7 @@ process HOSTILE_CLEAN {
 
     stub:
     def prefix       = task.ext.prefix ?: "${meta.id}"
+    def cache_dir  = meta.type == 'long' ? '.' : reference_dir.toString()
     def fake_read2   = !meta.single_end ? "echo '' | gzip > ${prefix}.clean_2.fastq.gz" : ""
     """
     export HOSTILE_CACHE_DIR=${cache_dir}

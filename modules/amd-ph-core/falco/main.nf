@@ -67,7 +67,7 @@ process FALCO {
                 -R "\${read_base}_fastqc_report.html" \\
                 "\$read_file" &
             pids="\$pids \$!"
-            mate=$((mate + 1))
+            mate=\$((mate + 1))
         done
 
         for pid in \$pids; do
