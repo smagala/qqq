@@ -74,13 +74,11 @@ workflow QQQ {
 
     ch_reads
         .map { meta, reads ->
-
-            def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
             def type
 
-            if (platform in long_platforms) {
+            if (meta.platform in long_platforms) {
                 type = "long"
-            } else if (platform in short_platforms || !platform) {
+            } else if (meta.platform in short_platforms) {
                 type = "short"
             } else {
                 error "Unknown sequencing platform '${meta.platform}' for sample '${meta.id}'"
@@ -162,11 +160,8 @@ workflow QQQ {
     ch_reads_by_sample = ch_reads_mix
         .map { meta, reads ->
 
-            def platform =
-                meta.platform?.toLowerCase()?.trim() ?: "illumina"
-
             [
-                [meta.id, platform],
+                [meta.id, meta.platform],
                 meta,
                 reads
             ]
@@ -330,6 +325,12 @@ workflow QQQ {
             ch_hostile_ref_short = BOWTIE2_BUILD.out.index.map { meta, index ->
             [meta.id, index]
             }
+            MINIMAP2_INDEX (
+                channel.value([[id: host_fasta.baseName], host_fasta])
+            )
+            ch_hostile_ref_long = MINIMAP2_INDEX.out.index.map { meta, index ->
+                [meta.id, index]
+            }
 
             // Long reads: use the original FASTA
             ch_hostile_ref_long = channel.value([
@@ -379,6 +380,7 @@ workflow QQQ {
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
+
         ch_small = ch_sized.small.branch { meta, reads ->
         short_reads: meta.type == 'short'
         long_reads:  meta.type == 'long'
@@ -532,11 +534,11 @@ workflow QQQ {
                 def reads_out = (counts ? counts.reads_out : 0L) as long
                 // Every dehoster counts records rather than pairs, so for
                 // paired-end input reads_out is twice the number of pairs.
-                [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
+                [[meta.id, meta.platform], meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
         ch_gated = ch_dehosted_fastq
-            .map { meta, reads -> [meta.id, meta, reads] }
+            .map { meta, reads -> [[meta.id, meta.platform], meta, reads] }
             .join(ch_read_counts)
             .branch { id, meta, reads, count ->
                 downsample: count > params.max_reads

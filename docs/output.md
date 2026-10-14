@@ -10,11 +10,14 @@ The directories listed below will be created in the results directory after the 
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
-- [Falco](#falco) - Raw read QC
-- [Hostile](#hostile) - Host read removal
+- [Falco](#falco) - Raw read quality control
+- [fastp](#fastp) - Short-read trimming and quality control
+- [fastplong](#fastplong) - Long-read trimming and quality control
+- [CAT_FASTQ](#cat_fastq) - Merge multiple runs of the same sample and platform
+- [Dehosting](#dehosting) - Remove host reads using Deacon, Hostile, or Hostess
 - [fadso](#fadso) - Optional read downsampling
-- [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
-- [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+- [MultiQC](#multiqc) - Aggregate quality control report
+- [Pipeline information](#pipeline-information) - Workflow execution reports
 
 ### Falco
 
@@ -32,18 +35,111 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 The `_fastqc_data.txt` files are what MultiQC reads. MultiQC has no separate Falco module — its FastQC module parses these files, recognises the `##Falco` header, and labels the report section "Falco".
 
-### Hostile
+### fastp
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `fastp/`
+  - `*.fastp.fastq.gz`: Trimmed and filtered short reads.
+  - `*.fastp.json`: Quality control and trimming statistics.
+  - `*.fastp.html`: HTML quality control report.
+  - `*.fastp.log`: Processing log.
+
+</details>
+
+[fastp](https://github.com/OpenGene/fastp) performs quality filtering and adapter trimming on short-read sequencing data, including single-end and paired-end reads.
+
+Each sequencing run is processed separately before merging. This step is enabled by default and can be skipped using `--skip_fastp`.
+
+### fastplong
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `fastplong/`
+  - `*.fastplong.fastq.gz`: Trimmed and filtered long reads.
+  - `*.fastplong.json`: Quality control and trimming statistics.
+  - `*.fastplong.html`: HTML quality control report.
+  - `*.fastplong.log`: Processing log.
+
+</details>
+
+[fastplong](https://github.com/OpenGene/fastplong) performs quality filtering and trimming on long-read sequencing data, including Nanopore and PacBio reads.
+
+Each sequencing run is processed separately before merging. This step is enabled by default and can be skipped using `--skip_fastp`.
+
+### CAT_FASTQ
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `cat/`
+  - `*.merged.fastq.gz`: Merged FASTQ files from multiple sequencing runs.
+
+</details>
+
+CAT_FASTQ combines multiple sequencing runs with the same sample ID and sequencing platform.
+
+Single-run samples bypass this step. Runs from different sequencing platforms are processed separately, even when they share the same sample ID.
+
+For paired-end reads, R1 and R2 are merged separately.
+
+Merging occurs after trimming when fastp or fastplong is enabled. When `--skip_fastp` is used, the original reads are merged instead.
+
+
+### Dehosting
+
+The pipeline supports three dehosting tools: Deacon, Hostile, and Hostess. The tool is selected using `--dehoster`.
+
+Deacon is the default. Hostile and Hostess use Bowtie2 for short reads and minimap2 for long reads.
+
+Dehosting can be disabled using `--dehoster none`.
+
+#### Deacon
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `deacon/`
+  - `*.clean*.fq.gz`: Dehosted reads.
+  - `*.deacon.json`: Dehosting statistics.
+
+</details>
+
+[Deacon](https://github.com/bede/deacon) removes potential host reads using minimizer-based sequence filtering.
+
+#### Hostile
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `hostile/`
-  - `*.clean_1.fastq.gz` / `*.clean_2.fastq.gz`: Dehosted reads.
-  - `*.json`: Dehosting statistics, including reads in, reads out, and the proportion removed.
+  - `*.clean*.fastq.gz`: Dehosted reads.
+  - `*.json`: Dehosting statistics.
 
 </details>
 
-[Hostile](https://github.com/bede/hostile) removes reads that align to a host reference index. By default this pipeline uses a masked human reference that excludes regions potentially overlapping pathogen sequences, so pathogen reads are not inadvertently discarded. The JSON reports are picked up by MultiQC.
+[Hostile](https://github.com/bede/hostile) removes host reads using sequence alignment against a host reference.
+
+#### Hostess
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `hostess/`
+  - `*.clean*.fastq.gz`: Dehosted reads.
+  - `*.hostess.json`: Dehosting statistics.
+  - `*.host.bam`: Host-aligned reads, when `--host_bam` is enabled.
+  - `*.host.bam.bai`: BAM index, when host BAM output is enabled.
+  - `*.host.stats.txt`: Alignment statistics, when generated.
+  - `*.host.flagstat.txt`: Alignment summary, when generated.
+
+</details>
+
+Hostess performs alignment-based host removal and supports retaining host-aligned reads as BAM files when `--host_bam` is enabled.
+
+Dehosting statistics are collected into the MultiQC report.
 
 ### fadso
 

@@ -1,22 +1,26 @@
-diff --git a/modules/nf-core/hostile/clean/main.nf b/modules/nf-core/hostile/clean/main.nf
-index aa087d2..0308118 100644
---- a/modules/nf-core/hostile/clean/main.nf
-+++ b/modules/nf-core/hostile/clean/main.nf
-@@ -22,10 +22,12 @@ process HOSTILE_CLEAN {
+Changes in component 'nf-core/hostile/clean'
+Changes in 'hostile/clean/main.nf':
+--- modules/nf-core/hostile/clean/main.nf
++++ modules/nf-core/hostile/clean/main.nf
+@@ -22,10 +22,16 @@
      script:
      def args         = task.ext.args ?: ''
      def prefix       = task.ext.prefix ?: "${meta.id}"
-+    def index_ref = meta.type == 'long' ? reference_dir.toString() : reference_name
++    def index_ref = meta.type == 'long'
++    ? (reference_dir.isDirectory()
++        ? "${reference_dir}/${reference_name}.mmi"
++        : reference_dir.toString())
++    : reference_name
 +    def cache_dir = meta.type == 'long' ? '.' : reference_dir.toString()
      def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.simpleName }
      def reads_cmd    = meta.single_end ? "--fastq1 ${sorted_reads[0]}" : "--fastq1 ${sorted_reads[0]} --fastq2 ${sorted_reads[1]}"
      """
 -    export HOSTILE_CACHE_DIR=${reference_dir}
 +    export HOSTILE_CACHE_DIR=${cache_dir}
- 
+
      ## Reorder the reads for reproducibility
      ## Set offline as we never want this process to auto-download reference files as required input channel
-@@ -34,7 +36,7 @@ process HOSTILE_CLEAN {
+@@ -34,7 +40,7 @@
          ${args} \\
          --threads ${task.cpus} \\
          ${reads_cmd} \\
@@ -25,20 +29,22 @@ index aa087d2..0308118 100644
          --output . \\
          --reorder \\
          --airplane \\
-@@ -45,7 +47,7 @@ process HOSTILE_CLEAN {
+@@ -43,9 +49,10 @@
+
+     stub:
      def prefix       = task.ext.prefix ?: "${meta.id}"
++    def cache_dir  = meta.type == 'long' ? '.' : reference_dir.toString()
      def fake_read2   = !meta.single_end ? "echo '' | gzip > ${prefix}.clean_2.fastq.gz" : ""
      """
 -    export HOSTILE_CACHE_DIR=${reference_dir}
 +    export HOSTILE_CACHE_DIR=${cache_dir}
      echo "" | gzip > ${prefix}.clean_1.fastq.gz
      ${fake_read2}
- 
-@@ -45,6 +45,7 @@ process HOSTILE_CLEAN {
- 
-     stub:
-     def prefix       = task.ext.prefix ?: "${meta.id}"
-+    def cache_dir  = meta.type == 'long' ? '.' : reference_dir.toString()
-     def fake_read2   = !meta.single_end ? "echo '' | gzip > ${prefix}.clean_2.fastq.gz" : ""
-     """
-     export HOSTILE_CACHE_DIR=${cache_dir}
+
+
+'modules/nf-core/hostile/clean/meta.yml' is unchanged
+'modules/nf-core/hostile/clean/environment.yml' is unchanged
+'modules/nf-core/hostile/clean/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/hostile/clean/tests/nextflow.config' is unchanged
+'modules/nf-core/hostile/clean/tests/main.nf.test' is unchanged
+************************************************************

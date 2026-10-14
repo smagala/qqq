@@ -14,6 +14,14 @@
 
 > de Sena Brandine G, Smith AD. Falco: high-speed FastQC emulation for quality control of sequencing data. F1000Res. 2019;8:1874. doi: 10.12688/f1000research.21142.2. PubMed PMID: 33552473.
 
+- [fastp](https://github.com/OpenGene/fastp)
+
+> Chen S, Zhou Y, Chen Y, Gu J. fastp: an ultra-fast all-in-one FASTQ preprocessor. Bioinformatics. 2018;34(17):i884–i890. doi: 10.1093/bioinformatics/bty560.
+
+- [fastplong](https://github.com/OpenGene/fastplong)
+
+> Chen S. Ultrafast one-pass FASTQ data preprocessing, quality control, and deduplication using fastp. iMeta. 2023;2:e107. doi: 10.1002/imt2.107.
+
 - [Deacon](https://www.biorxiv.org/content/10.1101/2025.06.09.658732v1)
 
 > Constantinides B, Lees J, Crook DW. Deacon: fast sequence filtering and contaminant depletion. bioRxiv. 2025 Jun 12. doi: 10.1101/2025.06.09.658732.

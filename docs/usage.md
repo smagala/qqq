@@ -4,9 +4,7 @@
 
 ## Introduction
 
-qqq takes paired-end Illumina reads, records their quality with Falco, removes host
-reads, and aggregates the result into a single MultiQC report. It can
-optionally cap the depth of the dehosted output.
+QQQ processes short- and long-read sequencing data, including Illumina, Nanopore, and PacBio. The pipeline uses Falco for raw read QC, fastp or fastplong for optional trimming, and combines multiple runs from the same sample and platform. It also supports host read removal and optional downsampling. MultiQC is used to summarize the results.
 
 ### Running on AMDP
 
@@ -42,16 +40,36 @@ loudly on their own:
 `run-qqq-prda.sh` in the parent directory of a standard checkout sets all three
 correctly for the prd-analysis tier.
 
+### Read trimming and merging
+
+By default, QQQ performs read trimming and quality filtering after raw read QC.
+
+- **fastp** is used for short-read sequencing data.
+- **fastplong** is used for long-read sequencing data.
+- `--skip_fastp` disables trimming for both short and long reads.
+
+Each sequencing run is processed separately before merging.
+
+When multiple runs share the same sample ID and sequencing platform, CAT_FASTQ combines them into a single set of FASTQ files.
+
+- Single-run samples bypass merging.
+- Runs from different sequencing platforms are processed separately.
+- Paired-end reads are merged separately for R1 and R2.
+
+When trimming is enabled, merging occurs after fastp or fastplong. When `--skip_fastp` is enabled, the original FASTQ files are merged instead.
+
+Trimming results are saved in the `fastp/` and `fastplong/` output directories. Merged reads are saved in `cat/`.
+
 ### Choosing a dehoster
 
 `--dehoster` selects the host removal implementation, or turns the step off.
 
-| `--dehoster` | Method                        | Removed reads kept? | Notes                                              |
-| ------------ | ----------------------------- | ------------------- | -------------------------------------------------- |
-| `deacon`     | minimizer matching, no aligner | no                  | the default; much the fastest, and approximate      |
-| `hostess`    | bowtie2, single stream         | yes, sorted BAM     | the option when you need the removed reads          |
-| `hostile`    | bowtie2                       | no                  | same method as hostess, without the single-pass BAM |
-| `none`       | —                             | —                   | falco and multiqc only; no index required           |
+| `--dehoster` | Method | Host BAM available? | Notes |
+| ------------ | ------ | ------------------- | ----- |
+| `deacon` | Minimizer-based filtering | No | Default; fast, approximate host filtering |
+| `hostess` | Bowtie2 (short reads) / minimap2 (long reads) | Yes, with `--host_bam` | Alignment-based host removal |
+| `hostile` | Bowtie2 (short reads) / minimap2 (long reads) | No | Alignment-based host removal |
+| `none` | No dehosting | No | Skips host removal; QC, trimming, and merging remain available |
 
 `deacon` does not align. It counts how many of each read's minimizers appear in a
 prebuilt index and drops the read when enough of them do, which is why it is so
@@ -80,17 +98,17 @@ Two consequences are worth knowing before switching:
 
 ### Dehosting reference
 
-For `deacon`, `--deacon_db` is the path to a single minimizer index file
-(`*.idx`).
+For `deacon`, `--deacon_db` must point to a prebuilt minimizer index file (`*.idx`).
 
-For `hostile` and `hostess`, `--hostile_db` must point at the directory that
-*contains the index files themselves* (`<index>.*.bt2`), not at its parent, and
-`--hostile_index` is the index name, which is also the basename of those files.
+For `hostile` and `hostess`, `--hostile_db` must point to the directory containing the required reference indexes.
 
-Alternatively `--host_fasta` builds an index from a FASTA at runtime, in whatever
-format the selected dehoster needs. That is what the test profiles use, and it
-means no prebuilt index has to be hosted for testing. When it is set, `--deacon_db`
-and `--hostile_db` are ignored.
+- Short reads use Bowtie2 indexes (`<index>.*.bt2`).
+- Long reads use a minimap2 index (`<index>.mmi`).
+- `--hostile_index` specifies the index basename.
+
+When both short-read and long-read data are processed, the reference directory must contain the indexes required for both alignment methods.
+
+Alternatively, `--host_fasta` can be used to build the required indexes from a reference FASTA during pipeline execution. When provided, it takes precedence over `--deacon_db` and `--hostile_db`.
 
 ### Downsampling
 
@@ -100,49 +118,70 @@ sampling reproducible. Only samples above the cap are downsampled, and the
 decision reuses the read counts the dehoster already reports. Leave it unset to
 disable the step entirely.
 
+
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+The pipeline accepts a CSV samplesheet containing information about the sequencing data.
+
+The supported columns are `sample`, `fastq_1`, `fastq_2`, and `platform`.
+
+The `platform` column is optional. If it is not provided, the pipeline defaults to `illumina`.
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
+### Samplesheet columns
+
+| Column | Description |
+| ------ | ----------- |
+| `sample` | Sample ID. Multiple sequencing runs from the same sample should use the same ID. |
+| `fastq_1` | Required FASTQ file for read 1 or a single-end/long-read run. |
+| `fastq_2` | FASTQ file for read 2 in paired-end sequencing. Leave empty for single-end and long-read data. |
+| `platform` | Optional sequencing platform. Defaults to `illumina` if not provided. |
+
+FASTQ input files must be gzipped and use the `.fastq.gz` or `.fq.gz` extension.
+
+### Supported sequencing platforms
+
+The pipeline supports both short-read and long-read platforms.
+
+**Short-read platforms:** `illumina`, `ls454`, `abi_solid`, `bgiseq`, `complete_genomics`, `dnbseq`, `element`, `genapsys`, `genemind`, `helicos`, `ion_torrent`, `tapestri`, `ultima`, `vela_diagnostics`, and `capillary`.
+
+**Long-read platforms:** `nanopore`, `ont`, `oxford_nanopore`, `pacbio`, and `pacbio_smrt`.
+
+Short reads are processed with fastp, while long reads are processed with fastplong.
+
+Each long-read run must contain a single FASTQ file in `fastq_1`, with `fastq_2` left empty.
+
 ### Multiple runs of the same sample
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+When a sample has multiple sequencing runs, use the same sample ID and platform for each run.
 
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+For example:
+
+```csv
+sample,fastq_1,fastq_2,platform
+SAMPLE1,SAMPLE1_L001_R1.fastq.gz,SAMPLE1_L001_R2.fastq.gz,illumina
+SAMPLE1,SAMPLE1_L002_R1.fastq.gz,SAMPLE1_L002_R2.fastq.gz,illumina
+SAMPLE1,SAMPLE1_nanopore_run1.fastq.gz,,nanopore
+SAMPLE1,SAMPLE1_nanopore_run2.fastq.gz,,nanopore
+SAMPLE2,SAMPLE2_pacbio.fastq.gz,,pacbio
 ```
 
-### Full samplesheet
+The pipeline processes each run separately for raw read QC and optional trimming.
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+After trimming, runs with the same sample ID and sequencing platform are combined using CAT_FASTQ.
 
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+Runs from different platforms are not merged together, even when they share the same sample ID.
 
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
-```
+Single-run samples bypass CAT_FASTQ.
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+When `--skip_fastp` is enabled, reads are merged without trimming.
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+### Example samplesheet
+
+An [example samplesheet](../assets/samplesheet.csv) is provided with the pipeline.
 
 ## Running the pipeline
 

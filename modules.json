@@ -44,7 +44,8 @@
                     "hostile/clean": {
                         "branch": "master",
                         "git_sha": "14295214ba15060cf1e65bdba3e0c4b3a450d5b1",
-                        "installed_by": ["modules"]
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/hostile/clean/hostile-clean.diff"
                     },
                     "multiqc": {
                         "branch": "master",
