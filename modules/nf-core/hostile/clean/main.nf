@@ -22,7 +22,11 @@ process HOSTILE_CLEAN {
     script:
     def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
-    def index_ref = meta.type == 'long' ? reference_dir.toString() : reference_name
+    def index_ref = meta.type == 'long'
+    ? (reference_dir.isDirectory()
+        ? "${reference_dir}/${reference_name}.mmi"
+        : reference_dir.toString())
+    : reference_name
     def cache_dir = meta.type == 'long' ? '.' : reference_dir.toString()
     def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.simpleName }
     def reads_cmd    = meta.single_end ? "--fastq1 ${sorted_reads[0]}" : "--fastq1 ${sorted_reads[0]} --fastq2 ${sorted_reads[1]}"
