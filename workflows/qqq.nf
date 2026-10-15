@@ -185,13 +185,22 @@ workflow QQQ {
 
             multiple:
                 true
-
+                // Keep each run's metadata paired with its FASTQ files,
+                // then sort by the original run number before merging.
+                def orderedRuns = metas.indices
+                .collect { i ->
+                [meta: metas[i], reads: reads_list[i]]
+                }
+                .sort { a, b ->
+                a.meta.run <=> b.meta.run
+                }
+                
                 return [
-                    metas[0],
-                    reads_list.flatten()
-                ]
-        }
-        .set { ch_reads_grouped }
+                    orderedRuns[0].meta,
+                    orderedRuns.collect { it.reads }.flatten()
+                    ]
+                    }
+                    .set { ch_reads_grouped }
 
 
     //
