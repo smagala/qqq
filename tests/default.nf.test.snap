@@ -183,7 +183,7 @@
                 "genome.rev.2.bt2:md5,e3b4ef343dea4dd571642010a7d09597",
                 "test_illumina_1.merged.fastq.gz:md5,61378bb04d5911bd67c36e1027551768",
                 "test_illumina_2.merged.fastq.gz:md5,81d3ddb42a5381ecfc35488ee0c27bde",
-                "test_long_nanopore.merged.fastq.gz:md5,bba2413837ab3fbc21f9bf1551fa603f",
+                "test_long_nanopore.merged.fastq.gz:md5,15256c002137a8ba3b9cb18aa2d57ac5",
                 "test2_illumina_run1_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
                 "test2_illumina_run1_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
                 "test2_illumina_run1_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
@@ -236,7 +236,7 @@
                 "multiqc_general_stats.txt:md5,8dec96ebb100c19d7fe998711d9b6941"
             ]
         ],
-        "timestamp": "2026-10-15T01:29:58.266536086",
+        "timestamp": "2026-10-15T03:05:29.762853426",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
@@ -417,13 +417,13 @@
             [
                 "test_illumina_1.merged.fastq.gz:md5,61378bb04d5911bd67c36e1027551768",
                 "test_illumina_2.merged.fastq.gz:md5,81d3ddb42a5381ecfc35488ee0c27bde",
-                "test_long_nanopore.merged.fastq.gz:md5,bba2413837ab3fbc21f9bf1551fa603f",
+                "test_long_nanopore.merged.fastq.gz:md5,15256c002137a8ba3b9cb18aa2d57ac5",
                 "genome.idx:md5,84e4985c91800686db9c9dca28fabd1a",
                 "test2_illumina.clean_1.fq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
                 "test2_illumina.clean_2.fq.gz:md5,c25045f7e581ad589c029f404dc635d3",
                 "test_illumina.clean_1.fq.gz:md5,a35efef87acddc1680f37c77d636913f",
                 "test_illumina.clean_2.fq.gz:md5,9879fa3399c5c694574ba28c0ff665ad",
-                "test_long_nanopore.clean.fq.gz:md5,6b3d5678e4f5760e883d2bb0d4a226dc",
+                "test_long_nanopore.clean.fq.gz:md5,a6e76e8880ef6a9cdc797ebad144d181",
                 "test2_illumina_run1_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
                 "test2_illumina_run1_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
                 "test2_illumina_run1_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
@@ -470,7 +470,7 @@
                 "multiqc_general_stats.txt:md5,2f870387cbad07cdb55cad7335980d3d"
             ]
         ],
-        "timestamp": "2026-10-15T01:28:00.805594028",
+        "timestamp": "2026-10-15T03:03:29.025364509",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
