@@ -1,249 +1,580 @@
 {
-    "sarscov2 - fastq - single_end - stub": {
+    "-profile test, --dehoster hostile": {
         "content": [
             {
-                "0": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "1": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "2": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "3": [
-                    [
-                        "FALCO",
-                        "falco",
-                        "1.2.5"
-                    ]
-                ],
-                "html": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "summary": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "txt": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": true
-                        },
-                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "versions_falco": [
-                    [
-                        "FALCO",
-                        "falco",
-                        "1.2.5"
-                    ]
-                ]
-            }
-        ],
-        "timestamp": "2026-08-06T12:58:06.517348258",
-        "meta": {
-            "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
-        }
-    },
-    "sarscov2 - fastq - single_end": {
-        "content": [
+                "BOWTIE2_BUILD": {
+                    "bowtie2": "2.5.4"
+                },
+                "CAT_FASTQ": {
+                    "cat": 9.5
+                },
+                "FALCO": {
+                    "falco": "1.2.5"
+                },
+                "FASTP": {
+                    "fastp": "1.3.6"
+                },
+                "FASTPLONG": {
+                    "fastplong": "0.4.1"
+                },
+                "HOSTILE_CLEAN_SMALL_LONG": {
+                    "hostile": "2.0.2"
+                },
+                "HOSTILE_CLEAN_SMALL_SHORT": {
+                    "hostile": "2.0.2"
+                },
+                "Workflow": {
+                    "cdcent/oamd-bio-qqq": "v1.0.0dev"
+                }
+            },
             [
-                [
-                    {
-                        "id": "test",
-                        "single_end": true
-                    },
-                    "test_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73"
-                ]
+                "bowtie2",
+                "bowtie2/bowtie2",
+                "bowtie2/bowtie2/genome.1.bt2",
+                "bowtie2/bowtie2/genome.2.bt2",
+                "bowtie2/bowtie2/genome.3.bt2",
+                "bowtie2/bowtie2/genome.4.bt2",
+                "bowtie2/bowtie2/genome.rev.1.bt2",
+                "bowtie2/bowtie2/genome.rev.2.bt2",
+                "cat",
+                "cat/test_illumina_1.merged.fastq.gz",
+                "cat/test_illumina_2.merged.fastq.gz",
+                "cat/test_long_nanopore.merged.fastq.gz",
+                "falco",
+                "falco/test2_run1_R1_fastqc_data.txt",
+                "falco/test2_run1_R1_fastqc_report.html",
+                "falco/test2_run1_R1_summary.txt",
+                "falco/test2_run1_R2_fastqc_data.txt",
+                "falco/test2_run1_R2_fastqc_report.html",
+                "falco/test2_run1_R2_summary.txt",
+                "falco/test_long_run1_fastqc_data.txt",
+                "falco/test_long_run1_fastqc_report.html",
+                "falco/test_long_run1_summary.txt",
+                "falco/test_long_run2_fastqc_data.txt",
+                "falco/test_long_run2_fastqc_report.html",
+                "falco/test_long_run2_summary.txt",
+                "falco/test_run1_R1_fastqc_data.txt",
+                "falco/test_run1_R1_fastqc_report.html",
+                "falco/test_run1_R1_summary.txt",
+                "falco/test_run1_R2_fastqc_data.txt",
+                "falco/test_run1_R2_fastqc_report.html",
+                "falco/test_run1_R2_summary.txt",
+                "falco/test_run2_R1_fastqc_data.txt",
+                "falco/test_run2_R1_fastqc_report.html",
+                "falco/test_run2_R1_summary.txt",
+                "falco/test_run2_R2_fastqc_data.txt",
+                "falco/test_run2_R2_fastqc_report.html",
+                "falco/test_run2_R2_summary.txt",
+                "fastp",
+                "fastp/test2_run1.fastp.html",
+                "fastp/test2_run1.fastp.json",
+                "fastp/test2_run1.fastp.log",
+                "fastp/test2_run1_R1.fastp.fastq.gz",
+                "fastp/test2_run1_R2.fastp.fastq.gz",
+                "fastp/test_run1.fastp.html",
+                "fastp/test_run1.fastp.json",
+                "fastp/test_run1.fastp.log",
+                "fastp/test_run1_R1.fastp.fastq.gz",
+                "fastp/test_run1_R2.fastp.fastq.gz",
+                "fastp/test_run2.fastp.html",
+                "fastp/test_run2.fastp.json",
+                "fastp/test_run2.fastp.log",
+                "fastp/test_run2_R1.fastp.fastq.gz",
+                "fastp/test_run2_R2.fastp.fastq.gz",
+                "fastplong",
+                "fastplong/test_long_run1.fastplong.fastq.gz",
+                "fastplong/test_long_run1.fastplong.html",
+                "fastplong/test_long_run1.fastplong.json",
+                "fastplong/test_long_run1.fastplong.log",
+                "fastplong/test_long_run2.fastplong.fastq.gz",
+                "fastplong/test_long_run2.fastplong.html",
+                "fastplong/test_long_run2.fastplong.json",
+                "fastplong/test_long_run2.fastplong.log",
+                "hostile",
+                "hostile/test2_illumina.json",
+                "hostile/test2_run1_R1.fastp.clean_1.fastq.gz",
+                "hostile/test2_run1_R2.fastp.clean_2.fastq.gz",
+                "hostile/test_illumina.json",
+                "hostile/test_illumina_1.merged.clean_1.fastq.gz",
+                "hostile/test_illumina_2.merged.clean_2.fastq.gz",
+                "hostile/test_long_nanopore.json",
+                "hostile/test_long_nanopore.merged.clean.fastq.gz",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/falco-status-check-heatmap.txt",
+                "multiqc/multiqc_data/falco_adapter_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_n_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_sequence_quality_plot.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Counts.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Percentages.txt",
+                "multiqc/multiqc_data/falco_per_sequence_quality_scores_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_counts_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_duplication_levels_plot.txt",
+                "multiqc/multiqc_data/fastqc_sequence_length_distribution_plot.txt",
+                "multiqc/multiqc_data/he_reads_plots.txt",
+                "multiqc/multiqc_data/llms-full.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc.parquet",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_fastqc.txt",
+                "multiqc/multiqc_data/multiqc_general_stats.txt",
+                "multiqc/multiqc_data/multiqc_hostile.txt",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/falco-status-check-heatmap.pdf",
+                "multiqc/multiqc_plots/pdf/falco_adapter_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_n_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_sequence_quality_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Counts.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Percentages.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_quality_scores_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_duplication_levels_plot.pdf",
+                "multiqc/multiqc_plots/pdf/fastqc_sequence_length_distribution_plot.pdf",
+                "multiqc/multiqc_plots/pdf/he_reads_plots-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/he_reads_plots-pct.pdf",
+                "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/falco-status-check-heatmap.png",
+                "multiqc/multiqc_plots/png/falco_adapter_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_n_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_sequence_quality_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Counts.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Percentages.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_quality_scores_plot.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-cnt.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-pct.png",
+                "multiqc/multiqc_plots/png/falco_sequence_duplication_levels_plot.png",
+                "multiqc/multiqc_plots/png/fastqc_sequence_length_distribution_plot.png",
+                "multiqc/multiqc_plots/png/he_reads_plots-cnt.png",
+                "multiqc/multiqc_plots/png/he_reads_plots-pct.png",
+                "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/falco-status-check-heatmap.svg",
+                "multiqc/multiqc_plots/svg/falco_adapter_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_n_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_sequence_quality_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Counts.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Percentages.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_quality_scores_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_duplication_levels_plot.svg",
+                "multiqc/multiqc_plots/svg/fastqc_sequence_length_distribution_plot.svg",
+                "multiqc/multiqc_plots/svg/he_reads_plots-cnt.svg",
+                "multiqc/multiqc_plots/svg/he_reads_plots-pct.svg",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/qqq_software_mqc_versions.yml"
             ],
             [
-                [
-                    {
-                        "id": "test",
-                        "single_end": true
-                    },
-                    "test_summary.txt:md5,577a4416052f18395552deafec6156c6"
-                ]
-            ],
-            [
-                [
-                    "FALCO",
-                    "falco",
-                    "1.2.5"
-                ]
+                "genome.1.bt2:md5,cbe3d0bbea55bc57c99b4bfa25b5fbdf",
+                "genome.2.bt2:md5,47b153cd1319abc88dda532462651fcf",
+                "genome.3.bt2:md5,4ed93abba181d8dfab2e303e33114777",
+                "genome.4.bt2:md5,c25be5f8b0378abf7a58c8a880b87626",
+                "genome.rev.1.bt2:md5,52be6950579598a990570fbcf5372184",
+                "genome.rev.2.bt2:md5,e3b4ef343dea4dd571642010a7d09597",
+                "test_illumina_1.merged.fastq.gz:md5,ec4a3cf0846085bafd9cb0873845654f",
+                "test_illumina_2.merged.fastq.gz:md5,6077ae65c117aa23176c3c16610aae48",
+                "test_long_nanopore.merged.fastq.gz:md5,55e0cffe95b80494214d5866aecd73e2",
+                "test2_run1_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test2_run1_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test2_run1_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
+                "test2_run1_R2_summary.txt:md5,5d147910524a0203415267731b691bf7",
+                "test_long_run1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
+                "test_long_run1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
+                "test_long_run2_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test_long_run2_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test_run1_R1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
+                "test_run1_R1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
+                "test_run1_R2_fastqc_data.txt:md5,daad784a9237a9987dd43b1444a4524f",
+                "test_run1_R2_summary.txt:md5,3fd2c2b8925809d2da9352c3b3cd0ace",
+                "test_run2_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test_run2_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test_run2_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
+                "test_run2_R2_summary.txt:md5,5d147910524a0203415267731b691bf7",
+                "test2_run1.fastp.html:md5,57038d81454a21bd02c1c1cadeabb936",
+                "test2_run1.fastp.json:md5,36c225613ce2109a658f58107d753f6c",
+                "test2_run1.fastp.log:md5,e9d3ac557f552f07dd7e989d4e0f63e6",
+                "test2_run1_R1.fastp.fastq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test2_run1_R2.fastp.fastq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_run1.fastp.html:md5,0b762796d1d655698e48a97e6403c290",
+                "test_run1.fastp.json:md5,d6715fba3d11af6bd0f909c962b49cdb",
+                "test_run1.fastp.log:md5,3d562998fe34200bcde388b4cd8ec06c",
+                "test_run1_R1.fastp.fastq.gz:md5,0c436583301dea48755a5252a2675b64",
+                "test_run1_R2.fastp.fastq.gz:md5,f7f38138255e63b33286b819b6177612",
+                "test_run2.fastp.html:md5,611c0ec803d817f1f3d8bc6f377bf8b1",
+                "test_run2.fastp.json:md5,a88bf0c372755de281f2bc1358d7ef78",
+                "test_run2.fastp.log:md5,f50feac73d7f395521d314772fa9dc40",
+                "test_run2_R1.fastp.fastq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test_run2_R2.fastp.fastq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_long_run1.fastplong.fastq.gz:md5,6de988b85909e6529bad0022703bcab2",
+                "test_long_run1.fastplong.html:md5,235f21bd7b5a30cea7b83ca8dc166835",
+                "test_long_run1.fastplong.json:md5,a66c066edb833f62ec123f268be8e44f",
+                "test_long_run1.fastplong.log:md5,f7a44d319ee4b58bfa4e636fce1ade4f",
+                "test_long_run2.fastplong.fastq.gz:md5,78b566f63fbd4e4c29902c6217993e03",
+                "test_long_run2.fastplong.html:md5,5696a07717f2c2681d907ed8861a4c02",
+                "test_long_run2.fastplong.json:md5,cbc1b17e8cc75f3e4894fa33f8cf1461",
+                "test_long_run2.fastplong.log:md5,b0b5f47027c8de782f4d71b4f5bf6356",
+                "test2_run1_R1.fastp.clean_1.fastq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test2_run1_R2.fastp.clean_2.fastq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_illumina_1.merged.clean_1.fastq.gz:md5,ec4a3cf0846085bafd9cb0873845654f",
+                "test_illumina_2.merged.clean_2.fastq.gz:md5,6077ae65c117aa23176c3c16610aae48",
+                "test_long_nanopore.merged.clean.fastq.gz:md5,05736ed2e0de43aa454d5692ae414391",
+                "falco-status-check-heatmap.txt:md5,3943fb7a321b244c1d948b1f99815a82",
+                "falco_adapter_content_plot.txt:md5,4ae9307af779d048d927d1e949992cfb",
+                "falco_per_base_n_content_plot.txt:md5,5ed5e31a014bbcccffda4044089eddf3",
+                "falco_per_base_sequence_quality_plot.txt:md5,2a2290f0bbde8d20ab7cb5510a349173",
+                "falco_per_sequence_gc_content_plot_Counts.txt:md5,11405718c79f59ef9d33502328b144a4",
+                "falco_per_sequence_gc_content_plot_Percentages.txt:md5,f4c2fa5028e6ba273dec3eb99e6aa619",
+                "falco_per_sequence_quality_scores_plot.txt:md5,5c0a3dfa43543adb8a1d8280f67627ad",
+                "falco_sequence_counts_plot.txt:md5,03b4fcb30e2eb3a244668793016cfbeb",
+                "falco_sequence_duplication_levels_plot.txt:md5,0ebfb828cf8c37ce18006ad53d9763d6",
+                "fastqc_sequence_length_distribution_plot.txt:md5,80d56b9a8e90cffc19e6af4e5bfed3a2",
+                "he_reads_plots.txt:md5,bf9acd0eaeceaeb312f594da67955689",
+                "multiqc_citations.txt:md5,7799f7f18ad862ce3c9d66ec358a7b34",
+                "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
+                "multiqc_general_stats.txt:md5,9b37276c3cb8ded9072788cfed99eca6"
             ]
         ],
-        "timestamp": "2026-08-06T12:57:58.824937406",
+        "timestamp": "2026-10-15T00:13:09.23431309",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     },
-    "sarscov2 - fastq - paired_end": {
-        "content": [
-            [
-                [
-                    {
-                        "id": "test",
-                        "single_end": false
-                    },
-                    [
-                        "test_1_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73",
-                        "test_2_fastqc_data.txt:md5,e57bc70afbbb6912d17b7c7325a1ae7d"
-                    ]
-                ]
-            ],
-            [
-                [
-                    {
-                        "id": "test",
-                        "single_end": false
-                    },
-                    [
-                        "test_1_summary.txt:md5,577a4416052f18395552deafec6156c6",
-                        "test_2_summary.txt:md5,509fc1fe165f565fec8376d2276c8cd8"
-                    ]
-                ]
-            ],
-            [
-                [
-                    "FALCO",
-                    "falco",
-                    "1.2.5"
-                ]
-            ]
-        ],
-        "timestamp": "2026-08-06T12:58:02.897650264",
-        "meta": {
-            "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
-        }
-    },
-    "sarscov2 - fastq - paired_end - stub": {
+    "-profile test": {
         "content": [
             {
-                "0": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "1": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "2": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "3": [
-                    [
-                        "FALCO",
-                        "falco",
-                        "1.2.5"
-                    ]
-                ],
-                "html": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "summary": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "txt": [
-                    [
-                        {
-                            "id": "test",
-                            "single_end": false
-                        },
-                        [
-                            "test_1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "versions_falco": [
-                    [
-                        "FALCO",
-                        "falco",
-                        "1.2.5"
-                    ]
-                ]
-            }
+                "CAT_FASTQ": {
+                    "cat": 9.5
+                },
+                "DEACON_FILTER": {
+                    "deacon": "0.17.0"
+                },
+                "DEACON_INDEX": {
+                    "deacon": "0.17.0"
+                },
+                "FALCO": {
+                    "falco": "1.2.5"
+                },
+                "FASTP": {
+                    "fastp": "1.3.6"
+                },
+                "FASTPLONG": {
+                    "fastplong": "0.4.1"
+                },
+                "Workflow": {
+                    "cdcent/oamd-bio-qqq": "v1.0.0dev"
+                }
+            },
+            [
+                "cat",
+                "cat/test_illumina_1.merged.fastq.gz",
+                "cat/test_illumina_2.merged.fastq.gz",
+                "cat/test_long_nanopore.merged.fastq.gz",
+                "deacon",
+                "deacon/genome.idx",
+                "deacon/test2_illumina.clean_1.fq.gz",
+                "deacon/test2_illumina.clean_2.fq.gz",
+                "deacon/test2_illumina.deacon.json",
+                "deacon/test_illumina.clean_1.fq.gz",
+                "deacon/test_illumina.clean_2.fq.gz",
+                "deacon/test_illumina.deacon.json",
+                "deacon/test_long_nanopore.clean.fq.gz",
+                "deacon/test_long_nanopore.deacon.json",
+                "falco",
+                "falco/test2_run1_R1_fastqc_data.txt",
+                "falco/test2_run1_R1_fastqc_report.html",
+                "falco/test2_run1_R1_summary.txt",
+                "falco/test2_run1_R2_fastqc_data.txt",
+                "falco/test2_run1_R2_fastqc_report.html",
+                "falco/test2_run1_R2_summary.txt",
+                "falco/test_long_run1_fastqc_data.txt",
+                "falco/test_long_run1_fastqc_report.html",
+                "falco/test_long_run1_summary.txt",
+                "falco/test_long_run2_fastqc_data.txt",
+                "falco/test_long_run2_fastqc_report.html",
+                "falco/test_long_run2_summary.txt",
+                "falco/test_run1_R1_fastqc_data.txt",
+                "falco/test_run1_R1_fastqc_report.html",
+                "falco/test_run1_R1_summary.txt",
+                "falco/test_run1_R2_fastqc_data.txt",
+                "falco/test_run1_R2_fastqc_report.html",
+                "falco/test_run1_R2_summary.txt",
+                "falco/test_run2_R1_fastqc_data.txt",
+                "falco/test_run2_R1_fastqc_report.html",
+                "falco/test_run2_R1_summary.txt",
+                "falco/test_run2_R2_fastqc_data.txt",
+                "falco/test_run2_R2_fastqc_report.html",
+                "falco/test_run2_R2_summary.txt",
+                "fastp",
+                "fastp/test2_run1.fastp.html",
+                "fastp/test2_run1.fastp.json",
+                "fastp/test2_run1.fastp.log",
+                "fastp/test2_run1_R1.fastp.fastq.gz",
+                "fastp/test2_run1_R2.fastp.fastq.gz",
+                "fastp/test_run1.fastp.html",
+                "fastp/test_run1.fastp.json",
+                "fastp/test_run1.fastp.log",
+                "fastp/test_run1_R1.fastp.fastq.gz",
+                "fastp/test_run1_R2.fastp.fastq.gz",
+                "fastp/test_run2.fastp.html",
+                "fastp/test_run2.fastp.json",
+                "fastp/test_run2.fastp.log",
+                "fastp/test_run2_R1.fastp.fastq.gz",
+                "fastp/test_run2_R2.fastp.fastq.gz",
+                "fastplong",
+                "fastplong/test_long_run1.fastplong.fastq.gz",
+                "fastplong/test_long_run1.fastplong.html",
+                "fastplong/test_long_run1.fastplong.json",
+                "fastplong/test_long_run1.fastplong.log",
+                "fastplong/test_long_run2.fastplong.fastq.gz",
+                "fastplong/test_long_run2.fastplong.html",
+                "fastplong/test_long_run2.fastplong.json",
+                "fastplong/test_long_run2.fastplong.log",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/deacon_sequences_removed_vs_kept_plot.txt",
+                "multiqc/multiqc_data/deacon_statistics_table.txt",
+                "multiqc/multiqc_data/falco-status-check-heatmap.txt",
+                "multiqc/multiqc_data/falco_adapter_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_n_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_sequence_quality_plot.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Counts.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Percentages.txt",
+                "multiqc/multiqc_data/falco_per_sequence_quality_scores_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_counts_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_duplication_levels_plot.txt",
+                "multiqc/multiqc_data/fastqc_sequence_length_distribution_plot.txt",
+                "multiqc/multiqc_data/llms-full.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc.parquet",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_deacon.txt",
+                "multiqc/multiqc_data/multiqc_fastqc.txt",
+                "multiqc/multiqc_data/multiqc_general_stats.txt",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/deacon_sequences_removed_vs_kept_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/deacon_sequences_removed_vs_kept_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/deacon_statistics_table.pdf",
+                "multiqc/multiqc_plots/pdf/falco-status-check-heatmap.pdf",
+                "multiqc/multiqc_plots/pdf/falco_adapter_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_n_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_sequence_quality_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Counts.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Percentages.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_quality_scores_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_duplication_levels_plot.pdf",
+                "multiqc/multiqc_plots/pdf/fastqc_sequence_length_distribution_plot.pdf",
+                "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/deacon_sequences_removed_vs_kept_plot-cnt.png",
+                "multiqc/multiqc_plots/png/deacon_sequences_removed_vs_kept_plot-pct.png",
+                "multiqc/multiqc_plots/png/deacon_statistics_table.png",
+                "multiqc/multiqc_plots/png/falco-status-check-heatmap.png",
+                "multiqc/multiqc_plots/png/falco_adapter_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_n_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_sequence_quality_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Counts.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Percentages.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_quality_scores_plot.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-cnt.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-pct.png",
+                "multiqc/multiqc_plots/png/falco_sequence_duplication_levels_plot.png",
+                "multiqc/multiqc_plots/png/fastqc_sequence_length_distribution_plot.png",
+                "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/deacon_sequences_removed_vs_kept_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/deacon_sequences_removed_vs_kept_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/deacon_statistics_table.svg",
+                "multiqc/multiqc_plots/svg/falco-status-check-heatmap.svg",
+                "multiqc/multiqc_plots/svg/falco_adapter_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_n_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_sequence_quality_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Counts.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Percentages.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_quality_scores_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_duplication_levels_plot.svg",
+                "multiqc/multiqc_plots/svg/fastqc_sequence_length_distribution_plot.svg",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/qqq_software_mqc_versions.yml"
+            ],
+            [
+                "test_illumina_1.merged.fastq.gz:md5,ec4a3cf0846085bafd9cb0873845654f",
+                "test_illumina_2.merged.fastq.gz:md5,6077ae65c117aa23176c3c16610aae48",
+                "test_long_nanopore.merged.fastq.gz:md5,55e0cffe95b80494214d5866aecd73e2",
+                "genome.idx:md5,84e4985c91800686db9c9dca28fabd1a",
+                "test2_illumina.clean_1.fq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test2_illumina.clean_2.fq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_illumina.clean_1.fq.gz:md5,ec4a3cf0846085bafd9cb0873845654f",
+                "test_illumina.clean_2.fq.gz:md5,6077ae65c117aa23176c3c16610aae48",
+                "test_long_nanopore.clean.fq.gz:md5,55e0cffe95b80494214d5866aecd73e2",
+                "test2_run1_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test2_run1_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test2_run1_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
+                "test2_run1_R2_summary.txt:md5,5d147910524a0203415267731b691bf7",
+                "test_long_run1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
+                "test_long_run1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
+                "test_long_run2_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test_long_run2_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test_run1_R1_fastqc_data.txt:md5,16deaaebf40e984a0a6bced5ad8b0940",
+                "test_run1_R1_summary.txt:md5,d3a7b28fb7cee2121c78f0e68c28d145",
+                "test_run1_R2_fastqc_data.txt:md5,daad784a9237a9987dd43b1444a4524f",
+                "test_run1_R2_summary.txt:md5,3fd2c2b8925809d2da9352c3b3cd0ace",
+                "test_run2_R1_fastqc_data.txt:md5,4deaf7ca975be72167db27803180ea13",
+                "test_run2_R1_summary.txt:md5,24d1659aabecab5b9fcfa63556f9a134",
+                "test_run2_R2_fastqc_data.txt:md5,8a87428ac98f421a1b94d40455a4fc1b",
+                "test_run2_R2_summary.txt:md5,5d147910524a0203415267731b691bf7",
+                "test2_run1.fastp.html:md5,e16f29a10cecf678de098ef8f1154d1e",
+                "test2_run1.fastp.json:md5,36c225613ce2109a658f58107d753f6c",
+                "test2_run1.fastp.log:md5,e9d3ac557f552f07dd7e989d4e0f63e6",
+                "test2_run1_R1.fastp.fastq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test2_run1_R2.fastp.fastq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_run1.fastp.html:md5,ecff0118e8b0533b2fe1278b7f9a1c12",
+                "test_run1.fastp.json:md5,d6715fba3d11af6bd0f909c962b49cdb",
+                "test_run1.fastp.log:md5,3d562998fe34200bcde388b4cd8ec06c",
+                "test_run1_R1.fastp.fastq.gz:md5,0c436583301dea48755a5252a2675b64",
+                "test_run1_R2.fastp.fastq.gz:md5,f7f38138255e63b33286b819b6177612",
+                "test_run2.fastp.html:md5,e8375518a1977ba087c717eaf40f206e",
+                "test_run2.fastp.json:md5,a88bf0c372755de281f2bc1358d7ef78",
+                "test_run2.fastp.log:md5,f50feac73d7f395521d314772fa9dc40",
+                "test_run2_R1.fastp.fastq.gz:md5,847660a8a8ab5a71b7036712a4171c1d",
+                "test_run2_R2.fastp.fastq.gz:md5,c25045f7e581ad589c029f404dc635d3",
+                "test_long_run1.fastplong.fastq.gz:md5,6de988b85909e6529bad0022703bcab2",
+                "test_long_run1.fastplong.html:md5,8a5333ba987ff722428b7832f0760b77",
+                "test_long_run1.fastplong.json:md5,a66c066edb833f62ec123f268be8e44f",
+                "test_long_run1.fastplong.log:md5,f7a44d319ee4b58bfa4e636fce1ade4f",
+                "test_long_run2.fastplong.fastq.gz:md5,78b566f63fbd4e4c29902c6217993e03",
+                "test_long_run2.fastplong.html:md5,87506ce6e1039cccb0da9799be9cf0ad",
+                "test_long_run2.fastplong.json:md5,cbc1b17e8cc75f3e4894fa33f8cf1461",
+                "test_long_run2.fastplong.log:md5,b0b5f47027c8de782f4d71b4f5bf6356",
+                "falco-status-check-heatmap.txt:md5,3943fb7a321b244c1d948b1f99815a82",
+                "falco_adapter_content_plot.txt:md5,4ae9307af779d048d927d1e949992cfb",
+                "falco_per_base_n_content_plot.txt:md5,5ed5e31a014bbcccffda4044089eddf3",
+                "falco_per_base_sequence_quality_plot.txt:md5,2a2290f0bbde8d20ab7cb5510a349173",
+                "falco_per_sequence_gc_content_plot_Counts.txt:md5,11405718c79f59ef9d33502328b144a4",
+                "falco_per_sequence_gc_content_plot_Percentages.txt:md5,f4c2fa5028e6ba273dec3eb99e6aa619",
+                "falco_per_sequence_quality_scores_plot.txt:md5,5c0a3dfa43543adb8a1d8280f67627ad",
+                "falco_sequence_counts_plot.txt:md5,03b4fcb30e2eb3a244668793016cfbeb",
+                "falco_sequence_duplication_levels_plot.txt:md5,0ebfb828cf8c37ce18006ad53d9763d6",
+                "fastqc_sequence_length_distribution_plot.txt:md5,80d56b9a8e90cffc19e6af4e5bfed3a2",
+                "multiqc_citations.txt:md5,b2cef7032b87dbfe16638cd4b0d23e0c",
+                "multiqc_fastqc.txt:md5,35e4f93b2d45ca926a2c11234d2a2ac6",
+                "multiqc_general_stats.txt:md5,fa7a2036c71d414ca2ab783e14b2da7a"
+            ]
         ],
-        "timestamp": "2026-08-06T12:58:10.218562072",
+        "timestamp": "2026-10-15T00:10:55.808815171",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "-profile test, --skip_fastp": {
+        "content": [
+            [
+                "cat",
+                "cat/test_illumina_1.merged.fastq.gz",
+                "cat/test_illumina_2.merged.fastq.gz",
+                "cat/test_long_nanopore.merged.fastq.gz",
+                "falco",
+                "falco/test2_run1_R1_fastqc_data.txt",
+                "falco/test2_run1_R1_fastqc_report.html",
+                "falco/test2_run1_R1_summary.txt",
+                "falco/test2_run1_R2_fastqc_data.txt",
+                "falco/test2_run1_R2_fastqc_report.html",
+                "falco/test2_run1_R2_summary.txt",
+                "falco/test_long_run1_fastqc_data.txt",
+                "falco/test_long_run1_fastqc_report.html",
+                "falco/test_long_run1_summary.txt",
+                "falco/test_long_run2_fastqc_data.txt",
+                "falco/test_long_run2_fastqc_report.html",
+                "falco/test_long_run2_summary.txt",
+                "falco/test_run1_R1_fastqc_data.txt",
+                "falco/test_run1_R1_fastqc_report.html",
+                "falco/test_run1_R1_summary.txt",
+                "falco/test_run1_R2_fastqc_data.txt",
+                "falco/test_run1_R2_fastqc_report.html",
+                "falco/test_run1_R2_summary.txt",
+                "falco/test_run2_R1_fastqc_data.txt",
+                "falco/test_run2_R1_fastqc_report.html",
+                "falco/test_run2_R1_summary.txt",
+                "falco/test_run2_R2_fastqc_data.txt",
+                "falco/test_run2_R2_fastqc_report.html",
+                "falco/test_run2_R2_summary.txt",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/falco-status-check-heatmap.txt",
+                "multiqc/multiqc_data/falco_adapter_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_n_content_plot.txt",
+                "multiqc/multiqc_data/falco_per_base_sequence_quality_plot.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Counts.txt",
+                "multiqc/multiqc_data/falco_per_sequence_gc_content_plot_Percentages.txt",
+                "multiqc/multiqc_data/falco_per_sequence_quality_scores_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_counts_plot.txt",
+                "multiqc/multiqc_data/falco_sequence_duplication_levels_plot.txt",
+                "multiqc/multiqc_data/fastqc_sequence_length_distribution_plot.txt",
+                "multiqc/multiqc_data/llms-full.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc.parquet",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_fastqc.txt",
+                "multiqc/multiqc_data/multiqc_general_stats.txt",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/falco-status-check-heatmap.pdf",
+                "multiqc/multiqc_plots/pdf/falco_adapter_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_n_content_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_base_sequence_quality_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Counts.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_gc_content_plot_Percentages.pdf",
+                "multiqc/multiqc_plots/pdf/falco_per_sequence_quality_scores_plot.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_counts_plot-pct.pdf",
+                "multiqc/multiqc_plots/pdf/falco_sequence_duplication_levels_plot.pdf",
+                "multiqc/multiqc_plots/pdf/fastqc_sequence_length_distribution_plot.pdf",
+                "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/falco-status-check-heatmap.png",
+                "multiqc/multiqc_plots/png/falco_adapter_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_n_content_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_base_sequence_quality_plot.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Counts.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_gc_content_plot_Percentages.png",
+                "multiqc/multiqc_plots/png/falco_per_sequence_quality_scores_plot.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-cnt.png",
+                "multiqc/multiqc_plots/png/falco_sequence_counts_plot-pct.png",
+                "multiqc/multiqc_plots/png/falco_sequence_duplication_levels_plot.png",
+                "multiqc/multiqc_plots/png/fastqc_sequence_length_distribution_plot.png",
+                "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/falco-status-check-heatmap.svg",
+                "multiqc/multiqc_plots/svg/falco_adapter_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_n_content_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_base_sequence_quality_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Counts.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_gc_content_plot_Percentages.svg",
+                "multiqc/multiqc_plots/svg/falco_per_sequence_quality_scores_plot.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_counts_plot-pct.svg",
+                "multiqc/multiqc_plots/svg/falco_sequence_duplication_levels_plot.svg",
+                "multiqc/multiqc_plots/svg/fastqc_sequence_length_distribution_plot.svg",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/qqq_software_mqc_versions.yml"
+            ]
+        ],
+        "timestamp": "2026-10-13T00:18:43.495771351",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"

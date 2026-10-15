@@ -87,11 +87,8 @@ process FALCO {
     }
     else {
         """
-        for read_file in ${reads}; do
-            read_base=\$(basename "\$read_file")
-            read_base=\${read_base%.gz}
-            read_base=\${read_base%.fastq}
-            read_base=\${read_base%.fq}
+        for mate in 1 2; do
+            read_base="${prefix}_R\${mate}"
             touch "\${read_base}_fastqc_data.txt"
             touch "\${read_base}_summary.txt"
             touch "\${read_base}_fastqc_report.html"

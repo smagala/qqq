@@ -325,12 +325,6 @@ workflow QQQ {
             ch_hostile_ref_short = BOWTIE2_BUILD.out.index.map { meta, index ->
             [meta.id, index]
             }
-            MINIMAP2_INDEX (
-                channel.value([[id: host_fasta.baseName], host_fasta])
-            )
-            ch_hostile_ref_long = MINIMAP2_INDEX.out.index.map { meta, index ->
-                [meta.id, index]
-            }
 
             // Long reads: use the original FASTA
             ch_hostile_ref_long = channel.value([
