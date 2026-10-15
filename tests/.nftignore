@@ -26,3 +26,9 @@ deacon/*.deacon.json
 multiqc/multiqc_data/multiqc_deacon.txt
 multiqc/multiqc_data/deacon_statistics_table.txt
 multiqc/multiqc_data/deacon_sequences_removed_vs_kept_plot.txt
+# fastp and fastplong HTML reports and logs contain run-specific information.
+# Keep checking that the files exist, but exclude their contents from snapshots.
+fastp/*.fastp.html
+fastp/*.fastp.log
+fastplong/*.fastplong.html
+fastplong/*.fastplong.log

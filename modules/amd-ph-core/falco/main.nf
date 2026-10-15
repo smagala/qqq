@@ -88,11 +88,11 @@ process FALCO {
     else {
         """
         for mate in 1 2; do
-            read_base="${prefix}_R\${mate}"
-            touch "\${read_base}_fastqc_data.txt"
-            touch "\${read_base}_summary.txt"
-            touch "\${read_base}_fastqc_report.html"
+        read_base="${prefix}_R\${mate}"
+        touch "\${read_base}_fastqc_data.txt"
+        touch "\${read_base}_summary.txt"
+        touch "\${read_base}_fastqc_report.html"
         done
         """
-    }
+        }
 }
