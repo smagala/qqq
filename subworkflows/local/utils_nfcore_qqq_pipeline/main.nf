@@ -95,26 +95,30 @@ workflow PIPELINE_INITIALISATION {
         .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
         .map {
             meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+            def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
+
+            if (!fastq_2) {
+                return [ [meta.id, platform], meta + [ platform: platform, single_end:true ], [ fastq_1 ] ]
                 } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                    return [ [meta.id, platform], meta + [ platform: platform, single_end:false ], [ fastq_1, fastq_2 ] ]
                 }
         }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
+        .groupTuple(by: 0)
+        .map { key, metas, fastqs ->
+        validateInputSamplesheet([key, metas, fastqs])
+        [key, metas, fastqs]
         }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
+        .flatMap { key, metas, fastqs ->
+        metas.indices.collect { i ->
+        [metas[i]+ [run: i + 1], fastqs[i]]
+            }
         }
         .set { ch_samplesheet }
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
-}
+    }
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,16 +179,25 @@ def validateInputParameters() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
+    def (key, metas, fastqs) = input
+    def sample = key[0]
+    def platform = key[1]
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
+    def all_fastqs = fastqs.flatten()
+
     if (!endedness_ok) {
         error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
-    }
+        }
+
+    if (all_fastqs.size() != all_fastqs.unique().size()) {
+        error( "Please check input samplesheet -> Duplicate FASTQ files detected for sample: ${metas[0].id}")
+        }
 
     return [ metas[0], fastqs ]
 }
+
 //
 // Generate methods description for MultiQC
 //
@@ -198,6 +211,7 @@ def toolCitationText() {
     def citation_text = [
             "Tools used in the workflow included:",
             "Falco (de Sena Brandine and Smith 2019),",
+            !params.skip_fastp ? "fastp (Chen et al. 2018) and fastplong (Chen 2023), as applicable," : "",
             aligning_dehoster && params.host_fasta ? "Bowtie 2 (Langmead and Salzberg 2012)," : "",
             params.dehoster == 'deacon' ? "Deacon (Constantinides et al. 2025)," : "",
             aligning_dehoster ? "Hostile (Constantinides et al. 2023)," : "",
@@ -212,6 +226,8 @@ def toolBibliographyText() {
     def aligning_dehoster = params.dehoster in ['hostile', 'hostess']
     def reference_text = [
             "<li>de Sena Brandine, G., & Smith, A. D. (2019). Falco: high-speed FastQC emulation for quality control of sequencing data. F1000Research, 8, 1874. doi: 10.12688/f1000research.21142.2</li>",
+            !params.skip_fastp ? "<li>Chen, S., Zhou, Y., Chen, Y., & Gu, J. (2018). fastp: an ultra-fast all-in-one FASTQ preprocessor. Bioinformatics, 34(17), i884-i890. doi: 10.1093/bioinformatics/bty560</li>" : "",
+            !params.skip_fastp ? "<li>Chen, S. (2023). Ultrafast one-pass FASTQ data preprocessing, quality control, and deduplication using fastp. iMeta, 2, e107. doi: 10.1002/imt2.107</li>" : "",
             aligning_dehoster && params.host_fasta ? "<li>Langmead, B., & Salzberg, S. L. (2012). Fast gapped-read alignment with Bowtie 2. Nature Methods, 9(4), 357-359. doi: 10.1038/nmeth.1923</li>" : "",
             params.dehoster == 'deacon' ? "<li>Constantinides, B., Lees, J., & Crook, D. W. (2025). Deacon: fast sequence filtering and contaminant depletion. bioRxiv. doi: 10.1101/2025.06.09.658732</li>" : "",
             aligning_dehoster ? "<li>Constantinides, B., Hunt, M., & Crook, D. W. (2023). Hostile: accurate decontamination of microbial host sequences. Bioinformatics, 39(12), btad728. doi: 10.1093/bioinformatics/btad728</li>" : "",

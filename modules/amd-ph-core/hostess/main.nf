@@ -31,6 +31,11 @@ process HOSTESS {
     script:
     def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
+    def index_ref = meta.type == 'long'
+    ? (reference_dir.isDirectory()
+        ? "${reference_dir}/${reference_name}.mmi"
+        : reference_dir.toString())
+    : "${reference_dir}/${reference_name}"
     // Sorted so mate 1 is always first: the glob that stages the reads makes
     // no ordering promise, and passing them the wrong way round would swap the
     // output mates silently.
@@ -41,7 +46,7 @@ process HOSTESS {
         ${args} \\
         --threads ${task.cpus} \\
         ${reads_cmd} \\
-        --index ${reference_dir}/${reference_name} \\
+        --index ${index_ref} \\
         --prefix ${prefix} \\
         --output . \\
         --force

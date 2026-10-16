@@ -15,6 +15,11 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 - `-profile test_hostile`, the minimal test run against the aligning dehoster, and a second pipeline nf-test case covering it. deacon became the default, and without this the hostile path — `BOWTIE2_BUILD`, the size-routed `HOSTILE_CLEAN` tiers, and the array-shaped hostile report — would have lost its CI coverage. ([AMD-32240](https://cdc-oamd.atlassian.net/browse/AMD-32240))
 - Falco, Deacon and Hostile citations in `CITATIONS.md`, replacing FastQC. The MultiQC methods description now names only the dehoster that actually ran.
 - `Clean reads` and `% Host` columns in the MultiQC General Statistics table, reduced from the dehoster's own JSON into a custom-content file. Every dehoster reports these numbers, but MultiQC's Hostile module renders them only as a stacked bar plot and contributes no columns to the top table, so the headline result of the pipeline was the one number a reviewer had to go looking for. MultiQC's Deacon module does contribute columns, under its own names and scaled to millions; those are hidden so the table reads the same way whichever dehoster ran.
+- Added short-read and long-read support with `platform`-aware processing for Illumina, Nanopore, and PacBio data.
+- Added `FASTP` and `FASTPLONG` for read trimming, with `--skip_fastp` to optionally bypass trimming.
+- Added grouping and merging of multiple sequencing runs by sample and platform using `CAT_FASTQ`.
+- Added minimap2 index support for long-read dehosting with `Hostile` and `Hostess`, while short reads continue to use Bowtie2.
+
 
 ### `Changed`
 

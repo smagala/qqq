@@ -58,17 +58,16 @@ process FALCO {
         // missing or truncated report behind a task that reported success.
         """
         pids=''
+        mate=1
         for read_file in ${reads}; do
-            read_base=\$(basename "\$read_file")
-            read_base=\${read_base%.gz}
-            read_base=\${read_base%.fastq}
-            read_base=\${read_base%.fq}
+            read_base="${prefix}_R\${mate}"
             falco ${args} \\
                 -D "\${read_base}_fastqc_data.txt" \\
                 -S "\${read_base}_summary.txt" \\
                 -R "\${read_base}_fastqc_report.html" \\
                 "\$read_file" &
             pids="\$pids \$!"
+            mate=\$((mate + 1))
         done
 
         for pid in \$pids; do
@@ -88,15 +87,12 @@ process FALCO {
     }
     else {
         """
-        for read_file in ${reads}; do
-            read_base=\$(basename "\$read_file")
-            read_base=\${read_base%.gz}
-            read_base=\${read_base%.fastq}
-            read_base=\${read_base%.fq}
-            touch "\${read_base}_fastqc_data.txt"
-            touch "\${read_base}_summary.txt"
-            touch "\${read_base}_fastqc_report.html"
+        for mate in 1 2; do
+        read_base="${prefix}_R\${mate}"
+        touch "\${read_base}_fastqc_data.txt"
+        touch "\${read_base}_summary.txt"
+        touch "\${read_base}_fastqc_report.html"
         done
         """
-    }
+        }
 }

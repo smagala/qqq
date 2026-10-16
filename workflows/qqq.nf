@@ -4,15 +4,22 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { FALCO                  } from '../modules/amd-ph-core/falco/main'
+include { FASTP                  } from '../modules/nf-core/fastp/main'
+include { FASTPLONG              } from '../modules/nf-core/fastplong/main'
+include { CAT_FASTQ              } from '../modules/nf-core/cat/fastq/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
 include { DEACON_FILTER as DEACON_FILTER_SMALL } from '../modules/amd-ph-core/deacon/filter/main'
 include { DEACON_FILTER as DEACON_FILTER_LARGE } from '../modules/amd-ph-core/deacon/filter/main'
-include { HOSTESS as HOSTESS_SMALL             } from '../modules/amd-ph-core/hostess/main'
-include { HOSTESS as HOSTESS_LARGE             } from '../modules/amd-ph-core/hostess/main'
-include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL } from '../modules/nf-core/hostile/clean/main'
-include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE } from '../modules/nf-core/hostile/clean/main'
+include { HOSTESS as HOSTESS_SMALL_SHORT } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_LARGE_SHORT } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_SMALL_LONG } from '../modules/amd-ph-core/hostess/main'
+include { HOSTESS as HOSTESS_LARGE_LONG } from '../modules/amd-ph-core/hostess/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL_SHORT } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE_SHORT } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_SMALL_LONG } from '../modules/nf-core/hostile/clean/main'
+include { HOSTILE_CLEAN as HOSTILE_CLEAN_LARGE_LONG } from '../modules/nf-core/hostile/clean/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -36,6 +43,66 @@ workflow QQQ {
 
     ch_reads = ch_samplesheet
 
+    // Identify and branch reads by platform
+    // (short-read vs long-read)
+    //
+    short_platforms = [
+        "illumina",
+        "ls454",
+        "abi_solid",
+        "bgiseq",
+        "complete_genomics",
+        "dnbseq",
+        "element",
+        "genapsys",
+        "genemind",
+        "helicos",
+        "ion_torrent",
+        "tapestri",
+        "ultima",
+        "vela_diagnostics",
+        "capillary"
+    ]
+
+    long_platforms = [
+        "nanopore",
+        "ont",
+        "pacbio",
+        "pacbio_smrt",
+        "oxford_nanopore"
+    ]
+
+    ch_reads
+        .map { meta, reads ->
+            def type
+
+            if (meta.platform in long_platforms) {
+                type = "long"
+            } else if (meta.platform in short_platforms) {
+                type = "short"
+            } else {
+                error "Unknown sequencing platform '${meta.platform}' for sample '${meta.id}'"
+            }
+
+            if (
+                type == "long" &&
+                reads instanceof List &&
+                reads.size() > 1
+            ) {
+                error "Sample '${meta.id}' has platform '${meta.platform}' (long-read) but provides ${reads.size()} FASTQ files. Long-read platforms expect a single FASTQ file per sample. Check your samplesheet."
+            }
+
+            [
+                meta + [
+                    type: type
+                ],
+                reads
+            ]
+        }
+        .set { ch_reads_mix }
+
+
+
     //
     // MODULE: Falco — QC on raw reads
     //
@@ -47,9 +114,110 @@ workflow QQQ {
     // come from the data files too, so the summary files are not needed here.
     //
     FALCO (
-        ch_reads
+        ch_reads_mix
     )
     ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { meta, txt -> txt })
+
+    // MODULE: Fastp / Fastplong
+    // Quality control and trimming
+    //
+    if (!params.skip_fastp) {
+
+        ch_short_reads = ch_reads_mix.filter { meta, reads ->
+            meta.type == 'short'
+        }
+
+        ch_long_reads = ch_reads_mix.filter { meta, reads ->
+            meta.type == 'long'
+        }
+
+        FASTP (
+            ch_short_reads.map { meta, reads ->
+                tuple(meta, reads, [])
+            },
+            false,
+            false,
+            false
+        )
+
+        FASTPLONG (
+            ch_long_reads.map { meta, reads ->
+                tuple(meta, reads)
+            },
+            [],
+            false,
+            false
+        )
+
+        ch_reads_mix = FASTP.out.reads.mix(
+            FASTPLONG.out.reads
+        )
+    }
+
+    //
+    // Group reads by sample ID + sequencing platform
+    //
+    ch_reads_by_sample = ch_reads_mix
+        .map { meta, reads ->
+
+            [
+                [meta.id, meta.platform],
+                meta,
+                reads
+            ]
+        }
+        .groupTuple(by: 0)
+
+
+    //
+    // Separate single-run samples from multi-run samples
+    //
+    ch_reads_by_sample
+        .branch { key, metas, reads_list ->
+
+            single:
+                reads_list.size() == 1
+
+                return [
+                    metas[0],
+                    reads_list[0]
+                ]
+
+            multiple:
+                true
+                // Keep each run's metadata paired with its FASTQ files,
+                // then sort by the original run number before merging.
+                def orderedRuns = metas.indices
+                .collect { i ->
+                [meta: metas[i], reads: reads_list[i]]
+                }
+                .sort { a, b ->
+                a.meta.run <=> b.meta.run
+                }
+
+                return [
+                    orderedRuns[0].meta,
+                    orderedRuns.collect { it.reads }.flatten()
+                    ]
+                    }
+                    .set { ch_reads_grouped }
+
+
+    //
+    // Merge samples that have multiple runs
+    //
+    CAT_FASTQ (
+        ch_reads_grouped.multiple
+    )
+
+
+    //
+    // Combine:
+    //   - merged multi-run samples
+    //   - single-run samples that do not require merging
+    //
+    ch_merged_reads = CAT_FASTQ.out.reads
+        .mix(ch_reads_grouped.single)
 
     //
     // Read removal
@@ -60,7 +228,7 @@ workflow QQQ {
     // index in that case, so index resolution is inside each branch — asking
     // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
-        ch_dehosted_fastq = ch_reads
+        ch_dehosted_fastq = ch_merged_reads
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
@@ -133,7 +301,7 @@ workflow QQQ {
         //
         // Resources are set per alias in oamd-bio-nf-configs; nothing here
         // hardcodes them, and the module itself is untouched.
-        ch_deacon_sized = ch_reads.branch { meta, reads ->
+        ch_deacon_sized = ch_merged_reads.branch { meta, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
@@ -163,9 +331,16 @@ workflow QQQ {
             // BOWTIE2_BUILD writes <fasta.baseName>.*.bt2 into a `bowtie2` directory,
             // so the index name hostile is given must match that basename.
             // Already a value channel, since BOWTIE2_BUILD's input is one.
-            ch_hostile_ref = BOWTIE2_BUILD.out.index.map { meta, index -> [meta.id, index] }
-        }
-        else {
+            ch_hostile_ref_short = BOWTIE2_BUILD.out.index.map { meta, index ->
+            [meta.id, index]
+            }
+
+            // Long reads: use the original FASTA
+            ch_hostile_ref_long = channel.value([
+                host_fasta.name,
+                host_fasta
+                ])
+        } else {
             // Without this, a missing hostile_db surfaces as "Argument of `file()`
             // function cannot be null", which says nothing about the actual cause:
             // the pipeline configs from oamd-bio-nf-configs were not loaded.
@@ -180,7 +355,18 @@ workflow QQQ {
                     "  See run-qqq-prda.sh, which sets both."
                 )
             }
-            ch_hostile_ref = channel.value([params.hostile_index, file(params.hostile_db, checkIfExists: true)])
+
+            def hostile_db = file(params.hostile_db, checkIfExists: true)
+
+            ch_hostile_ref_short = channel.value([
+                params.hostile_index,
+                hostile_db
+                ])
+
+            ch_hostile_ref_long = channel.value([
+                params.hostile_index,
+                hostile_db
+                ])
         }
 
         // Hostile's peak memory plateaus rather than tracking input size: measured
@@ -193,30 +379,51 @@ workflow QQQ {
         // So route by input size to two aliases of the same module. Resources are
         // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
         // the module itself is untouched.
-        ch_sized = ch_reads.branch { meta, reads ->
+        ch_sized = ch_merged_reads.branch { meta, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
+        }
+
+        ch_small = ch_sized.small.branch { meta, reads ->
+        short_reads: meta.type == 'short'
+        long_reads:  meta.type == 'long'
+        }
+
+        ch_large = ch_sized.large.branch { meta, reads ->
+        short_reads: meta.type == 'short'
+        long_reads:  meta.type == 'long'
         }
 
         // hostess is the default: it removes host reads in one alignment pass and
         // can keep the removed reads as a sorted BAM, which hostile cannot do
         // without a second pass. --host_bam only has an effect with hostess.
         if (params.dehoster == 'hostess') {
-            HOSTESS_SMALL (
-                ch_sized.small,
-                ch_hostile_ref
+            HOSTESS_SMALL_SHORT (
+            ch_small.short_reads,
+            ch_hostile_ref_short
             )
-            HOSTESS_LARGE (
-                ch_sized.large,
-                ch_hostile_ref
+
+            HOSTESS_LARGE_SHORT (
+            ch_large.short_reads,
+            ch_hostile_ref_short
             )
-            ch_dehosted_fastq = HOSTESS_SMALL.out.fastq.mix(HOSTESS_LARGE.out.fastq)
-            ch_dehosted_json = HOSTESS_SMALL.out.json.mix(HOSTESS_LARGE.out.json)
+
+            HOSTESS_SMALL_LONG (
+            ch_small.long_reads,
+            ch_hostile_ref_long
+            )
+
+            HOSTESS_LARGE_LONG (
+            ch_large.long_reads,
+            ch_hostile_ref_long
+            )
+            ch_dehosted_fastq = HOSTESS_SMALL_SHORT.out.fastq.mix(HOSTESS_LARGE_SHORT.out.fastq).mix(HOSTESS_SMALL_LONG.out.fastq).mix(HOSTESS_LARGE_LONG.out.fastq)
+            ch_dehosted_json = HOSTESS_SMALL_SHORT.out.json.mix(HOSTESS_LARGE_SHORT.out.json).mix(HOSTESS_SMALL_LONG.out.json).mix(HOSTESS_LARGE_LONG.out.json)
 
             // Only produced when --host_bam is set; the module declares them
             // optional, so these channels are simply empty otherwise.
-            ch_host_bam = HOSTESS_SMALL.out.bam.mix(HOSTESS_LARGE.out.bam)
-            ch_host_bai = HOSTESS_SMALL.out.bai.mix(HOSTESS_LARGE.out.bai)
+            ch_host_bam = HOSTESS_SMALL_SHORT.out.bam.mix(HOSTESS_LARGE_SHORT.out.bam).mix(HOSTESS_SMALL_LONG.out.bam).mix(HOSTESS_LARGE_LONG.out.bam)
+            ch_host_bai = HOSTESS_SMALL_SHORT.out.bai.mix(HOSTESS_LARGE_SHORT.out.bai).mix(HOSTESS_SMALL_LONG.out.bai).mix(HOSTESS_LARGE_LONG.out.bai)
 
             // samtools stats is parsed by MultiQC's samtools module with no
             // configuration, so it goes straight into the report.
@@ -228,20 +435,32 @@ workflow QQQ {
             // section. The file is still produced and published for anyone who
             // wants it.
             ch_multiqc_files = ch_multiqc_files.mix(
-                HOSTESS_SMALL.out.stats.mix(HOSTESS_LARGE.out.stats).collect { meta, file -> file }.ifEmpty([])
+                HOSTESS_SMALL_SHORT.out.stats.mix(HOSTESS_LARGE_SHORT.out.stats).mix(HOSTESS_SMALL_LONG.out.stats).mix(HOSTESS_LARGE_LONG.out.stats).collect { meta, file -> file }.ifEmpty([])
             )
         }
         else {
-            HOSTILE_CLEAN_SMALL (
-                ch_sized.small,
-                ch_hostile_ref
+            HOSTILE_CLEAN_SMALL_SHORT (
+            ch_small.short_reads,
+            ch_hostile_ref_short
             )
-            HOSTILE_CLEAN_LARGE (
-                ch_sized.large,
-                ch_hostile_ref
+
+            HOSTILE_CLEAN_LARGE_SHORT (
+            ch_large.short_reads,
+            ch_hostile_ref_short
             )
-            ch_dehosted_fastq = HOSTILE_CLEAN_SMALL.out.fastq.mix(HOSTILE_CLEAN_LARGE.out.fastq)
-            ch_dehosted_json = HOSTILE_CLEAN_SMALL.out.json.mix(HOSTILE_CLEAN_LARGE.out.json)
+
+            HOSTILE_CLEAN_SMALL_LONG (
+            ch_small.long_reads,
+            ch_hostile_ref_long
+            )
+
+            HOSTILE_CLEAN_LARGE_LONG (
+            ch_large.long_reads,
+            ch_hostile_ref_long
+            )
+
+            ch_dehosted_fastq = HOSTILE_CLEAN_SMALL_SHORT.out.fastq.mix(HOSTILE_CLEAN_LARGE_SHORT.out.fastq).mix(HOSTILE_CLEAN_SMALL_LONG.out.fastq).mix(HOSTILE_CLEAN_LARGE_LONG.out.fastq)
+            ch_dehosted_json = HOSTILE_CLEAN_SMALL_SHORT.out.json.mix(HOSTILE_CLEAN_LARGE_SHORT.out.json).mix(HOSTILE_CLEAN_SMALL_LONG.out.json).mix(HOSTILE_CLEAN_LARGE_LONG.out.json)
             ch_host_bam = channel.empty()
             ch_host_bai = channel.empty()
         }
@@ -318,11 +537,11 @@ workflow QQQ {
                 def reads_out = (counts ? counts.reads_out : 0L) as long
                 // Every dehoster counts records rather than pairs, so for
                 // paired-end input reads_out is twice the number of pairs.
-                [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
+                [[meta.id, meta.platform], meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
         ch_gated = ch_dehosted_fastq
-            .map { meta, reads -> [meta.id, meta, reads] }
+            .map { meta, reads -> [[meta.id, meta.platform], meta, reads] }
             .join(ch_read_counts)
             .branch { id, meta, reads, count ->
                 downsample: count > params.max_reads
@@ -364,7 +583,7 @@ workflow QQQ {
         .map { process, tool, version ->
             // Strip the size-tier suffix so the two dehoster aliases report one
             // version rather than two identical ones.
-            def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)$/, '')
+            def name = process[process.lastIndexOf(':') + 1..-1].replaceAll(/_(SMALL|LARGE)_(SHORT|LONG)$/, '')
             [name, "  ${tool}: ${version}"]
         }
         .groupTuple(by: 0)

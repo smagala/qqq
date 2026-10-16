@@ -14,21 +14,19 @@
 
 ## Introduction
 
-**cdcent/oamd-bio-qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for dehosting paired-end Illumina reads. It produces original read quality metrics, removes host reads, and generates an aggregated report. The pipeline is designed to be quick and easy to run across many samples that may contain host contamination.
+**cdcent/oamd-bio-qqq** (**Q**uick **Q**uality & **Q**uarantine) is a Nextflow pipeline for quality control, trimming, and dehosting of short-read and long-read sequencing data. It supports single-end and paired-end short reads, as well as long-read data from platforms such as Nanopore and PacBio. The pipeline generates quality metrics, processes and merges multiple sequencing runs, removes host reads, and produces an aggregated MultiQC report.
 
 Host removal is done by [Deacon](https://github.com/bede/deacon) by default, which matches read minimizers
-against a prebuilt index rather than aligning, making it substantially faster than an aligner at the cost of
-being approximate. `--dehoster hostess` and `--dehoster hostile` select bowtie2-based alternatives, and are
-the ones to reach for when exactness matters or when the removed reads are wanted as a BAM; `--dehoster none`
-turns the step off. See [usage](docs/usage.md#choosing-a-dehoster) for the trade-offs, including the fact that
-`deacon` is approximate and so will not remove exactly the reads an aligner would, even off the same reference.
+against a prebuilt index rather than aligning, making it substantially faster than an aligner at the cost of being approximate. `--dehoster hostess` and `--dehoster hostile` select alignment-based alternatives, using Bowtie2 for short reads and minimap2 for long reads, and are the ones to reach for when exactness matters or when the removed reads are wanted as a BAM; `--dehoster none` turns the step off. See [usage](docs/usage.md#choosing-a-dehoster) for the trade-offs, including the fact that `deacon` is approximate and so will not remove exactly the reads an aligner would, even off the same reference.
 
 The pipeline performs the following steps:
 
-1. Read QC ([`Falco`](https://falco.readthedocs.io/)) — quality metrics on raw reads before dehosting
-2. Host read removal ([`Deacon`](https://github.com/bede/deacon), [`Hostile`](https://github.com/bede/hostile)) — decontaminate reads against a reference index
-3. Read downsampling ([`fadso`](https://github.com/hkuwahara/sleaping)) — _optional_, cap the depth of the dehosted reads
-4. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — combined QC and dehosting summary
+1. Read QC ([`Falco`](https://falco.readthedocs.io/)) — assess raw read quality for each sequencing run.
+2. Read trimming ([`fastp`](https://github.com/OpenGene/fastp) / [`fastplong`](https://github.com/OpenGene/fastplong)) — trim and filter short reads or long reads based on the sequencing platform. This step can be skipped using `--skip_fastp`.
+3. Read merging (`CAT_FASTQ`) — combine multiple runs belonging to the same sample and sequencing platform. Single-run samples bypass merging.
+4. Host read removal ([`Deacon`](https://github.com/bede/deacon), [`Hostile`](https://github.com/bede/hostile), or Hostess) — remove host reads using the selected dehosting tool. This step can be disabled using `--dehoster none`.
+5. Read downsampling ([`fadso`](https://github.com/hkuwahara/sleaping)) — optionally limit the number of reads or read pairs after dehosting.
+6. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — summarize quality control, trimming, and dehosting results.
 
 Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts the dehoster already reports, so no extra pass over the FASTQs is needed. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs.
 
@@ -42,11 +40,16 @@ Prepare a samplesheet with your input data:
 `samplesheet.csv`:
 
 ```csv
-sample,fastq_1,fastq_2
-SAMPLE1,SAMPLE1_R1.fastq.gz,SAMPLE1_R2.fastq.gz
+sample,fastq_1,fastq_2,platform
+SAMPLE1,SAMPLE1_run1_R1.fastq.gz,SAMPLE1_run1_R2.fastq.gz,illumina
+SAMPLE1,SAMPLE1_run2_R1.fastq.gz,SAMPLE1_run2_R2.fastq.gz,illumina
+SAMPLE1,SAMPLE1_nanopore.fastq.gz,,nanopore
+SAMPLE2,SAMPLE2_pacbio.fastq.gz,,pacbio
 ```
 
-Each row represents a pair of paired-end FASTQ files.
+Each row represents one sequencing run. The `platform` column is optional and defaults to `illumina` if not provided. For paired-end short reads, both `fastq_1` and `fastq_2` are required. Single-end short reads and long reads use only `fastq_1`.
+
+Multiple runs with the same sample ID and sequencing platform are grouped and merged after trimming. Runs from different sequencing platforms are processed separately.
 
 Run the pipeline:
 
