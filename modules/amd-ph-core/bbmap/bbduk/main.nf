@@ -1,7 +1,14 @@
-process BBDUK {
+process BBMAP_BBDUK {
     tag "${meta.id}"
     label 'process_medium'
 
+    // This is NOT a drop-in for nf-core/bbmap/bbduk, which has the same process
+    // name. That one is a trimmer: one output stream, a `.log`, no `ref=`-matched
+    // output and no `stats=`. This one splits the reads in two and keeps both,
+    // because the matched stream is the product of a depletion step as much as
+    // the depleted one is -- and it writes the stats file, which is the only
+    // bbduk output MultiQC can actually parse. Installing both into one pipeline
+    // would collide on the process name; install this one.
     conda "${moduleDir}/environment.yml"
     // 40.04, and not the newest build in AMDP ECR, which is
     // oamd-bio-bbtools:39.76_3ceaa9c_v3. 39.76 and 39.91 both carry a race in

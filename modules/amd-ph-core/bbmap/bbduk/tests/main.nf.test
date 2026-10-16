@@ -1,13 +1,14 @@
 nextflow_process {
 
-    name "Test Process BBDUK"
+    name "Test Process BBMAP_BBDUK"
     script "../main.nf"
-    process "BBDUK"
+    process "BBMAP_BBDUK"
     config "./nextflow.config"
 
     tag "modules"
-    tag "modules_local"
-    tag "bbduk"
+    tag "modules_amdphcore"
+    tag "bbmap"
+    tag "bbmap/bbduk"
 
     // The module pins the public BioContainer at the same version AMDP ECR
     // carries, so the real script path runs here and is not left to the stub.

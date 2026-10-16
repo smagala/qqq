@@ -1,6 +1,11 @@
-name: "bbduk"
+name: "bbmap_bbduk"
 description: |
   Split reads into those that share a k-mer with a reference and those that do not.
+
+  Not a drop-in for nf-core/bbmap/bbduk despite sharing its process name. That
+  module is a trimmer: one output stream, a `.log`, and no way to keep what
+  matched. This one keeps both streams and writes `stats=`, which is the only
+  bbduk output MultiQC parses.
 
   In this pipeline the reference is a ribosomal RNA panel and the product is the
   depleted stream, but nothing in the module is rRNA-specific: it is `bbduk.sh`
@@ -55,12 +60,15 @@ input:
         type: file
         description: One FASTQ file for single-end input, two for paired-end.
         pattern: "*.{fq,fastq}{,.gz}"
-  - - ref:
-        type: file
-        description: |
-          FASTA of the sequence to match against. For ribodepletion this is the rRNA
-          panel; it may be as redundant as it likes, which is the point.
-        pattern: "*.{fa,fasta}{,.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1930 # FASTQ
+  - ref:
+      type: file
+      description: |
+        FASTA of the sequence to match against. For ribodepletion this is the rRNA
+        panel; it may be as redundant as it likes, which is the point.
+      pattern: "*.{fa,fasta}{,.gz}"
+      ontologies: []
 output:
   reads:
     - - meta:
@@ -70,6 +78,8 @@ output:
           type: file
           description: Reads that shared no k-mer with the reference.
           pattern: "*.depleted*.fastq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_3989 # GZIP format
   matched:
     - - meta:
           type: map
@@ -78,6 +88,8 @@ output:
           type: file
           description: Reads that did share a k-mer with the reference.
           pattern: "*.matched*.fastq.gz"
+          ontologies:
+            - edam: http://edamontology.org/format_3989 # GZIP format
   stats:
     - - meta:
           type: map
@@ -91,11 +103,30 @@ output:
             BBTools 39.76 renamed to `bbduk.BBDukS`, and which the JVM puts on line
             three where the pattern allows two.
           pattern: "*.bbduk.txt"
+          ontologies: []
+  versions_bbduk:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - bbduk:
+          type: string
+          description: The name of the tool
+      - bbduk.sh --version 2>&1 | sed -n 's/^BBTools version //p' | head -n 1:
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
   versions:
-    - versions.yml:
-        type: file
-        description: File containing software versions
-        pattern: "versions.yml"
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - bbduk:
+          type: string
+          description: The name of the tool
+      - bbduk.sh --version 2>&1 | sed -n 's/^BBTools version //p' | head -n 1:
+          type: eval
+          description: The expression to obtain the version of the tool
+
 authors:
   - "@smagala"
 maintainers:

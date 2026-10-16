@@ -31,7 +31,7 @@
                 ],
                 "3": [
                     [
-                        "BBDUK",
+                        "BBMAP_BBDUK",
                         "bbduk",
                         "40.04"
                     ]
@@ -65,14 +65,14 @@
                 ],
                 "versions_bbduk": [
                     [
-                        "BBDUK",
+                        "BBMAP_BBDUK",
                         "bbduk",
                         "40.04"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-10-16T16:48:41.346974633",
+        "timestamp": "2026-10-16T16:58:05.542882189",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
@@ -80,9 +80,9 @@
     },
     "stats_real": {
         "content": [
-            "#File\tinput_reads/test_1.fastq.gz\tinput_reads/test_2.fastq.gz\n#Total\t200\n#Matched\t199\t99.50000%\n#Name\tReads\tReadsPct\nMT192765.1 Severe acute respiratory syndrome coronavirus 2 isolate SARS-CoV-2/human/USA/PC00101P/2020, complete genome\t199\t99.50000%\n"
+            "#File\tinput_reads/test_1.fastq.gz\tinput_reads/test_2.fastq.gz\n#Total\t200\n#Matched\t198\t99.00000%\n#Name\tReads\tReadsPct\nMT192765.1 Severe acute respiratory syndrome coronavirus 2 isolate SARS-CoV-2/human/USA/PC00101P/2020, complete genome\t198\t99.00000%\n"
         ],
-        "timestamp": "2026-10-16T16:43:49.824904015",
+        "timestamp": "2026-10-16T16:57:52.972540009",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
@@ -126,7 +126,7 @@
                 ],
                 "3": [
                     [
-                        "BBDUK",
+                        "BBMAP_BBDUK",
                         "bbduk",
                         "40.04"
                     ]
@@ -166,14 +166,14 @@
                 ],
                 "versions_bbduk": [
                     [
-                        "BBDUK",
+                        "BBMAP_BBDUK",
                         "bbduk",
                         "40.04"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-10-16T16:48:36.920082566",
+        "timestamp": "2026-10-16T16:57:59.327370614",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"

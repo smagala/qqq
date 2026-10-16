@@ -8,7 +8,7 @@ include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTPLONG              } from '../modules/nf-core/fastplong/main'
 include { CAT_FASTQ              } from '../modules/nf-core/cat/fastq/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
-include { BBDUK                  } from '../modules/local/bbduk/main'
+include { BBMAP_BBDUK            } from '../modules/amd-ph-core/bbmap/bbduk/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
 include { DEACON_FILTER as DEACON_FILTER_SMALL } from '../modules/amd-ph-core/deacon/filter/main'
@@ -533,19 +533,19 @@ workflow QQQ {
     // shows up in the output instead of as a quietly smaller library.
     //
     if (params.rrna_ref) {
-        BBDUK (
+        BBMAP_BBDUK (
             ch_dehosted_fastq,
             file(params.rrna_ref, checkIfExists: true)
         )
-        ch_dehosted_fastq = BBDUK.out.reads
-        ch_rrna_reads     = BBDUK.out.matched
+        ch_dehosted_fastq = BBMAP_BBDUK.out.reads
+        ch_rrna_reads     = BBMAP_BBDUK.out.matched
         // MultiQC reads this with its `bbmap/stats` pattern, which content-matches
         // the file's own header rather than a filename or a tool banner. bbduk's
         // stderr log is deliberately not wired in: MultiQC's `bbduk` pattern looks
         // for "Executing jgi.BBDuk", which BBTools 39.76 renamed to
         // `bbduk.BBDukS`, and which the JVM puts on line three where the pattern
         // allows two. It matches neither version.
-        ch_multiqc_files = ch_multiqc_files.mix(BBDUK.out.stats.collect { meta, txt -> txt })
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats.collect { meta, txt -> txt })
     }
     else {
         ch_rrna_reads = channel.empty()
