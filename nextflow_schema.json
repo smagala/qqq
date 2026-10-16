@@ -129,6 +129,23 @@
                     "description": "Name of the hostile reference index to use for dehosting. Default is a masked human reference excluding pathogen regions.",
                     "fa_icon": "fas fa-book"
                 },
+                "rrna_ref": {
+                    "type": "string",
+                    "format": "file-path",
+                    "pattern": "^\\S+\\.(fa|fasta|fna)(\\.gz)?$",
+                    "description": "Path to an rRNA FASTA. Depletion runs only when this is set.",
+                    "help_text": "Reads sharing a k-mer with this reference are split off with bbduk after dehosting and before downsampling; the depleted stream continues through the pipeline and the matched stream is emitted as `rrna_reads`. There is no default and no built-in panel, because depleting against nothing would look like success. A RefSeq targeted-loci rRNA set works well, and the file may be as redundant as it likes -- bbduk matches k-mers, so near-identical records help rather than hurt. This is also why the step does not use an aligner: on a 29,107-record panel a minimizer aligner's occurrence cap discards exactly the seeds that identify the right record, and it finds 24.5% of a wastewater RNA library where blastn finds 68.4% at the same identity threshold and bbduk finds 94.1%.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "rrna_k": {
+                    "type": "integer",
+                    "minimum": 8,
+                    "maximum": 31,
+                    "default": 25,
+                    "description": "k-mer length for rRNA depletion.",
+                    "help_text": "Measured on a wastewater RNA library against a 29,107-record panel: k=25 is 99.4% sensitive on known rRNA fragments at 0.07% false positives on non-ribosomal bacterial 150-mers. k=31 costs 2.4 points of sensitivity; k=21 buys 0.2 points for 2.6x the false positive rate. Ignored unless rrna_ref is set.",
+                    "fa_icon": "fas fa-ruler-horizontal"
+                },
                 "max_reads": {
                     "type": "integer",
                     "minimum": 0,

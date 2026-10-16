@@ -19,6 +19,7 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 - Added `FASTP` and `FASTPLONG` for read trimming, with `--skip_fastp` to optionally bypass trimming.
 - Added grouping and merging of multiple sequencing runs by sample and platform using `CAT_FASTQ`.
 - Added minimap2 index support for long-read dehosting with `Hostile` and `Hostess`, while short reads continue to use Bowtie2.
+- Optional ribosomal RNA depletion with `bbduk`, enabled by pointing `--rrna_ref` at an rRNA FASTA and tuned with `--rrna_k` (default 25). It runs after dehosting and before downsampling, so a `--max_reads` cap is not spent on ribosomes; the depleted reads continue through the pipeline and the removed reads are emitted as `rrna_reads` rather than discarded. k-mer matching rather than alignment, because on a panel of tens of thousands of near-identical rRNA records a minimizer aligner's occurrence cap discards exactly the seeds that identify the right record: on a wastewater RNA library it found 24.5% of the reads against blastn's 68.4% at the same identity threshold, where bbduk k=25 finds 94.1% at 99.4% sensitivity and 0.07% false positives. Disabled by default — there is no built-in panel, and depleting against nothing would look like success.
 
 
 ### `Changed`

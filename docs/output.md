@@ -15,6 +15,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [fastplong](#fastplong) - Long-read trimming and quality control
 - [CAT_FASTQ](#cat_fastq) - Merge multiple runs of the same sample and platform
 - [Dehosting](#dehosting) - Remove host reads using Deacon, Hostile, or Hostess
+- [BBDuk](#bbduk) - Optional ribosomal RNA depletion
 - [fadso](#fadso) - Optional read downsampling
 - [MultiQC](#multiqc) - Aggregate quality control report
 - [Pipeline information](#pipeline-information) - Workflow execution reports
@@ -140,6 +141,22 @@ Dehosting can be disabled using `--dehoster none`.
 Hostess performs alignment-based host removal and supports retaining host-aligned reads as BAM files when `--host_bam` is enabled.
 
 Dehosting statistics are collected into the MultiQC report.
+
+### BBDuk
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `bbduk/`
+  - `*.depleted*.fastq.gz`: Reads that shared no k-mer with the rRNA reference. These continue through the pipeline.
+  - `*.matched*.fastq.gz`: Reads that did. These are a deliverable, not a byproduct -- they are the input to rRNA characterisation, and they are the only way an over-aggressive reference shows up as something other than a quietly smaller library.
+  - `*.bbduk.txt`: Per-reference-record hit counts, with the input and matched totals in the header. MultiQC reads this.
+
+</details>
+
+[BBDuk](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/) splits reads on whether they share a k-mer with a reference. This step runs only when `--rrna_ref` points at an rRNA FASTA, and sits after dehosting and before downsampling: before dehosting it would spend its pass on host reads that are about to be discarded, and after downsampling a `--max_reads` cap would already have been spent on ribosomes.
+
+k-mer matching rather than alignment is the point. On a reference of tens of thousands of near-identical rRNA records a minimizer aligner's occurrence cap discards exactly the seeds that would identify the right record. Measured on a 19.4M-fragment wastewater RNA library against a 29,107-record RefSeq targeted-loci panel: an aligner found 24.5% of the library at identity >= 0.90, blastn found 68.4% at the identical threshold, and bbduk at `k=25` found 94.1% -- at 99.4% sensitivity on known rRNA fragments and 0.07% false positives on non-ribosomal bacterial 150-mers. `--rrna_k` is the only setting worth touching: `k=31` costs 2.4 points of sensitivity, `k=21` buys 0.2 points for 2.6x the false positives.
 
 ### fadso
 

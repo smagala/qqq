@@ -8,6 +8,7 @@ include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTPLONG              } from '../modules/nf-core/fastplong/main'
 include { CAT_FASTQ              } from '../modules/nf-core/cat/fastq/main'
 include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
+include { BBDUK                  } from '../modules/local/bbduk/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
 include { DEACON_FILTER as DEACON_FILTER_SMALL } from '../modules/amd-ph-core/deacon/filter/main'
@@ -509,6 +510,48 @@ workflow QQQ {
     )
 
     //
+    // MODULE: BBDuk — ribosomal RNA depletion (optional)
+    //
+    // Off unless --rrna_ref names a panel: there is no sensible built-in
+    // reference, and silently depleting nothing would be worse than not running.
+    //
+    // It sits after dehosting and before downsampling on purpose. Before
+    // dehosting it would spend its pass on host reads that are about to be
+    // thrown away. After downsampling the cap would already have been spent on
+    // ribosomes, which on an RNA library is most of the sample — 94% of the
+    // wastewater library this was built against — so a 1M-read cap would leave
+    // ~60k reads of anything else.
+    //
+    // k-mer matching rather than alignment, because on a panel of tens of
+    // thousands of near-identical rRNA records a minimizer aligner discards
+    // exactly the seeds that identify the right record: measured at 24.5% of a
+    // library against blastn's 68.4% at the identical identity threshold, where
+    // bbduk k=25 takes 94.1%. The module's meta.yml has the numbers.
+    //
+    // The matched reads are kept rather than dropped. They are the input to rRNA
+    // characterisation, and they are also the only way an over-aggressive panel
+    // shows up in the output instead of as a quietly smaller library.
+    //
+    if (params.rrna_ref) {
+        BBDUK (
+            ch_dehosted_fastq,
+            file(params.rrna_ref, checkIfExists: true)
+        )
+        ch_dehosted_fastq = BBDUK.out.reads
+        ch_rrna_reads     = BBDUK.out.matched
+        // MultiQC reads this with its `bbmap/stats` pattern, which content-matches
+        // the file's own header rather than a filename or a tool banner. bbduk's
+        // stderr log is deliberately not wired in: MultiQC's `bbduk` pattern looks
+        // for "Executing jgi.BBDuk", which BBTools 39.76 renamed to
+        // `bbduk.BBDukS`, and which the JVM puts on line three where the pattern
+        // allows two. It matches neither version.
+        ch_multiqc_files = ch_multiqc_files.mix(BBDUK.out.stats.collect { meta, txt -> txt })
+    }
+    else {
+        ch_rrna_reads = channel.empty()
+    }
+
+    //
     // MODULE: Fadso — cap depth of the dehosted reads (optional)
     //
     // Disabled when params.max_reads is null or 0, which is the default.
@@ -653,6 +696,7 @@ workflow QQQ {
     host_bam       = ch_host_bam                                      // channel: [ val(meta), path(bam) ]
     host_bai       = ch_host_bai                                      // channel: [ val(meta), path(bai) ]
     clean_reads    = ch_clean_reads                                   // channel: [ val(meta), path(fastq) ]
+    rrna_reads     = ch_rrna_reads                                    // channel: [ val(meta), path(fastq) ]
     multiqc_report = MULTIQC.out.report.map { meta, report -> report } // channel: /path/to/multiqc_report.html
 
 }

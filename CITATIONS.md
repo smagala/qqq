@@ -30,6 +30,10 @@
 
 > Constantinides B, Hunt M, Crook DW. Hostile: accurate decontamination of microbial host sequences. Bioinformatics. 2023 Dec 1;39(12):btad728. doi: 10.1093/bioinformatics/btad728. PubMed PMID: 38039142.
 
+- [BBDuk](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/)
+
+> Bushnell B. BBTools: a suite of fast, multithreaded bioinformatics tools designed for analysis of DNA and RNA sequence data. Joint Genome Institute. Optional ribosomal RNA depletion. Upstream publishes no accompanying paper.
+
 - [fadso](https://github.com/hkuwahara/sleaping)
 
 > Optional read downsampling. Built from the `sleaping` repository, which implements s-leaping approximate reservoir sampling. Upstream publishes no releases, tags, or accompanying paper; builds are pinned to a source commit.
