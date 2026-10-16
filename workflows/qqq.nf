@@ -194,7 +194,7 @@ workflow QQQ {
                 .sort { a, b ->
                 a.meta.run <=> b.meta.run
                 }
-                
+
                 return [
                     orderedRuns[0].meta,
                     orderedRuns.collect { it.reads }.flatten()
@@ -355,14 +355,14 @@ workflow QQQ {
                     "  See run-qqq-prda.sh, which sets both."
                 )
             }
-            
+
             def hostile_db = file(params.hostile_db, checkIfExists: true)
-            
+
             ch_hostile_ref_short = channel.value([
                 params.hostile_index,
                 hostile_db
                 ])
-            
+
             ch_hostile_ref_long = channel.value([
                 params.hostile_index,
                 hostile_db
@@ -458,7 +458,7 @@ workflow QQQ {
             ch_large.long_reads,
             ch_hostile_ref_long
             )
-            
+
             ch_dehosted_fastq = HOSTILE_CLEAN_SMALL_SHORT.out.fastq.mix(HOSTILE_CLEAN_LARGE_SHORT.out.fastq).mix(HOSTILE_CLEAN_SMALL_LONG.out.fastq).mix(HOSTILE_CLEAN_LARGE_LONG.out.fastq)
             ch_dehosted_json = HOSTILE_CLEAN_SMALL_SHORT.out.json.mix(HOSTILE_CLEAN_LARGE_SHORT.out.json).mix(HOSTILE_CLEAN_SMALL_LONG.out.json).mix(HOSTILE_CLEAN_LARGE_LONG.out.json)
             ch_host_bam = channel.empty()

@@ -96,7 +96,7 @@ workflow PIPELINE_INITIALISATION {
         .map {
             meta, fastq_1, fastq_2 ->
             def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
-            
+
             if (!fastq_2) {
                 return [ [meta.id, platform], meta + [ platform: platform, single_end:true ], [ fastq_1 ] ]
                 } else {
@@ -114,7 +114,7 @@ workflow PIPELINE_INITIALISATION {
             }
         }
         .set { ch_samplesheet }
-                    
+
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
@@ -190,7 +190,7 @@ def validateInputSamplesheet(input) {
     if (!endedness_ok) {
         error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
         }
-    
+
     if (all_fastqs.size() != all_fastqs.unique().size()) {
         error( "Please check input samplesheet -> Duplicate FASTQ files detected for sample: ${metas[0].id}")
         }
