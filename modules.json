@@ -27,7 +27,7 @@
                     },
                     "falco": {
                         "branch": "feat/falco-mate-based-output-names",
-                        "git_sha": "74fa766899535822aee4099b4dff4b735cc31049",
+                        "git_sha": "395a288ca41fbb8fcc0b44db7acf0655bbad7fee",
                         "installed_by": ["modules"]
                     },
                     "hostess": {
