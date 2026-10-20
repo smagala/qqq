@@ -26,8 +26,8 @@
                         "installed_by": ["modules"]
                     },
                     "hostess": {
-                        "branch": "feat/add-hostess",
-                        "git_sha": "6842a662d4c8f72ff82e0afdb22002340fcc662b",
+                        "branch": "feat/hostess-aligner-input",
+                        "git_sha": "12f2f4d6eaaa7a0d094b5b38b199b4af483ce324",
                         "installed_by": ["modules"]
                     }
                 }
