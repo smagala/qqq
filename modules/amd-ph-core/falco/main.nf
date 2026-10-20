@@ -44,8 +44,12 @@ process FALCO {
     }
     else {
         // Falco writes to fixed output names, so a single invocation over both
-        // mates overwrites R1's results with R2's. Run once per mate and derive
-        // per-mate output names from the input filename instead.
+        // mates overwrites R1's results with R2's. Run once per mate, naming the
+        // outputs `<prefix>_R1` and `<prefix>_R2` from the mate's position in
+        // the staged list rather than from its filename -- a filename-derived
+        // name inherits whatever the sequencer or a previous step called the
+        // file, so the same sample could produce differently-named reports in
+        // different runs, and MultiQC would read them as different samples.
         //
         // The mates run concurrently rather than one after the other. falco is
         // single-threaded, so this is the only parallelism available, and it
@@ -88,11 +92,11 @@ process FALCO {
     else {
         """
         for mate in 1 2; do
-        read_base="${prefix}_R\${mate}"
-        touch "\${read_base}_fastqc_data.txt"
-        touch "\${read_base}_summary.txt"
-        touch "\${read_base}_fastqc_report.html"
+            read_base="${prefix}_R\${mate}"
+            touch "\${read_base}_fastqc_data.txt"
+            touch "\${read_base}_summary.txt"
+            touch "\${read_base}_fastqc_report.html"
         done
         """
-        }
+    }
 }

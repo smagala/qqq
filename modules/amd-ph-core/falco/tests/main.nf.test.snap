@@ -6,33 +6,27 @@
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "1": [
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "2": [
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "3": [
@@ -46,33 +40,27 @@
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "summary": [
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "txt": [
                     [
                         {
                             "id": "test",
-                            "single_end": true,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": true
                         },
-                        "test_illumina_run1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        "test_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "versions_falco": [
@@ -84,7 +72,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-10-15T01:02:54.464759795",
+        "timestamp": "2026-08-06T12:58:06.517348258",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
@@ -96,22 +84,18 @@
                 [
                     {
                         "id": "test",
-                        "single_end": true,
-                        "platform": "illumina",
-                        "run": 1
+                        "single_end": true
                     },
-                    "test_illumina_run1_fastqc_data.txt:md5,c2cbae9cc81af85c29f2845ceba9172d"
+                    "test_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73"
                 ]
             ],
             [
                 [
                     {
                         "id": "test",
-                        "single_end": true,
-                        "platform": "illumina",
-                        "run": 1
+                        "single_end": true
                     },
-                    "test_illumina_run1_summary.txt:md5,577a4416052f18395552deafec6156c6"
+                    "test_summary.txt:md5,577a4416052f18395552deafec6156c6"
                 ]
             ],
             [
@@ -122,7 +106,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-10-15T01:02:39.265277762",
+        "timestamp": "2026-08-06T12:57:58.824937406",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
@@ -134,13 +118,11 @@
                 [
                     {
                         "id": "test",
-                        "single_end": false,
-                        "platform": "illumina",
-                        "run": 1
+                        "single_end": false
                     },
                     [
-                        "test_illumina_run1_R1_fastqc_data.txt:md5,c2cbae9cc81af85c29f2845ceba9172d",
-                        "test_illumina_run1_R2_fastqc_data.txt:md5,40bf3bccf8fbf33a5115d427bd50383d"
+                        "test_R1_fastqc_data.txt:md5,8fe5b37827c655d1619e2ba733dc1b73",
+                        "test_R2_fastqc_data.txt:md5,e57bc70afbbb6912d17b7c7325a1ae7d"
                     ]
                 ]
             ],
@@ -148,13 +130,11 @@
                 [
                     {
                         "id": "test",
-                        "single_end": false,
-                        "platform": "illumina",
-                        "run": 1
+                        "single_end": false
                     },
                     [
-                        "test_illumina_run1_R1_summary.txt:md5,577a4416052f18395552deafec6156c6",
-                        "test_illumina_run1_R2_summary.txt:md5,509fc1fe165f565fec8376d2276c8cd8"
+                        "test_R1_summary.txt:md5,577a4416052f18395552deafec6156c6",
+                        "test_R2_summary.txt:md5,509fc1fe165f565fec8376d2276c8cd8"
                     ]
                 ]
             ],
@@ -166,10 +146,10 @@
                 ]
             ]
         ],
-        "timestamp": "2026-10-15T01:02:46.981275551",
+        "timestamp": "2026-10-20T12:50:40.91373404",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
         }
     },
     "sarscov2 - fastq - paired_end - stub": {
@@ -179,13 +159,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -193,13 +171,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -207,13 +183,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -228,13 +202,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_fastqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -242,13 +214,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_summary.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -256,13 +226,11 @@
                     [
                         {
                             "id": "test",
-                            "single_end": false,
-                            "platform": "illumina",
-                            "run": 1
+                            "single_end": false
                         },
                         [
-                            "test_illumina_run1_R1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "test_illumina_run1_R2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "test_R1_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "test_R2_fastqc_data.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
                     ]
                 ],
@@ -275,10 +243,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-10-15T01:07:02.808975445",
+        "timestamp": "2026-10-20T12:50:47.695475117",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
         }
     }
 }

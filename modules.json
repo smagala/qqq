@@ -21,8 +21,8 @@
                         "installed_by": ["modules"]
                     },
                     "falco": {
-                        "branch": "main",
-                        "git_sha": "580d92f8c9f4d23ac6f4278692874b7c02580587",
+                        "branch": "feat/falco-mate-based-output-names",
+                        "git_sha": "74fa766899535822aee4099b4dff4b735cc31049",
                         "installed_by": ["modules"]
                     },
                     "hostess": {
