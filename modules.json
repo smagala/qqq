@@ -7,7 +7,7 @@
                 "amd-ph-core": {
                     "bbmap/bbduk": {
                         "branch": "feat/add-bbmap-bbduk",
-                        "git_sha": "59f9d702389884dda2d30ae30b733d0098134d2f",
+                        "git_sha": "d73a5d0118dfd0e45de45108e094a1ccfb1f3303",
                         "installed_by": ["modules"]
                     },
                     "deacon/filter": {
