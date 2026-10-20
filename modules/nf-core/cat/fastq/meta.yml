@@ -43,7 +43,7 @@ output:
       - cat:
           type: string
           description: The tool name
-      - "cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\\$//'":
+      - cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\$//':
           type: eval
           description: The expression to obtain the version of the tool
 
@@ -55,7 +55,7 @@ topics:
       - cat:
           type: string
           description: The tool name
-      - "cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\\$//'":
+      - cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\$//':
           type: eval
           description: The expression to obtain the version of the tool
 

@@ -399,24 +399,34 @@ workflow QQQ {
         // can keep the removed reads as a sorted BAM, which hostile cannot do
         // without a second pass. --host_bam only has an effect with hostess.
         if (params.dehoster == 'hostess') {
+            // The aligner is passed per alias rather than derived inside the
+            // module: bowtie2 takes an index prefix, minimap2 a single FASTA or
+            // .mmi, and these four aliases already separate long from short with
+            // their own reference channels. The module used to read meta.type for
+            // this, which ph-core forbids -- only meta.id and meta.single_end are
+            // allowed meta fields.
             HOSTESS_SMALL_SHORT (
             ch_small.short_reads,
-            ch_hostile_ref_short
+            ch_hostile_ref_short,
+            'bowtie2'
             )
 
             HOSTESS_LARGE_SHORT (
             ch_large.short_reads,
-            ch_hostile_ref_short
+            ch_hostile_ref_short,
+            'bowtie2'
             )
 
             HOSTESS_SMALL_LONG (
             ch_small.long_reads,
-            ch_hostile_ref_long
+            ch_hostile_ref_long,
+            'minimap2'
             )
 
             HOSTESS_LARGE_LONG (
             ch_large.long_reads,
-            ch_hostile_ref_long
+            ch_hostile_ref_long,
+            'minimap2'
             )
             ch_dehosted_fastq = HOSTESS_SMALL_SHORT.out.fastq.mix(HOSTESS_LARGE_SHORT.out.fastq).mix(HOSTESS_SMALL_LONG.out.fastq).mix(HOSTESS_LARGE_LONG.out.fastq)
             ch_dehosted_json = HOSTESS_SMALL_SHORT.out.json.mix(HOSTESS_LARGE_SHORT.out.json).mix(HOSTESS_SMALL_LONG.out.json).mix(HOSTESS_LARGE_LONG.out.json)

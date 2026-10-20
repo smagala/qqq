@@ -1,4 +1,3 @@
-
 process CAT_FASTQ {
     tag "${meta.id}"
     label 'process_single'

@@ -17,7 +17,7 @@ Changes in 'hostile/clean/main.nf':
      """
 -    export HOSTILE_CACHE_DIR=${reference_dir}
 +    export HOSTILE_CACHE_DIR=${cache_dir}
-
+ 
      ## Reorder the reads for reproducibility
      ## Set offline as we never want this process to auto-download reference files as required input channel
 @@ -34,7 +40,7 @@
@@ -30,7 +30,7 @@ Changes in 'hostile/clean/main.nf':
          --reorder \\
          --airplane \\
 @@ -43,9 +49,10 @@
-
+ 
      stub:
      def prefix       = task.ext.prefix ?: "${meta.id}"
 +    def cache_dir  = meta.type == 'long' ? '.' : reference_dir.toString()
@@ -40,11 +40,11 @@ Changes in 'hostile/clean/main.nf':
 +    export HOSTILE_CACHE_DIR=${cache_dir}
      echo "" | gzip > ${prefix}.clean_1.fastq.gz
      ${fake_read2}
+ 
 
-
-'modules/nf-core/hostile/clean/meta.yml' is unchanged
 'modules/nf-core/hostile/clean/environment.yml' is unchanged
-'modules/nf-core/hostile/clean/tests/main.nf.test.snap' is unchanged
-'modules/nf-core/hostile/clean/tests/nextflow.config' is unchanged
+'modules/nf-core/hostile/clean/meta.yml' is unchanged
 'modules/nf-core/hostile/clean/tests/main.nf.test' is unchanged
+'modules/nf-core/hostile/clean/tests/nextflow.config' is unchanged
+'modules/nf-core/hostile/clean/tests/main.nf.test.snap' is unchanged
 ************************************************************
