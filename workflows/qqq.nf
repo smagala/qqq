@@ -528,6 +528,11 @@ workflow QQQ {
     // library against blastn's 68.4% at the identical identity threshold, where
     // bbduk k=25 takes 94.1%. The module's meta.yml has the numbers.
     //
+    // The reference to point this at is a versioned, checksummed build-time
+    // asset, not a panel assembled per run; see the rrna_ref help text for the
+    // one AMDP publishes and what it removes. Its README is the authority on
+    // what the per-record outputs may and may not be read as.
+    //
     // The matched reads are kept rather than dropped. They are the input to rRNA
     // characterisation, and they are also the only way an over-aggressive panel
     // shows up in the output instead of as a quietly smaller library.
@@ -545,7 +550,14 @@ workflow QQQ {
         // for "Executing jgi.BBDuk", which BBTools 39.76 renamed to
         // `bbduk.BBDukS`, and which the JVM puts on line three where the pattern
         // allows two. It matches neither version.
-        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats.collect { meta, txt -> txt })
+        // The TRUNCATED stats copy, not the full one. MultiQC writes every row
+        // of what it parses into its own outputs, and the full file has one row
+        // per matched reference record -- 93,601 of them against SILVA SSU+LSU
+        // NR99, which costs 23 MB of multiqc_data.json for a single sample. The
+        // truncated copy parses identically (the `bbmap/stats` pattern matches
+        // on the header) and gives the same percent-filtered figure from 38 KB.
+        // The full file and the per-record rpkm stay in the results.
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { meta, txt -> txt })
     }
     else {
         ch_rrna_reads = channel.empty()
