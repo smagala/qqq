@@ -37,9 +37,18 @@ input:
         description: |
           Directory containing index file(s) corresponding to the preferred aligner (bowtie2 short reads or minimap for long reads).
           Note that single end data is assumed to be long reads. If you have single-end short read you must supply both the BowTie2
-          indices AND explicitly specify `--aligner bowtie2`
+          indices AND explicitly specify the `aligner` input below.
         ontologies:
           - edam: "http://edamontology.org/data_1049"
+  - - aligner:
+        type: string
+        description: |
+          Which aligner hostile should use: "bowtie2" for short reads, "minimap2" for long reads.
+          An input rather than an `ext.args` flag because the module needs the value for more than
+          `--aligner`: with bowtie2, `--index` is a name resolved inside the hostile cache directory,
+          while minimap2 needs `--index` to be a path to a FASTA or .mmi and the cache directory to
+          be the task directory. The module emits `--aligner` itself, so it must not also be set in
+          `ext.args` or it is passed twice.
 output:
   fastq:
     - - meta:

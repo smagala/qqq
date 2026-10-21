@@ -59,8 +59,82 @@ Changes in 'hostile/clean/main.nf':
  
 
 'modules/nf-core/hostile/clean/environment.yml' is unchanged
-'modules/nf-core/hostile/clean/meta.yml' is unchanged
-'modules/nf-core/hostile/clean/tests/main.nf.test' is unchanged
+Changes in 'hostile/clean/meta.yml':
+--- modules/nf-core/hostile/clean/meta.yml
++++ modules/nf-core/hostile/clean/meta.yml
+@@ -37,9 +37,18 @@
+         description: |
+           Directory containing index file(s) corresponding to the preferred aligner (bowtie2 short reads or minimap for long reads).
+           Note that single end data is assumed to be long reads. If you have single-end short read you must supply both the BowTie2
+-          indices AND explicitly specify `--aligner bowtie2`
++          indices AND explicitly specify the `aligner` input below.
+         ontologies:
+           - edam: "http://edamontology.org/data_1049"
++  - - aligner:
++        type: string
++        description: |
++          Which aligner hostile should use: "bowtie2" for short reads, "minimap2" for long reads.
++          An input rather than an `ext.args` flag because the module needs the value for more than
++          `--aligner`: with bowtie2, `--index` is a name resolved inside the hostile cache directory,
++          while minimap2 needs `--index` to be a path to a FASTA or .mmi and the cache directory to
++          be the task directory. The module emits `--aligner` itself, so it must not also be set in
++          `ext.args` or it is passed twice.
+ output:
+   fastq:
+     - - meta:
+
+Changes in 'hostile/clean/tests/main.nf.test':
+--- modules/nf-core/hostile/clean/tests/main.nf.test
++++ modules/nf-core/hostile/clean/tests/main.nf.test
+@@ -28,7 +28,10 @@
+     test("fastq - single-end") {
+         when {
+             params {
+-                module_args = "--aligner bowtie2"
++                // --aligner is no longer passed in args: the module takes it as
++                // an input and emits the flag itself, so putting it here too
++                // would pass it twice.
++                module_args = ""
+             }
+             process {
+                 """
+@@ -39,6 +42,11 @@
+                     ],
+                 ]
+                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
++                // All three cases build a bowtie2 index, so all three declare
++                // bowtie2. Declaring it matters most for the single-end case:
++                // hostile treats single-end input as long reads unless the
++                // aligner is stated.
++                input[2] = 'bowtie2'
+                 """
+             }
+         }
+@@ -69,6 +77,11 @@
+                     ],
+                 ]
+                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
++                // All three cases build a bowtie2 index, so all three declare
++                // bowtie2. Declaring it matters most for the single-end case:
++                // hostile treats single-end input as long reads unless the
++                // aligner is stated.
++                input[2] = 'bowtie2'
+                 """
+             }
+         }
+@@ -98,6 +111,11 @@
+                     [file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/fastq/test_1.fastq.gz', checkIfExists: true)],
+                 ]
+                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
++                // All three cases build a bowtie2 index, so all three declare
++                // bowtie2. Declaring it matters most for the single-end case:
++                // hostile treats single-end input as long reads unless the
++                // aligner is stated.
++                input[2] = 'bowtie2'
+                 """
+             }
+         }
+
 'modules/nf-core/hostile/clean/tests/nextflow.config' is unchanged
 'modules/nf-core/hostile/clean/tests/main.nf.test.snap' is unchanged
 ************************************************************

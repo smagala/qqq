@@ -28,7 +28,10 @@ nextflow_process {
     test("fastq - single-end") {
         when {
             params {
-                module_args = "--aligner bowtie2"
+                // --aligner is no longer passed in args: the module takes it as
+                // an input and emits the flag itself, so putting it here too
+                // would pass it twice.
+                module_args = ""
             }
             process {
                 """
@@ -39,6 +42,11 @@ nextflow_process {
                     ],
                 ]
                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
+                // All three cases build a bowtie2 index, so all three declare
+                // bowtie2. Declaring it matters most for the single-end case:
+                // hostile treats single-end input as long reads unless the
+                // aligner is stated.
+                input[2] = 'bowtie2'
                 """
             }
         }
@@ -69,6 +77,11 @@ nextflow_process {
                     ],
                 ]
                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
+                // All three cases build a bowtie2 index, so all three declare
+                // bowtie2. Declaring it matters most for the single-end case:
+                // hostile treats single-end input as long reads unless the
+                // aligner is stated.
+                input[2] = 'bowtie2'
                 """
             }
         }
@@ -98,6 +111,11 @@ nextflow_process {
                     [file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/fastq/test_1.fastq.gz', checkIfExists: true)],
                 ]
                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
+                // All three cases build a bowtie2 index, so all three declare
+                // bowtie2. Declaring it matters most for the single-end case:
+                // hostile treats single-end input as long reads unless the
+                // aligner is stated.
+                input[2] = 'bowtie2'
                 """
             }
         }
