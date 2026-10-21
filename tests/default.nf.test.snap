@@ -233,10 +233,10 @@
                 "he_reads_plots.txt:md5,3a032c31cf1d409bad32d1e366346699",
                 "multiqc_citations.txt:md5,7799f7f18ad862ce3c9d66ec358a7b34",
                 "multiqc_fastqc.txt:md5,5bfe3d8880a62ba6b7697fd0d3f2d47d",
-                "multiqc_general_stats.txt:md5,81a3a40d0d5bbaf1eb01a40bb82b4be8"
+                "multiqc_general_stats.txt:md5,63cf33d295d69f59017479dcf2a9ca36"
             ]
         ],
-        "timestamp": "2026-10-21T10:44:22.146304775",
+        "timestamp": "2026-10-21T12:00:54.379681803",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
@@ -467,10 +467,10 @@
                 "fastqc_sequence_length_distribution_plot.txt:md5,35e690acd590eab67efe122c11e880f8",
                 "multiqc_citations.txt:md5,b2cef7032b87dbfe16638cd4b0d23e0c",
                 "multiqc_fastqc.txt:md5,5bfe3d8880a62ba6b7697fd0d3f2d47d",
-                "multiqc_general_stats.txt:md5,8c76b7b3890b0d9a9ece835eb6892950"
+                "multiqc_general_stats.txt:md5,d9277b220eb9b46483fa4bfbf23a3ec7"
             ]
         ],
-        "timestamp": "2026-10-21T10:43:25.312630945",
+        "timestamp": "2026-10-21T11:59:57.826705035",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"

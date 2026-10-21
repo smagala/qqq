@@ -10,6 +10,7 @@ process HOSTILE_CLEAN {
     input:
     tuple val(meta)          , path(reads, stageAs: "input_reads/")
     tuple val(reference_name), path(reference_dir)
+    val aligner
 
     output:
     tuple val(meta), path('*.fastq.gz'), emit: fastq
@@ -22,12 +23,18 @@ process HOSTILE_CLEAN {
     script:
     def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix ?: "${meta.id}"
-    def index_ref = meta.type == 'long'
+    // The aligner arrives as an input rather than being read out of meta:
+    // ph-core allows only meta.id and meta.single_end, and the caller already
+    // knows which aligner each alias is for -- it feeds them from separate
+    // branches with their own reference channels. bowtie2 wants an index
+    // prefix, minimap2 a FASTA or a .mmi, which is why the two differ here.
+    def long_read = aligner == 'minimap2'
+    def index_ref = long_read
     ? (reference_dir.isDirectory()
         ? "${reference_dir}/${reference_name}.mmi"
         : reference_dir.toString())
     : reference_name
-    def cache_dir = meta.type == 'long' ? '.' : reference_dir.toString()
+    def cache_dir = long_read ? '.' : reference_dir.toString()
     def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.simpleName }
     def reads_cmd    = meta.single_end ? "--fastq1 ${sorted_reads[0]}" : "--fastq1 ${sorted_reads[0]} --fastq2 ${sorted_reads[1]}"
     """
@@ -38,6 +45,7 @@ process HOSTILE_CLEAN {
     hostile \\
         clean \\
         ${args} \\
+        --aligner ${aligner} \\
         --threads ${task.cpus} \\
         ${reads_cmd} \\
         --index ${index_ref} \\
@@ -49,7 +57,7 @@ process HOSTILE_CLEAN {
 
     stub:
     def prefix       = task.ext.prefix ?: "${meta.id}"
-    def cache_dir  = meta.type == 'long' ? '.' : reference_dir.toString()
+    def cache_dir  = aligner == 'minimap2' ? '.' : reference_dir.toString()
     def fake_read2   = !meta.single_end ? "echo '' | gzip > ${prefix}.clean_2.fastq.gz" : ""
     """
     export HOSTILE_CACHE_DIR=${cache_dir}

@@ -73,16 +73,22 @@ workflow QQQ {
         "oxford_nanopore"
     ]
 
+    // `route` carries what ph-core does not allow in meta: the platform, the run
+    // number and the merged-sample identity. It is an ordinary channel element
+    // that is dropped at every process call, so it cannot reach a module -- a
+    // stronger guarantee than a meta key that merely happens to go unread.
+    // `type` is derived here rather than in the parser because the platform
+    // lists it is derived from live in this file.
     ch_reads
-        .map { meta, reads ->
+        .map { meta, route, reads ->
             def type
 
-            if (meta.platform in long_platforms) {
+            if (route.platform in long_platforms) {
                 type = "long"
-            } else if (meta.platform in short_platforms) {
+            } else if (route.platform in short_platforms) {
                 type = "short"
             } else {
-                error "Unknown sequencing platform '${meta.platform}' for sample '${meta.id}'"
+                error "Unknown sequencing platform '${route.platform}' for sample '${meta.id}'"
             }
 
             if (
@@ -90,13 +96,12 @@ workflow QQQ {
                 reads instanceof List &&
                 reads.size() > 1
             ) {
-                error "Sample '${meta.id}' has platform '${meta.platform}' (long-read) but provides ${reads.size()} FASTQ files. Long-read platforms expect a single FASTQ file per sample. Check your samplesheet."
+                error "Sample '${meta.id}' has platform '${route.platform}' (long-read) but provides ${reads.size()} FASTQ files. Long-read platforms expect a single FASTQ file per sample. Check your samplesheet."
             }
 
             [
-                meta + [
-                    type: type
-                ],
+                meta,
+                route + [ type: type ],
                 reads
             ]
         }
@@ -115,7 +120,7 @@ workflow QQQ {
     // come from the data files too, so the summary files are not needed here.
     //
     FALCO (
-        ch_reads_mix
+        ch_reads_mix.map { meta, route, reads -> [ meta, reads ] }
     )
     ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { meta, txt -> txt })
 
@@ -124,16 +129,16 @@ workflow QQQ {
     //
     if (!params.skip_fastp) {
 
-        ch_short_reads = ch_reads_mix.filter { meta, reads ->
-            meta.type == 'short'
+        ch_short_reads = ch_reads_mix.filter { meta, route, reads ->
+            route.type == 'short'
         }
 
-        ch_long_reads = ch_reads_mix.filter { meta, reads ->
-            meta.type == 'long'
+        ch_long_reads = ch_reads_mix.filter { meta, route, reads ->
+            route.type == 'long'
         }
 
         FASTP (
-            ch_short_reads.map { meta, reads ->
+            ch_short_reads.map { meta, route, reads ->
                 tuple(meta, reads, [])
             },
             false,
@@ -142,7 +147,7 @@ workflow QQQ {
         )
 
         FASTPLONG (
-            ch_long_reads.map { meta, reads ->
+            ch_long_reads.map { meta, route, reads ->
                 tuple(meta, reads)
             },
             [],
@@ -150,20 +155,30 @@ workflow QQQ {
             false
         )
 
-        ch_reads_mix = FASTP.out.reads.mix(
-            FASTPLONG.out.reads
-        )
+        // fastp drops `route`, so it is rejoined on meta.id. The join is keyed
+        // rather than re-derived: at this point each id is still per-run and
+        // unique, and fastp emits one record per input.
+        ch_route_by_id = ch_reads_mix.map { meta, route, reads -> [ meta.id, route ] }
+
+        ch_reads_mix = FASTP.out.reads
+            .mix(FASTPLONG.out.reads)
+            .map { meta, reads -> [ meta.id, meta, reads ] }
+            .join(ch_route_by_id)
+            .map { id, meta, reads, route -> [ meta, route, reads ] }
     }
 
     //
     // Group reads by sample ID + sequencing platform
     //
+    // route.merge_id is already "<sample>_<platform>", so it is the grouping key
+    // on its own -- no composite key, and nothing read out of meta.
     ch_reads_by_sample = ch_reads_mix
-        .map { meta, reads ->
+        .map { meta, route, reads ->
 
             [
-                [meta.id, meta.platform],
+                route.merge_id,
                 meta,
+                route,
                 reads
             ]
         }
@@ -173,42 +188,52 @@ workflow QQQ {
     //
     // Separate single-run samples from multi-run samples
     //
+    // Both branches re-key meta to the merged identity, dropping the `_run<n>`
+    // suffix that falco and fastp were named by. A single-run sample needs this
+    // as much as a merged one: everything downstream of here is named for the
+    // sample, not for the run it happened to arrive in.
+    //
+    // `run` is deliberately not carried past this point. It describes an input
+    // file, and once the runs are merged there is no single run to describe.
     ch_reads_by_sample
-        .branch { key, metas, reads_list ->
+        .branch { merge_id, metas, routes, reads_list ->
 
             single:
                 reads_list.size() == 1
 
                 return [
-                    metas[0],
+                    [ id: merge_id, single_end: metas[0].single_end ],
+                    [ platform: routes[0].platform, type: routes[0].type, merge_id: merge_id ],
                     reads_list[0]
                 ]
 
             multiple:
                 true
-                // Keep each run's metadata paired with its FASTQ files,
-                // then sort by the original run number before merging.
-                def orderedRuns = metas.indices
-                .collect { i ->
-                [meta: metas[i], reads: reads_list[i]]
-                }
-                .sort { a, b ->
-                a.meta.run <=> b.meta.run
-                }
+                // Keep each run's route paired with its FASTQ files, then sort
+                // by the original run number before merging, so the merged file
+                // is in samplesheet order rather than in channel-arrival order.
+                def orderedRuns = routes.indices
+                    .collect { i ->
+                        [ route: routes[i], reads: reads_list[i] ]
+                    }
+                    .sort { a, b ->
+                        a.route.run <=> b.route.run
+                    }
 
                 return [
-                    orderedRuns[0].meta,
+                    [ id: merge_id, single_end: metas[0].single_end ],
+                    [ platform: routes[0].platform, type: routes[0].type, merge_id: merge_id ],
                     orderedRuns.collect { it.reads }.flatten()
-                    ]
-                    }
-                    .set { ch_reads_grouped }
+                ]
+        }
+        .set { ch_reads_grouped }
 
 
     //
     // Merge samples that have multiple runs
     //
     CAT_FASTQ (
-        ch_reads_grouped.multiple
+        ch_reads_grouped.multiple.map { meta, route, reads -> [ meta, reads ] }
     )
 
 
@@ -217,7 +242,12 @@ workflow QQQ {
     //   - merged multi-run samples
     //   - single-run samples that do not require merging
     //
+    // CAT_FASTQ drops `route`, so it is rejoined on meta.id, which is now the
+    // merged identity and unique per sample.
     ch_merged_reads = CAT_FASTQ.out.reads
+        .map { meta, reads -> [ meta.id, meta, reads ] }
+        .join(ch_reads_grouped.multiple.map { meta, route, reads -> [ meta.id, route ] })
+        .map { id, meta, reads, route -> [ meta, route, reads ] }
         .mix(ch_reads_grouped.single)
 
     //
@@ -229,7 +259,7 @@ workflow QQQ {
     // index in that case, so index resolution is inside each branch — asking
     // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
-        ch_dehosted_fastq = ch_merged_reads
+        ch_dehosted_fastq = ch_merged_reads.map { meta, route, reads -> [ meta, reads ] }
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
@@ -302,10 +332,14 @@ workflow QQQ {
         //
         // Resources are set per alias in oamd-bio-nf-configs; nothing here
         // hardcodes them, and the module itself is untouched.
-        ch_deacon_sized = ch_merged_reads.branch { meta, reads ->
-            large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
-            small: true
-        }
+        // deacon does not care short from long, so `route` is dropped on the way
+        // in and the branch is on input size alone.
+        ch_deacon_sized = ch_merged_reads
+            .map { meta, route, reads -> [ meta, reads ] }
+            .branch { meta, reads ->
+                large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
+                small: true
+            }
 
         DEACON_FILTER_SMALL (
             ch_deacon_sized.small,
@@ -380,20 +414,31 @@ workflow QQQ {
         // So route by input size to two aliases of the same module. Resources are
         // set per alias in oamd-bio-nf-configs; nothing here hardcodes them, and
         // the module itself is untouched.
-        ch_sized = ch_merged_reads.branch { meta, reads ->
+        // Sized first, then split short from long. `route` is carried through
+        // both branches and dropped on the way into each alias, so the four
+        // aliases below receive the plain [meta, reads] every module expects.
+        ch_sized = ch_merged_reads.branch { meta, route, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
 
-        ch_small = ch_sized.small.branch { meta, reads ->
-        short_reads: meta.type == 'short'
-        long_reads:  meta.type == 'long'
-        }
+        ch_small = ch_sized.small
+            .branch { meta, route, reads ->
+                short_reads: route.type == 'short'
+                long_reads:  route.type == 'long'
+            }
 
-        ch_large = ch_sized.large.branch { meta, reads ->
-        short_reads: meta.type == 'short'
-        long_reads:  meta.type == 'long'
-        }
+        ch_large = ch_sized.large
+            .branch { meta, route, reads ->
+                short_reads: route.type == 'short'
+                long_reads:  route.type == 'long'
+            }
+
+        // Drop `route` once the routing it exists for has happened.
+        ch_small_short = ch_small.short_reads.map { meta, route, reads -> [ meta, reads ] }
+        ch_small_long  = ch_small.long_reads.map  { meta, route, reads -> [ meta, reads ] }
+        ch_large_short = ch_large.short_reads.map { meta, route, reads -> [ meta, reads ] }
+        ch_large_long  = ch_large.long_reads.map  { meta, route, reads -> [ meta, reads ] }
 
         // hostess is the default: it removes host reads in one alignment pass and
         // can keep the removed reads as a sorted BAM, which hostile cannot do
@@ -406,25 +451,25 @@ workflow QQQ {
             // this, which ph-core forbids -- only meta.id and meta.single_end are
             // allowed meta fields.
             HOSTESS_SMALL_SHORT (
-            ch_small.short_reads,
+            ch_small_short,
             ch_hostile_ref_short,
             'bowtie2'
             )
 
             HOSTESS_LARGE_SHORT (
-            ch_large.short_reads,
+            ch_large_short,
             ch_hostile_ref_short,
             'bowtie2'
             )
 
             HOSTESS_SMALL_LONG (
-            ch_small.long_reads,
+            ch_small_long,
             ch_hostile_ref_long,
             'minimap2'
             )
 
             HOSTESS_LARGE_LONG (
-            ch_large.long_reads,
+            ch_large_long,
             ch_hostile_ref_long,
             'minimap2'
             )
@@ -450,24 +495,33 @@ workflow QQQ {
             )
         }
         else {
+            // As with hostess, the aligner is an input rather than a meta field.
+            // The patched module used to read meta.type to pick between a
+            // bowtie2 index prefix and a minimap2 FASTA/.mmi, and to pick the
+            // hostile cache directory; it now takes the aligner and emits
+            // --aligner itself, so it is named in one place.
             HOSTILE_CLEAN_SMALL_SHORT (
-            ch_small.short_reads,
-            ch_hostile_ref_short
+            ch_small_short,
+            ch_hostile_ref_short,
+            'bowtie2'
             )
 
             HOSTILE_CLEAN_LARGE_SHORT (
-            ch_large.short_reads,
-            ch_hostile_ref_short
+            ch_large_short,
+            ch_hostile_ref_short,
+            'bowtie2'
             )
 
             HOSTILE_CLEAN_SMALL_LONG (
-            ch_small.long_reads,
-            ch_hostile_ref_long
+            ch_small_long,
+            ch_hostile_ref_long,
+            'minimap2'
             )
 
             HOSTILE_CLEAN_LARGE_LONG (
-            ch_large.long_reads,
-            ch_hostile_ref_long
+            ch_large_long,
+            ch_hostile_ref_long,
+            'minimap2'
             )
 
             ch_dehosted_fastq = HOSTILE_CLEAN_SMALL_SHORT.out.fastq.mix(HOSTILE_CLEAN_LARGE_SHORT.out.fastq).mix(HOSTILE_CLEAN_SMALL_LONG.out.fastq).mix(HOSTILE_CLEAN_LARGE_LONG.out.fastq)
@@ -602,11 +656,11 @@ workflow QQQ {
                 def reads_out = (counts ? counts.reads_out : 0L) as long
                 // Every dehoster counts records rather than pairs, so for
                 // paired-end input reads_out is twice the number of pairs.
-                [[meta.id, meta.platform], meta.single_end ? reads_out : reads_out.intdiv(2)]
+                [meta.id, meta.single_end ? reads_out : reads_out.intdiv(2)]
             }
 
         ch_gated = ch_dehosted_fastq
-            .map { meta, reads -> [[meta.id, meta.platform], meta, reads] }
+            .map { meta, reads -> [meta.id, meta, reads] }
             .join(ch_read_counts)
             .branch { id, meta, reads, count ->
                 downsample: count > params.max_reads

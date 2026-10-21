@@ -91,26 +91,56 @@ workflow PIPELINE_INITIALISATION {
     // Create channel from input file provided through params.input
     //
 
+    // ph-core allows only `id` and `single_end` in meta, so the sequencing
+    // platform and the run number are not meta fields. Both are still needed:
+    // the platform routes short- against long-read tooling, and the run number
+    // orders a sample's runs before they are merged.
+    //
+    // They travel in a `route` map that rides beside the meta in the channel and
+    // is dropped before any process call -- see workflows/qqq.nf. A value that
+    // never enters a module cannot leak into one, which is a stronger guarantee
+    // than a meta key that merely happens to be unused downstream.
+    //
+    // `route.merge_id` is the identity a sample has once its runs are merged,
+    // and it is also the grouping key. It is carried rather than recovered by
+    // stripping `_run<n>` off `meta.id`: parsing identity back out of an id is
+    // how ids stop being opaque.
     channel
         .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, fastq_1, fastq_2 ->
-            def platform = meta.platform?.toLowerCase()?.trim() ?: "illumina"
+            // `row` is the samplesheet row as the schema defines it, not pipeline
+            // meta. Named apart from `meta` so that reading row.platform here is
+            // not mistaken for a meta key, which is what this change removes.
+            row, fastq_1, fastq_2 ->
+            def platform = row.platform?.toLowerCase()?.trim() ?: "illumina"
+            def merge_id = "${row.id}_${platform}"
+            def fastqs   = fastq_2 ? [ fastq_1, fastq_2 ] : [ fastq_1 ]
 
-            if (!fastq_2) {
-                return [ [meta.id, platform], meta + [ platform: platform, single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ [meta.id, platform], meta + [ platform: platform, single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
+            // meta is built explicitly rather than spread from the samplesheet
+            // row. Spreading is how `platform` became a meta key in the first
+            // place: every column the schema gains arrives in meta for free.
+            return [
+                merge_id,
+                platform,
+                [ id: merge_id, single_end: !fastq_2 ],
+                fastqs
+            ]
         }
         .groupTuple(by: 0)
-        .map { key, metas, fastqs ->
-        validateInputSamplesheet([key, metas, fastqs])
-        [key, metas, fastqs]
+        .map { merge_id, platforms, metas, fastqs ->
+            validateInputSamplesheet([merge_id, metas, fastqs])
+            // platform is constant within a group -- merge_id is built from it --
+            // so any element identifies the group's platform.
+            [merge_id, platforms[0], metas, fastqs]
         }
-        .flatMap { key, metas, fastqs ->
-        metas.indices.collect { i ->
-        [metas[i]+ [run: i + 1], fastqs[i]]
+        .flatMap { merge_id, platform, metas, fastqs ->
+            metas.indices.collect { i ->
+                def run = i + 1
+                [
+                    [ id: "${merge_id}_run${run}", single_end: metas[i].single_end ],
+                    [ platform: platform, run: run, merge_id: merge_id ],
+                    fastqs[i]
+                ]
             }
         }
         .set { ch_samplesheet }
@@ -179,9 +209,7 @@ def validateInputParameters() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (key, metas, fastqs) = input
-    def sample = key[0]
-    def platform = key[1]
+    def (merge_id, metas, fastqs) = input
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
