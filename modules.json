@@ -21,13 +21,13 @@
                         "installed_by": ["modules"]
                     },
                     "falco": {
-                        "branch": "feat/falco-mate-based-output-names",
-                        "git_sha": "395a288ca41fbb8fcc0b44db7acf0655bbad7fee",
+                        "branch": "main",
+                        "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
                         "installed_by": ["modules"]
                     },
                     "hostess": {
-                        "branch": "feat/add-hostess",
-                        "git_sha": "12f2f4d6eaaa7a0d094b5b38b199b4af483ce324",
+                        "branch": "main",
+                        "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
                         "installed_by": ["modules"]
                     }
                 }
