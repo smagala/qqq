@@ -32,9 +32,8 @@
                     },
                     "hostess": {
                         "branch": "main",
-                        "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
-                        "installed_by": ["modules"],
-                        "patch": "modules/amd-ph-core/hostess/hostess.diff"
+                        "git_sha": "124cc15991da53c9856f11ac92c3b9da968ace31",
+                        "installed_by": ["modules"]
                     }
                 }
             }
