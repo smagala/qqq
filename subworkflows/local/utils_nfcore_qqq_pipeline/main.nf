@@ -101,18 +101,50 @@ workflow PIPELINE_INITIALISATION {
     // never enters a module cannot leak into one, which is a stronger guarantee
     // than a meta key that merely happens to be unused downstream.
     //
-    // `route.merge_id` is the identity a sample has once its runs are merged,
-    // and it is also the grouping key. It is carried rather than recovered by
-    // stripping `_run<n>` off `meta.id`: parsing identity back out of an id is
-    // how ids stop being opaque.
+    // `route.merge_id` is the identity a sample has once its runs are merged.
+    // It is carried rather than recovered by stripping `_run<n>` off `meta.id`:
+    // parsing identity back out of an id is how ids stop being opaque.
+    def sheet = samplesheetToList(input, "${projectDir}/assets/schema_input.json")
+
+    // merge_id is DERIVED from two fields, so two rows can derive the same
+    // string without being the same sample: the platform enum holds both
+    // `nanopore` and `oxford_nanopore`, which makes sample `x_oxford` on
+    // nanopore and sample `x` on oxford_nanopore both "x_oxford_nanopore".
+    // Grouping on the derived string would merge two different samples' reads
+    // into one FASTQ, and publishing on it would have them overwrite each
+    // other's outputs -- silently, in both cases.
+    //
+    // So nothing groups on the derived string. The grouping key below is the
+    // structured pair, and the string is checked for uniqueness here, over the
+    // whole sheet, before any of it reaches a channel: a collision is a
+    // property of the samplesheet, knowable before the first task is submitted,
+    // and better failed on than carried into the DAG.
+    def merge_id_source = [:]
+    sheet.each { entry ->
+        def row      = entry[0]
+        def platform = normalisePlatform(row)
+        def merge_id = "${row.id}_${platform}"
+        def source   = [ row.id, platform ]
+        if (merge_id_source.containsKey(merge_id) && merge_id_source[merge_id] != source) {
+            def other = merge_id_source[merge_id]
+            error(
+                "Samplesheet rows (id '${other[0]}', platform '${other[1]}') and " +
+                "(id '${source[0]}', platform '${source[1]}') are different samples but both " +
+                "merge to the identity '${merge_id}', so their reads would be merged together " +
+                "and their outputs would collide. Rename one of the samples."
+            )
+        }
+        merge_id_source[merge_id] = source
+    }
+
     channel
-        .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+        .fromList(sheet)
         .map {
             // `row` is the samplesheet row as the schema defines it, not pipeline
             // meta. Named apart from `meta` so that reading row.platform here is
             // not mistaken for a meta key, which is what this change removes.
             row, fastq_1, fastq_2 ->
-            def platform = row.platform?.toLowerCase()?.trim() ?: "illumina"
+            def platform = normalisePlatform(row)
             def merge_id = "${row.id}_${platform}"
             def fastqs   = fastq_2 ? [ fastq_1, fastq_2 ] : [ fastq_1 ]
 
@@ -120,18 +152,20 @@ workflow PIPELINE_INITIALISATION {
             // row. Spreading is how `platform` became a meta key in the first
             // place: every column the schema gains arrives in meta for free.
             return [
+                [ row.id, platform ],
                 merge_id,
-                platform,
                 [ id: merge_id, single_end: !fastq_2 ],
                 fastqs
             ]
         }
         .groupTuple(by: 0)
-        .map { merge_id, platforms, metas, fastqs ->
+        .map { source, merge_ids, metas, fastqs ->
+            // Both are constant within a group: the group key is exactly what
+            // they are derived from, so any element identifies the group.
+            def platform = source[1]
+            def merge_id = merge_ids[0]
             validateInputSamplesheet([merge_id, metas, fastqs])
-            // platform is constant within a group -- merge_id is built from it --
-            // so any element identifies the group's platform.
-            [merge_id, platforms[0], metas, fastqs]
+            [merge_id, platform, metas, fastqs]
         }
         .flatMap { merge_id, platform, metas, fastqs ->
             metas.indices.collect { i ->
@@ -203,6 +237,18 @@ workflow PIPELINE_COMPLETION {
 // Check and validate pipeline parameters
 //
 def validateInputParameters() {
+}
+
+//
+// Normalise the samplesheet's platform column.
+//
+// A function because the value is read twice -- once to check that the merged
+// identities it produces are unique, once to build them -- and two copies of
+// the normalisation would be two chances for the check to normalise differently
+// from the thing it is checking.
+//
+def normalisePlatform(row) {
+    return row.platform?.toLowerCase()?.trim() ?: "illumina"
 }
 
 //
