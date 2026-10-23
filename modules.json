@@ -31,8 +31,8 @@
                         "installed_by": ["modules"]
                     },
                     "rasusa/reads": {
-                        "branch": "main",
-                        "git_sha": "dfe33f843b9979a21536780839f7c4909a66c8be",
+                        "branch": "feat/add-rasusa-reads",
+                        "git_sha": "4dce03a67e7883f5cf62dc48b078cfaaf5b6dfed",
                         "installed_by": ["modules"]
                     }
                 }
