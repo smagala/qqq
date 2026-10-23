@@ -83,6 +83,83 @@ nextflow_process {
         }
     }
 
+    test("sarscov2 - fastq - paired_end - mates arriving reversed are not swapped") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 10
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            // rasusa takes -o positionally against the inputs, so the module
+            // sorts them. What the sort is keyed on matters: simpleName strips
+            // every extension, which collapses `sample.R1.fastq.gz` and
+            // `sample.R2.fastq.gz` to the same key and silently leaves a
+            // reversed pair reversed. The full name keeps the mate designator.
+            // These fixtures are underscore-named, so this case is caught by
+            // either key -- it pins the contract, not the dot-named variant.
+            def names_1 = path(process.out.reads[0][1][0]).linesGzip.findAll { line -> line.startsWith('@') }
+            assertAll(
+                { assert process.success },
+                { assert names_1.every { name -> name.endsWith('/1') } },
+                { assert path(process.out.reads[0][1][1]).linesGzip.findAll { line ->
+                    line.startsWith('@')
+                    }.every { name -> name.endsWith('/2') } }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - single_end - an already-downsampled input is not clobbered") {
+
+        setup {
+            run("RASUSA_READS", alias: "RASUSA_FIRST") {
+                script "../main.nf"
+                process {
+                    """
+                    input[0] = Channel.of([
+                        [ id:'test', single_end:true ],
+                        [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                    ])
+                    input[1] = 20
+                    input[2] = 42
+                    """
+                }
+            }
+        }
+
+        when {
+            process {
+                """
+                input[0] = RASUSA_FIRST.out.reads
+                input[1] = 10
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            // The input here is named test.downsampled.fastq.gz, which is
+            // exactly what this task writes. Staged in the task directory it
+            // would be the output path: rasusa creates the output before
+            // counting reads, so it truncates through the symlink, destroys the
+            // first task's published file and then fails on the empty input.
+            // Staging under input_reads/ is what keeps the two apart.
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.reads[0][1]).linesGzip.size() == 10 * 4 }
+            )
+        }
+    }
+
     test("sarscov2 - fastq - single_end - downsample to 10 reads") {
 
         when {
