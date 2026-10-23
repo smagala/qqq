@@ -7,12 +7,12 @@
                 "amd-ph-core": {
                     "bbmap/bbduk": {
                         "branch": "main",
-                        "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
+                        "git_sha": "5202ca1c7eda5f53f35bc9cb8db1eb9e22db0806",
                         "installed_by": ["modules"]
                     },
                     "deacon/filter": {
                         "branch": "main",
-                        "git_sha": "bee52da03eabe3264a386913207b1409ad13517f",
+                        "git_sha": "5202ca1c7eda5f53f35bc9cb8db1eb9e22db0806",
                         "installed_by": ["modules"]
                     },
                     "deacon/index": {
@@ -27,11 +27,11 @@
                     },
                     "hostess": {
                         "branch": "main",
-                        "git_sha": "124cc15991da53c9856f11ac92c3b9da968ace31",
+                        "git_sha": "1345f870a8b6bbc68457a05efb9ee1e333424b73",
                         "installed_by": ["modules"]
                     },
                     "rasusa/reads": {
-                        "branch": "feat/add-rasusa-reads",
+                        "branch": "main",
                         "git_sha": "ae8ed00c92ec319a9ba255698c78d8e492aab9ed",
                         "installed_by": ["modules"]
                     }

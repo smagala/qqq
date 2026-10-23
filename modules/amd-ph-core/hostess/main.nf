@@ -51,7 +51,14 @@ process HOSTESS {
     // Sorted so mate 1 is always first: the glob that stages the reads makes
     // no ordering promise, and passing them the wrong way round would swap the
     // output mates silently.
-    def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.simpleName }
+    //
+    // On the full name, not simpleName. simpleName strips every extension, so
+    // `sample.R1.fastq.gz` and `sample.R2.fastq.gz` both reduce to `sample`,
+    // the sort has nothing left to order on, and a pair arriving reversed stays
+    // reversed -- which is the swap this line exists to prevent. Underscored
+    // names like `sample_1.fastq.gz` sorted correctly under either key, which
+    // is why this held up in practice.
+    def sorted_reads = meta.single_end ? [reads].flatten() : reads.sort { read -> read.name }
     // Quoted: these are staged filenames, so a space or a shell metacharacter in
     // an input name would otherwise split into separate arguments.
     def reads_cmd    = meta.single_end
