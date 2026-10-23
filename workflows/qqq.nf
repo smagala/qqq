@@ -172,17 +172,38 @@ workflow QQQ {
     //
     // route.merge_id is already "<sample>_<platform>", so it is the grouping key
     // on its own -- no composite key, and nothing read out of meta.
+    //
+    // The key is wrapped in groupKey with route.runs, the number of runs this
+    // sample is merged from, because an unsized groupTuple cannot emit any
+    // group until its upstream channel is complete. Unsized, that makes the
+    // slowest FASTP in the run a barrier in front of every downstream task for
+    // every other sample: on a 303-sample run, 302 FASTP tasks finished and
+    // zero BBMAP_BBDUK tasks had been submitted, because one 62 GB library
+    // among ~14 GB peers was still trimming. The run executes as two serial
+    // phases rather than as a pipeline, and Batch usage is correspondingly
+    // spiky. With the size known per group, each sample flows through as soon
+    // as its own runs are done.
+    //
+    // groupKey rather than `size:`, which takes one constant for every group
+    // and would be wrong for any sheet mixing single-run and multi-run samples.
     ch_reads_by_sample = ch_reads_mix
         .map { meta, route, reads ->
 
             [
-                route.merge_id,
+                groupKey(route.merge_id, route.runs),
                 meta,
                 route,
                 reads
             ]
         }
         .groupTuple(by: 0)
+        .map { _key, metas, routes, reads_list ->
+            // Unwrap the GroupKey back to the plain merge_id string. It is read
+            // off route rather than from key.toString() because meta.id is
+            // built from it below and then joined on downstream: an id has to
+            // be a String, not a GroupKey that prints like one.
+            [ routes[0].merge_id, metas, routes, reads_list ]
+        }
 
 
     //

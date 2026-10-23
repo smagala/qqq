@@ -168,11 +168,19 @@ workflow PIPELINE_INITIALISATION {
             [merge_id, platform, metas, fastqs]
         }
         .flatMap { merge_id, platform, metas, fastqs ->
+            // `runs` is the number of runs this sample will be merged from.
+            // It is emitted here because here is the only place that knows it
+            // without waiting: the sheet is a finite list, so the group is
+            // already complete. Downstream, qqq regroups runs into samples and
+            // needs the group size to do it incrementally -- see the groupKey
+            // in workflows/qqq.nf. Recovering it later would mean counting the
+            // runs as they arrive, which is the thing being avoided.
+            def runs = metas.size()
             metas.indices.collect { i ->
                 def run = i + 1
                 [
                     [ id: "${merge_id}_run${run}", single_end: metas[i].single_end ],
-                    [ platform: platform, run: run, merge_id: merge_id ],
+                    [ platform: platform, run: run, runs: runs, merge_id: merge_id ],
                     fastqs[i]
                 ]
             }
