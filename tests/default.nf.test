@@ -85,4 +85,46 @@ nextflow_pipeline {
         assert snapshot(stable_path).match()
         }
     }
+
+    //
+    // The branch under test is the gate, not the tool: samples above the cap go
+    // to rasusa and the rest bypass it on a read count taken from the dehoster's
+    // report. A cap of 1000 sits between the test samples — the two Illumina
+    // samples dehost to about 267,000 pairs each and the nanopore sample to 515
+    // reads — so both sides of the gate fire in one run, which is what separates
+    // a working gate from one routing every sample the same way.
+    //
+    test("-profile test, --max_reads") {
+        when {
+        params {
+            outdir = "$outputDir"
+            max_reads = 1000
+            }
+        }
+    then {
+        assert workflow.success
+        def stable_path = getAllFilesFromDir(
+            params.outdir,
+            relative: true,
+            includeDir: true,
+            ignore: ['pipeline_info/*.{html,json,txt}']
+            )
+        def downsampled = stable_path.findAll {
+            it.toString().contains(".downsampled.fastq.gz")
+            }
+        assertAll(
+            // Four files: both mates of each of the two Illumina samples.
+            { assert downsampled.size() == 4 },
+            // The sample under the cap bypassed the module rather than being
+            // sampled to its own size, which is the half of the gate a count
+            // assertion on the downsampled files alone would not notice.
+            { assert !downsampled.any { it.toString().contains("test_long") } },
+            // Exactly the cap, from a tool that measured the input first.
+            { assert downsampled.every {
+                path("${params.outdir}/${it}").linesGzip.size() == 1000 * 4
+                } },
+            { assert snapshot(stable_path).match() }
+            )
+        }
+    }
 }

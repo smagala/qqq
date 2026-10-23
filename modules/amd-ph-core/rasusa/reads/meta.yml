@@ -1,29 +1,27 @@
-name: fadso
+name: rasusa_reads
 description: |
-  Downsample FASTQ files to a fixed number of reads (or read pairs) using
-  s-leaping, an efficient approximate reservoir sampling algorithm. Paired-end
-  input is downsampled in lockstep so mates stay synchronised.
+  Downsample FASTQ files to an exact number of reads (or read pairs). Paired-end
+  mates are kept or dropped together, so the output stays synchronised.
 
-  Callers are expected to route only the samples that exceed the cap to this
-  module; fadso always samples down to `max_reads` and does not pass larger
-  inputs through untouched.
+  An input holding fewer reads than the cap is written out whole, with exit 0 --
+  so routing every sample through this module is correct, and gating on a read
+  count upstream is an optimisation rather than a requirement.
 keywords:
   - downsampling
   - subsampling
   - fastq
-  - reservoir sampling
   - sequencing depth
 tools:
-  - fadso:
-      description: "FASTQ downsampler using s-leaping (efficient approximate reservoir
-        sampling). The upstream repository is named `sleaping`; the built executable
-        is `fadso`. Upstream publishes no releases or tags, so builds are pinned to
-        a source commit."
-      homepage: "https://github.com/hkuwahara/sleaping"
-      documentation: "https://github.com/hkuwahara/sleaping"
-      tool_dev_url: "https://github.com/hkuwahara/sleaping"
+  - rasusa:
+      description: "Randomly subsample sequencing reads or alignments to a specified
+        coverage, number of bases, number of reads or fraction. `rasusa reads` measures
+        the input first, so a --num target is exact rather than approximate."
+      homepage: "https://github.com/mbhall88/rasusa"
+      documentation: "https://github.com/mbhall88/rasusa"
+      tool_dev_url: "https://github.com/mbhall88/rasusa"
+      doi: "10.21105/joss.03941"
       licence:
-        - "unlicensed"
+        - "MIT"
       args_id: "$args"
 input:
   - - meta:
@@ -43,11 +41,13 @@ input:
       type: integer
       description: |
         Mandatory. Number of reads (single-end) or read pairs (paired-end) to
-        retain.
+        retain. An input with fewer than this many is passed through whole.
   - seed:
       type: integer
       description: |
         Mandatory. Random seed, so downsampling is deterministic across runs.
+        Which reads a given seed selects is a property of the rasusa version, so
+        reproducing a run needs both.
 output:
   reads:
     - - meta:
@@ -63,14 +63,14 @@ output:
           pattern: "*.downsampled.fastq.gz"
           ontologies:
             - edam: http://edamontology.org/format_3989
-  versions_fadso:
+  versions_rasusa:
     - - ${task.process}:
           type: string
           description: Process name, emitted to the `versions` topic channel
-      - fadso:
+      - rasusa:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - echo 1fedb59:
+      - rasusa --version | sed 's/.* //':
           type: eval
           description: The expression to obtain the version of the tool
 topics:
@@ -78,10 +78,10 @@ topics:
     - - ${task.process}:
           type: string
           description: Process name, emitted to the `versions` topic channel
-      - fadso:
+      - rasusa:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - echo 1fedb59:
+      - rasusa --version | sed 's/.* //':
           type: eval
           description: The expression to obtain the version of the tool
 authors:

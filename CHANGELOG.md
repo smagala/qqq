@@ -9,7 +9,7 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 
 ### `Added`
 
-- Optional read downsampling after dehosting with `fadso`, controlled by `--max_reads` and `--downsample_seed`. Only samples above the cap are routed to the module; the decision reuses the read counts the dehoster already reports, so nothing makes an extra pass over the FASTQs. Disabled by default. ([AMD-31664](https://cdc-oamd.atlassian.net/browse/AMD-31664))
+- Optional read downsampling after dehosting with `rasusa`, controlled by `--max_reads` and `--downsample_seed`. Only samples above the cap are routed to the module; the decision reuses the read counts the dehoster already reports, so nothing makes an extra pass over the FASTQs. Disabled by default. ([AMD-31664](https://cdc-oamd.atlassian.net/browse/AMD-31664))
 - `--host_fasta`, which builds the host index at runtime instead of using a prebuilt one, in whatever format the selected dehoster needs. Used by the test profiles so they do not depend on hosted binaries. ([AMD-31686](https://cdc-oamd.atlassian.net/browse/AMD-31686))
 - `deacon` as a dehoster, selected with `--dehoster deacon`, and `--deacon_db` for its index. It matches read minimizers against a prebuilt index instead of aligning, which is where the speed over the two bowtie2-based dehosters comes from. ([AMD-32240](https://cdc-oamd.atlassian.net/browse/AMD-32240))
 - `-profile test_hostile`, the minimal test run against the aligning dehoster, and a second pipeline nf-test case covering it. deacon became the default, and without this the hostile path — `BOWTIE2_BUILD`, the size-routed `HOSTILE_CLEAN` tiers, and the array-shaped hostile report — would have lost its CI coverage. ([AMD-32240](https://cdc-oamd.atlassian.net/browse/AMD-32240))
@@ -24,6 +24,7 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 
 ### `Changed`
 
+- **The downsampler is `rasusa`, not `fadso`.** fadso ships no licence at all, which makes it undistributable rather than merely awkward, and upstream publishes no releases, so the container was pinned to a bare source commit and the module reported that commit where a version belongs. Two of its behaviours were also wrong for this pipeline: an input below the cap came back as an empty file with exit 0, which made the read-count gate load-bearing rather than an optimisation, and the sampling was approximate, so `--max_reads` was a target rather than a count. rasusa is MIT, is on bioconda with a BioContainer, measures the input before sampling so `--num` is exact, keeps paired mates as templates, and passes an under-cap input through whole. The pipeline wiring is otherwise unchanged: same two params, same gate, same `*.downsampled.fastq.gz`, published to `rasusa/` instead of `fadso/`. One thing to carry forward — the selection a seed produces changed between rasusa major versions, so reproducing a downsampled run needs the version as well as the seed.
 - **`deacon` is now the default dehoster**, replacing `hostess`. On the 49-sample talos set it ran the dehosting step 6.1x faster than `hostile` and 3.3x faster than `hostess`, for 9.2x and 4.9x less compute respectively, and its runtime is flat in host content where the aligners' is not. It is correspondingly approximate — it never aligns. One thing changes for a run that takes the default: `--host_bam` has no effect, since there is no alignment to keep. Use `--dehoster hostess` if the removed reads are wanted. `--dehoster hostess` and `--dehoster hostile` are otherwise unchanged, and still agree with each other read for read. ([AMD-32240](https://cdc-oamd.atlassian.net/browse/AMD-32240))
 - **All three dehosters now read builds of the same masked reference** in AMDP deployments, so `% Host` is comparable across them. `deacon` previously read `panhuman-1`, which masks far less aggressively; against the aligners that cost 0.7–0.95% of reads typically and 1.54% on the worst single sample, where the shared reference costs about 0.5% and 0.36%. The residue is deacon being approximate rather than a difference of reference. The index path is supplied by `oamd-bio-nf-configs`; the pipeline itself still ships no default. ([AMD-32240](https://cdc-oamd.atlassian.net/browse/AMD-32240))
 - **`--hostile_fasta` is renamed `--host_fasta`.** It never had anything to do with hostile specifically — it means "build the index from this FASTA" — and with three dehosters sharing it the old name was actively misleading. It was only ever used by the test profiles.
@@ -58,7 +59,7 @@ Initial release of cdcent/oamd-bio-qqq, created with the [nf-core](https://nf-co
 | samtools | 1.22.1_v9   | 1.22.1_v11  |
 | falco    |             | 1.2.5       |
 | hostile  |             | 2.0.2       |
-| fadso    |             | 20230810    |
+| rasusa   |             | 5.1.0       |
 | bowtie2  |             | 2.5.4       |
 | deacon   |             | 0.17.0      |
 

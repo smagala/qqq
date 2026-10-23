@@ -1,0 +1,167 @@
+nextflow_process {
+
+    name "Test Process RASUSA_READS"
+    script "../main.nf"
+    process "RASUSA_READS"
+
+    tag "modules"
+    tag "modules_amdphcore"
+    tag "rasusa"
+    tag "rasusa/reads"
+
+    // rasusa is on bioconda and the module pins the BioContainer at the same
+    // version AMDP ECR carries, so the real script path runs here rather than
+    // being left to the stub. The test inputs hold 100 reads each.
+
+    test("sarscov2 - fastq - paired_end - downsample to 10 pairs") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 10
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            // The mate suffix is stripped so the two lists are comparable: the
+            // test inputs name their reads "<template> <run info>/1" and "/2",
+            // and everything before that suffix identifies the template.
+            def names_1 = path(process.out.reads[0][1][0]).linesGzip.findAll { line -> line.startsWith('@') }.collect { name -> name - ~'/[12]$' }
+            def names_2 = path(process.out.reads[0][1][1]).linesGzip.findAll { line -> line.startsWith('@') }.collect { name -> name - ~'/[12]$' }
+            assertAll(
+                { assert process.success },
+                { assert process.out.reads[0][1].size() == 2 },
+                // Exact, not approximate: rasusa measures the input first, so
+                // --num is a count and not a rate. 10 of the 100 input pairs.
+                { assert path(process.out.reads[0][1][0]).linesGzip.size() == 40 },
+                { assert path(process.out.reads[0][1][1]).linesGzip.size() == 40 },
+                // The mates have to be the SAME ten pairs, in the same order.
+                // Independently sampling each file would pass a count assertion
+                // and hand the caller a desynchronised pair -- the one failure
+                // here that looks like success.
+                { assert names_1 == names_2 },
+                // Which reads a seed selects is a property of the rasusa
+                // version, so this snapshot is what catches a version bump
+                // changing the selection out from under a reproducible run.
+                { assert snapshot(names_1).match("names_paired_seed42") }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - paired_end - input under the cap passes through whole") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 1000
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                // 100 pairs in, 100 pairs out, exit 0. This is what lets a
+                // caller route every sample through the module and gate only as
+                // an optimisation, so it is part of the contract.
+                { assert path(process.out.reads[0][1][0]).linesGzip.size() == 400 },
+                { assert path(process.out.reads[0][1][1]).linesGzip.size() == 400 }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - single_end - downsample to 10 reads") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:true ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 10
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.reads[0][1] ==~ ".*/test.downsampled.fastq.gz" },
+                { assert path(process.out.reads[0][1]).linesGzip.size() == 40 },
+                { assert snapshot(
+                    path(process.out.reads[0][1]).linesGzip.findAll { line -> line.startsWith('@') }
+                ).match("names_single_seed42") }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - paired_end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:false ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true),
+                      file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_2.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 100
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.reads[0][1].size() == 2 },
+                { assert process.out.reads[0][1][0] ==~ ".*/test_1.downsampled.fastq.gz" },
+                { assert process.out.reads[0][1][1] ==~ ".*/test_2.downsampled.fastq.gz" },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("sarscov2 - fastq - single_end - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id:'test', single_end:true ],
+                    [ file(params.nfcore_modules_testdata_base_path + '/genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ]
+                ])
+                input[1] = 100
+                input[2] = 42
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert process.out.reads[0][1] ==~ ".*/test.downsampled.fastq.gz" },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

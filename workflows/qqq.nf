@@ -7,7 +7,7 @@ include { FALCO                  } from '../modules/amd-ph-core/falco/main'
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTPLONG              } from '../modules/nf-core/fastplong/main'
 include { CAT_FASTQ              } from '../modules/nf-core/cat/fastq/main'
-include { FADSO                  } from '../modules/amd-ph-core/fadso/main'
+include { RASUSA_READS           } from '../modules/amd-ph-core/rasusa/reads/main'
 include { BBMAP_BBDUK            } from '../modules/amd-ph-core/bbmap/bbduk/main'
 include { BOWTIE2_BUILD          } from '../modules/nf-core/bowtie2/build/main'
 include { DEACON_INDEX           } from '../modules/amd-ph-core/deacon/index/main'
@@ -649,25 +649,28 @@ workflow QQQ {
     }
 
     //
-    // MODULE: Fadso — cap depth of the dehosted reads (optional)
+    // MODULE: rasusa — cap depth of the dehosted reads (optional)
     //
     // Disabled when params.max_reads is null or 0, which is the default.
     //
     if (params.max_reads && params.dehoster == 'none') {
         // No dehoster means no read count to gate on, so every sample is routed
-        // through fadso. Samples already under the cap come out unchanged, so
-        // this costs a pass over the FASTQs rather than changing the result.
-        FADSO (
+        // through rasusa. Samples already under the cap come out whole, so this
+        // costs a pass over the FASTQs rather than changing the result.
+        RASUSA_READS (
             ch_dehosted_fastq,
             params.max_reads,
             params.downsample_seed
         )
-        ch_clean_reads = FADSO.out.reads
+        ch_clean_reads = RASUSA_READS.out.reads
     }
     else if (params.max_reads) {
         // Gated per sample on the dehoster's own read count, so no extra pass
         // over the FASTQs is needed. Only samples above the cap are routed to
-        // FADSO; everything else bypasses the module and is merged back after.
+        // rasusa; everything else bypasses the module and is merged back after.
+        // The gate is an optimisation rather than a correctness requirement --
+        // an input under the cap comes out of rasusa whole -- so a count that
+        // has gone stale costs a pass over the FASTQs and nothing else.
         ch_read_counts = ch_dehosted_json
             .map { meta, json ->
                 // The dehoster stubs emit an empty report. Treat that as "under
@@ -690,13 +693,13 @@ workflow QQQ {
                     return [meta, reads]
             }
 
-        FADSO (
+        RASUSA_READS (
             ch_gated.downsample,
             params.max_reads,
             params.downsample_seed
         )
 
-        ch_clean_reads = ch_gated.keep.mix(FADSO.out.reads)
+        ch_clean_reads = ch_gated.keep.mix(RASUSA_READS.out.reads)
     }
     else {
         ch_clean_reads = ch_dehosted_fastq

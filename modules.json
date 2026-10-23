@@ -20,11 +20,6 @@
                         "git_sha": "bee52da03eabe3264a386913207b1409ad13517f",
                         "installed_by": ["modules"]
                     },
-                    "fadso": {
-                        "branch": "main",
-                        "git_sha": "5fb6b031afe13c94c1bd441ca5c740c5baa20322",
-                        "installed_by": ["modules"]
-                    },
                     "falco": {
                         "branch": "main",
                         "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
@@ -33,6 +28,11 @@
                     "hostess": {
                         "branch": "main",
                         "git_sha": "124cc15991da53c9856f11ac92c3b9da968ace31",
+                        "installed_by": ["modules"]
+                    },
+                    "rasusa/reads": {
+                        "branch": "main",
+                        "git_sha": "dfe33f843b9979a21536780839f7c4909a66c8be",
                         "installed_by": ["modules"]
                     }
                 }

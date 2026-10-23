@@ -297,7 +297,7 @@ def toolCitationText() {
             aligning_dehoster && params.host_fasta ? "Bowtie 2 (Langmead and Salzberg 2012)," : "",
             params.dehoster == 'deacon' ? "Deacon (Constantinides et al. 2025)," : "",
             aligning_dehoster ? "Hostile (Constantinides et al. 2023)," : "",
-            params.max_reads ? "fadso (Kuwahara and Gao)," : "",
+            params.max_reads ? "Rasusa (Hall 2022)," : "",
             "and MultiQC (Ewels et al. 2016)."
         ].findAll { entry -> entry }.join(' ').trim()
 
@@ -313,7 +313,7 @@ def toolBibliographyText() {
             aligning_dehoster && params.host_fasta ? "<li>Langmead, B., & Salzberg, S. L. (2012). Fast gapped-read alignment with Bowtie 2. Nature Methods, 9(4), 357-359. doi: 10.1038/nmeth.1923</li>" : "",
             params.dehoster == 'deacon' ? "<li>Constantinides, B., Lees, J., & Crook, D. W. (2025). Deacon: fast sequence filtering and contaminant depletion. bioRxiv. doi: 10.1101/2025.06.09.658732</li>" : "",
             aligning_dehoster ? "<li>Constantinides, B., Hunt, M., & Crook, D. W. (2023). Hostile: accurate decontamination of microbial host sequences. Bioinformatics, 39(12), btad728. doi: 10.1093/bioinformatics/btad728</li>" : "",
-            params.max_reads ? "<li>Kuwahara, H., & Gao, X. fadso, part of the sleaping project. URL: https://github.com/hkuwahara/sleaping</li>" : "",
+            params.max_reads ? "<li>Hall, M. B. (2022). Rasusa: Randomly subsample sequencing reads to a specified coverage. Journal of Open Source Software, 7(69), 3941. doi: 10.21105/joss.03941</li>" : "",
             "<li>Ewels, P., Magnusson, M., Lundin, S., & Käller, M. (2016). MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics, 32(19), 3047-3048. doi: 10.1093/bioinformatics/btw354</li>"
         ].findAll { entry -> entry }.join(' ').trim()
 

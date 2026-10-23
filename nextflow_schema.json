@@ -150,14 +150,14 @@
                     "type": "integer",
                     "minimum": 0,
                     "description": "Cap on reads (single-end) or read pairs (paired-end) retained per sample after dehosting.",
-                    "help_text": "Samples above this cap are downsampled to it with fadso (s-leaping reservoir sampling); smaller samples pass through unchanged. Applied after hostile dehosting and gated on hostile's own read counts, so no extra pass over the FASTQs is needed. Leave unset or set to 0 to disable downsampling.",
+                    "help_text": "Samples above this cap are downsampled to it with rasusa; smaller samples pass through unchanged. rasusa measures the input before sampling, so the cap is met exactly rather than approximately. Applied after dehosting and gated on the dehoster's own read counts, so no extra pass over the FASTQs is needed. Leave unset or set to 0 to disable downsampling.",
                     "fa_icon": "fas fa-compress-arrows-alt"
                 },
                 "downsample_seed": {
                     "type": "integer",
                     "default": 42,
                     "description": "Random seed for read downsampling, fixed for reproducibility.",
-                    "help_text": "Seed passed to fadso so downsampling is deterministic across runs. Only used when max_reads is set.",
+                    "help_text": "Seed passed to rasusa so downsampling is deterministic across runs. Which reads a given seed selects is a property of the rasusa version, so reproducing a run needs the version the report records as well as the seed. Only used when max_reads is set.",
                     "fa_icon": "fas fa-dice"
                 },
                 "hostile_large_input_bytes": {

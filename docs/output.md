@@ -16,7 +16,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [CAT_FASTQ](#cat_fastq) - Merge multiple runs of the same sample and platform
 - [Dehosting](#dehosting) - Remove host reads using Deacon, Hostile, or Hostess
 - [BBDuk](#bbduk) - Optional ribosomal RNA depletion
-- [fadso](#fadso) - Optional read downsampling
+- [rasusa](#rasusa) - Optional read downsampling
 - [MultiQC](#multiqc) - Aggregate quality control report
 - [Pipeline information](#pipeline-information) - Workflow execution reports
 
@@ -183,17 +183,21 @@ bbduk's stderr log is deliberately not wired into MultiQC at all: its `bbduk` pa
 
 A counts footnote: `#Matched` in the stats file runs 0.27-0.28% below the `Contaminants` figure bbduk reports to its log. The split is pair-aware -- one matching mate removes both -- while attribution is per-mate evidence. Neither is wrong; they answer different questions.
 
-### fadso
+### rasusa
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `fadso/`
+- `rasusa/`
   - `*.downsampled.fastq.gz`: Downsampled reads.
 
 </details>
 
-[fadso](https://github.com/hkuwahara/sleaping) caps per-sample depth using s-leaping approximate reservoir sampling. This step only runs when `--max_reads` is set, and only for samples that exceed the cap — samples below it bypass the step entirely and appear unchanged in the pipeline's output reads. Paired-end mates are downsampled in lockstep so they stay synchronised.
+[rasusa](https://github.com/mbhall88/rasusa) caps per-sample depth. `rasusa reads --num` measures the input before sampling, so the cap is an exact count rather than an approximation, and paired mates are kept or dropped as templates so they stay synchronised. This step only runs when `--max_reads` is set, and only for samples that exceed the cap — samples below it bypass the step entirely and appear unchanged in the pipeline's output reads.
+
+The bypass is an optimisation, not a correctness requirement: an input holding fewer reads than the cap is written out whole, with exit 0. Rerunning with `--dehoster none` routes every sample through the module instead, because there is no dehoster read count to gate on, and the samples under the cap come out of it unchanged.
+
+Reproducing a downsampled run needs the rasusa version as well as `--downsample_seed`. Which reads a given seed selects changed between rasusa major versions, so the seed alone does not identify the selection; the version is recorded in the software versions section of the MultiQC report.
 
 ### MultiQC
 

@@ -26,14 +26,14 @@ The pipeline performs the following steps:
 3. Read merging (`CAT_FASTQ`) — combine multiple runs belonging to the same sample and sequencing platform. Single-run samples bypass merging.
 4. Host read removal ([`Deacon`](https://github.com/bede/deacon), [`Hostile`](https://github.com/bede/hostile), or Hostess) — remove host reads using the selected dehosting tool. This step can be disabled using `--dehoster none`.
 5. Ribosomal RNA depletion ([`BBDuk`](https://sourceforge.net/projects/bbmap/)) — _optional_, remove rRNA reads by k-mer match against a reference. Off unless `--rrna_ref` names a FASTA.
-6. Read downsampling ([`fadso`](https://github.com/hkuwahara/sleaping)) — optionally limit the number of reads or read pairs after dehosting.
+6. Read downsampling ([`rasusa`](https://github.com/mbhall88/rasusa)) — optionally limit the number of reads or read pairs after dehosting.
 7. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — summarize quality control, trimming, dehosting and rRNA depletion results.
 
 rRNA depletion runs after dehosting and before downsampling, and is off unless `--rrna_ref` points at a reference FASTA — there is no built-in default, because depleting against nothing would look like success. The reference may be as redundant as it likes, since BBDuk matches k-mers rather than aligning. AMDP publishes one at `s3://amdp-prd-analysis-static-assets/bbduk/silva138.2-ssu-lsu-nr99_rfam15.1-5s_20261020/` (SILVA 138.2 SSU+LSU Ref NR99 plus Rfam 15.1 5S, 1,200,640 records), whose `README.md` records how it was built and what its per-record outputs may and may not be read as. `--rrna_k` (default `25`) is the only setting that usually matters.
 
 Calibrate the expected removal rate to the library prep rather than to a single number: roughly 95% for un-depleted total RNA, single digits to ~15% for a bench-depleted RNA library, and ~0.5% for DNA. A rate far outside the range for the stated prep is a sample-identity signal, not a tuning problem. The removed reads are kept, so the step doubles as evidence of what was in the sample — but note that only the domain-level composition is safe to quote from them; see [output](docs/output.md) for why.
 
-Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts the dehoster already reports, so no extra pass over the FASTQs is needed. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs.
+Downsampling is off by default. Setting `--max_reads` caps how many reads (single-end) or read pairs (paired-end) each sample keeps: samples above the cap are downsampled to it, and samples below it pass through untouched. The decision uses the read counts the dehoster already reports, so no extra pass over the FASTQs is needed. rasusa measures the input before it samples, so the cap is met exactly rather than approximately, and paired mates are kept or dropped together. `--downsample_seed` (default `42`) keeps the sampling reproducible across runs — reproducing a run needs the rasusa version as well as the seed, since the selection a seed produces changed between major versions, and the version is recorded in the MultiQC report.
 
 ## Usage
 

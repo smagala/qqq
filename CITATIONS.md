@@ -34,9 +34,9 @@
 
 > Bushnell B. BBTools: a suite of fast, multithreaded bioinformatics tools designed for analysis of DNA and RNA sequence data. Joint Genome Institute. Optional ribosomal RNA depletion. Upstream publishes no accompanying paper.
 
-- [fadso](https://github.com/hkuwahara/sleaping)
+- [rasusa](https://doi.org/10.21105/joss.03941)
 
-> Optional read downsampling. Built from the `sleaping` repository, which implements s-leaping approximate reservoir sampling. Upstream publishes no releases, tags, or accompanying paper; builds are pinned to a source commit.
+> Hall MB. Rasusa: Randomly subsample sequencing reads to a specified coverage. Journal of Open Source Software. 2022;7(69):3941. doi: 10.21105/joss.03941. Optional read downsampling.
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 

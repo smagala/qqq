@@ -1,0 +1,136 @@
+{
+    "sarscov2 - fastq - single_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "1": [
+                    [
+                        "RASUSA_READS",
+                        "rasusa",
+                        "5.1.0"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                    ]
+                ],
+                "versions_rasusa": [
+                    [
+                        "RASUSA_READS",
+                        "rasusa",
+                        "5.1.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-10-23T08:38:57.26350799",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "names_single_seed42": {
+        "content": [
+            [
+                "@ERR5069949.2431709 NS500628:121:HK3MMAFX2:3:21609:20858:5879/1",
+                "@ERR5069949.3273002 NS500628:121:HK3MMAFX2:4:11506:23944:16676/1",
+                "@ERR5069949.184542 NS500628:121:HK3MMAFX2:2:21205:8408:1786/1",
+                "@ERR5069949.2787556 NS500628:121:HK3MMAFX2:4:11609:10602:17177/1",
+                "@ERR5069949.3279513 NS500628:121:HK3MMAFX2:1:21110:4328:5711/1",
+                "@ERR5069949.2205229 NS500628:121:HK3MMAFX2:1:11212:26331:4199/1",
+                "@ERR5069949.786562 NS500628:121:HK3MMAFX2:2:11109:4461:9003/1",
+                "@ERR5069949.2243023 NS500628:121:HK3MMAFX2:2:21301:7521:3094/1",
+                "@ERR5069949.1340552 NS500628:121:HK3MMAFX2:2:11309:7320:9079/1",
+                "@ERR5069949.1476386 NS500628:121:HK3MMAFX2:2:21303:26270:9400/1"
+            ]
+        ],
+        "timestamp": "2026-10-23T08:38:50.381558025",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "names_paired_seed42": {
+        "content": [
+            [
+                "@ERR5069949.2431709 NS500628:121:HK3MMAFX2:3:21609:20858:5879",
+                "@ERR5069949.3273002 NS500628:121:HK3MMAFX2:4:11506:23944:16676",
+                "@ERR5069949.184542 NS500628:121:HK3MMAFX2:2:21205:8408:1786",
+                "@ERR5069949.2787556 NS500628:121:HK3MMAFX2:4:11609:10602:17177",
+                "@ERR5069949.3279513 NS500628:121:HK3MMAFX2:1:21110:4328:5711",
+                "@ERR5069949.2205229 NS500628:121:HK3MMAFX2:1:11212:26331:4199",
+                "@ERR5069949.786562 NS500628:121:HK3MMAFX2:2:11109:4461:9003",
+                "@ERR5069949.2243023 NS500628:121:HK3MMAFX2:2:21301:7521:3094",
+                "@ERR5069949.1340552 NS500628:121:HK3MMAFX2:2:11309:7320:9079",
+                "@ERR5069949.1476386 NS500628:121:HK3MMAFX2:2:21303:26270:9400"
+            ]
+        ],
+        "timestamp": "2026-10-23T08:38:43.509425246",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "sarscov2 - fastq - paired_end - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "1": [
+                    [
+                        "RASUSA_READS",
+                        "rasusa",
+                        "5.1.0"
+                    ]
+                ],
+                "reads": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        [
+                            "test_1.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940",
+                            "test_2.downsampled.fastq.gz:md5,68b329da9893e34099c7d8ad5cb9c940"
+                        ]
+                    ]
+                ],
+                "versions_rasusa": [
+                    [
+                        "RASUSA_READS",
+                        "rasusa",
+                        "5.1.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-10-23T08:38:53.823428141",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}
