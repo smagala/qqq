@@ -28,6 +28,7 @@ The pipeline performs the following steps:
 5. Ribosomal RNA depletion ([`BBDuk`](https://sourceforge.net/projects/bbmap/)) — _optional_, remove rRNA reads by k-mer match against a reference. Off unless `--rrna_ref` names a FASTA.
 6. Read downsampling ([`rasusa`](https://github.com/mbhall88/rasusa)) — optionally limit the number of reads or read pairs after dehosting.
 7. Aggregate reports ([`MultiQC`](http://multiqc.info/)) — summarize quality control, trimming, dehosting and rRNA depletion results.
+8. Run report (`run_report/qqq_run_report.{html,json}`) — what processed the run (tools, versions, arguments, databases), what each step removed from each sample, and where the kept and removed reads were published; the JSON has a documented, versioned schema for scripts and agents.
 
 rRNA depletion runs after dehosting and before downsampling, and is off unless `--rrna_ref` points at a reference FASTA — there is no built-in default, because depleting against nothing would look like success. The reference may be as redundant as it likes, since BBDuk matches k-mers rather than aligning. AMDP publishes one at `s3://amdp-prd-analysis-static-assets/bbduk/silva138.2-ssu-lsu-nr99_rfam15.1-5s_20261020/` (SILVA 138.2 SSU+LSU Ref NR99 plus Rfam 15.1 5S, 1,200,640 records), whose `README.md` records how it was built and what its per-record outputs may and may not be read as. `--rrna_k` (default `25`) is the only setting that usually matters.
 

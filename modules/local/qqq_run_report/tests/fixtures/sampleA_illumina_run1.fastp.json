@@ -1,0 +1,43 @@
+{
+ "summary": {
+  "fastp_version": "1.3.6",
+  "sequencing": "paired end (301 cycles + 301 cycles)",
+  "before_filtering": {
+   "total_reads": 55442,
+   "total_bases": 16571632,
+   "q20_bases": 16267224,
+   "q30_bases": 15853021,
+   "q20_rate": 0.981631,
+   "q30_rate": 0.956636,
+   "read1_mean_length": 298,
+   "read2_mean_length": 298,
+   "gc_content": 0.38526
+  },
+  "after_filtering": {
+   "total_reads": 54696,
+   "total_bases": 16349804,
+   "q20_bases": 16131878,
+   "q30_bases": 15761485,
+   "q20_rate": 0.986671,
+   "q30_rate": 0.964017,
+   "read1_mean_length": 298,
+   "read2_mean_length": 298,
+   "gc_content": 0.385333
+  }
+ },
+ "filtering_result": {
+  "passed_filter_reads": 54696,
+  "low_quality_reads": 746,
+  "too_many_N_reads": 0,
+  "adapter_dimer_reads": 0,
+  "too_short_reads": 0,
+  "too_long_reads": 0
+ },
+ "adapter_cutting": {
+  "adapter_trimmed_reads": 24,
+  "adapter_trimmed_bases": 1687,
+  "read1_adapter_sequence": "unspecified",
+  "read2_adapter_sequence": "unspecified"
+ },
+ "command": "fastp --in1 sampleA_illumina_run1_R1.fastq.gz --in2 sampleA_illumina_run1_R2.fastq.gz --out1 sampleA_illumina_run1_R1.fastp.fastq.gz --out2 sampleA_illumina_run1_R2.fastp.fastq.gz --json sampleA_illumina_run1.fastp.json --html sampleA_illumina_run1.fastp.html --failed_out sampleA_illumina_run1.paired.fail.fastq.gz --unpaired1 sampleA_illumina_run1_R1.fail.fastq.gz --unpaired2 sampleA_illumina_run1_R2.fail.fastq.gz --thread 2 --detect_adapter_for_pe"
+}

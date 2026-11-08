@@ -185,6 +185,13 @@
                     "default": false,
                     "description": "Skip fastp quality control and read trimming.",
                     "fa_icon": "fas fa-forward"
+                },
+                "save_failed_reads": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Publish the reads the fastp/fastplong filter removes, beside the trimmed reads.",
+                    "help_text": "Passes `--failed_out` to fastp and fastplong, plus `--unpaired1`/`--unpaired2` for paired-end, which hold mates whose partner failed (the pair is dropped together). The files are published to `fastp/` and `fastplong/` and listed per sample in `run_report/qqq_run_report.json`. Has no effect with `--skip_fastp`. Host reads are not covered: deacon and hostile keep none, and hostess keeps a BAM only with `--host_bam`.",
+                    "fa_icon": "fas fa-trash-restore"
                 }
             }
         },

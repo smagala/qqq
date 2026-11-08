@@ -1,0 +1,72 @@
+name: "qqq_run_report"
+description: |
+  One self-contained HTML page and one JSON file recording what a qqq run did: every tool,
+  version and argument; every database and reference by path with any checksum available;
+  per-sample read counts into and out of the read filter, host removal, rRNA depletion and
+  downsampling steps; and where the final reads and each step's removed reads were published
+  under params.outdir, or why they were not kept. The JSON schema is documented in
+  docs/output.md and versioned by its `schema_version` field.
+
+  Runs once at the end of the pipeline. Its versions output is deliberately not sent to the
+  `versions` topic, because its input waits on that topic: emitting to it would deadlock the
+  pipeline, exactly as it would for MultiQC.
+keywords:
+  - report
+  - html
+  - json
+  - provenance
+  - read counts
+tools:
+  - qqq_run_report.py:
+      description: Standard-library Python report builder (bin/qqq_run_report.py)
+      homepage: https://github.com/cdcent/oamd-bio-qqq
+      documentation: https://github.com/cdcent/oamd-bio-qqq/blob/main/docs/output.md
+      licence: ["MIT"]
+      args_id: "$args"
+input:
+  - manifest:
+      type: file
+      description: |
+        JSON written by the workflow. Carries run metadata, selected params, databases
+        (path, name, size, any checksum), the versions topic, the arguments the pipeline
+        declares, and one record per sample, tool report and published read file, with
+        paths already resolved under params.outdir.
+      pattern: "*.json"
+      ontologies:
+        - edam: http://edamontology.org/format_3464
+  - reports:
+      type: file
+      description: |
+        The tool reports the manifest refers to by file name: fastp/fastplong JSON,
+        deacon/hostile/hostess JSON and bbduk stats files. Staged flat under reports/,
+        so names must be unique; Nextflow fails the task on a collision.
+      pattern: "*.{json,txt}"
+output:
+  html:
+    - "*.html":
+        type: file
+        description: The report, self-contained, with light and dark themes
+        pattern: "*.html"
+        ontologies:
+          - edam: http://edamontology.org/format_2331
+  json:
+    - "*.json":
+        type: file
+        description: The same information for machines, schema documented in docs/output.md
+        pattern: "*.json"
+        ontologies:
+          - edam: http://edamontology.org/format_3464
+  versions_python:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - python3 --version | sed "s/Python //":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@smagala"
+maintainers:
+  - "@smagala"

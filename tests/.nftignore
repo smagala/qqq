@@ -32,3 +32,7 @@ fastp/*.fastp.html
 fastp/*.fastp.log
 fastplong/*.fastplong.html
 fastplong/*.fastplong.log
+# The run report records the run name, timestamps, the commit and absolute
+# paths, so its content changes every run. Its paths are checked against the
+# outdir and its counts asserted in tests/default.nf.test instead.
+run_report/qqq_run_report.{html,json}

@@ -1,0 +1,107 @@
+nextflow_process {
+
+    name "Test Process QQQ_RUN_REPORT"
+    script "../main.nf"
+    process "QQQ_RUN_REPORT"
+
+    tag "modules"
+    tag "modules_local"
+    tag "qqq_run_report"
+
+    // The fixtures are a two-sample run built from trimmed real reports (fastp and
+    // fastplong JSON from -profile test) with synthetic dehost and bbduk counts:
+    //
+    //   sampleA_illumina  paired-end, fastp -> deacon -> bbduk -> rasusa (downsampled)
+    //   sampleB_nanopore  single-end, fastplong -> deacon removes everything -> bbduk
+    //                     on zero reads; under the cap, so it bypasses rasusa
+    //
+    // Between them they cover every step status the report can give (ran, bypassed),
+    // the chain of counts from step to step, the zero-reads flag, the priority rule
+    // for where the final reads are, and a removed-read location for each step.
+
+    test("two samples - every step - json and html") {
+
+        when {
+            process {
+                """
+                input[0] = file("${moduleDir}/tests/fixtures/manifest.json", checkIfExists: true)
+                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt}").findAll { f -> f.name != 'manifest.json' }
+                """
+            }
+        }
+
+        then {
+            def report = path(process.out.json[0]).json
+            def a = report.samples.find { s -> s.id == 'sampleA_illumina' }
+            def b = report.samples.find { s -> s.id == 'sampleB_nanopore' }
+            def html = path(process.out.html[0]).text
+            assertAll(
+                { assert process.success },
+                { assert report.schema_version == '1.0.0' },
+                // The chain: each step starts where the previous one ended, and the
+                // sample's own totals are the ends of it.
+                { assert a.steps.read_filter.input_reads == 55442 },
+                { assert a.steps.read_filter.removed_reads == 746 },
+                { assert a.steps.host_removal.input_reads == a.steps.read_filter.output_reads },
+                { assert a.steps.rrna_depletion.input_reads == a.steps.host_removal.output_reads },
+                { assert a.steps.rrna_depletion.removed_reads == 30000 },
+                // rasusa keeps exactly max_reads pairs: 10000 pairs, 20000 records.
+                { assert a.steps.downsampling.status == 'ran' },
+                { assert a.steps.downsampling.output_reads == 20000 },
+                { assert a.output_reads == 20000 },
+                { assert a.warnings == [] },
+                // Final reads come from the last step that wrote them, and each removal
+                // step says where its reads went, or why they are not anywhere.
+                { assert a.outputs.clean_reads.step == 'downsampling' },
+                { assert a.outputs.clean_reads.files*.relative_path == ['rasusa/sampleA_illumina_1.downsampled.fastq.gz', 'rasusa/sampleA_illumina_2.downsampled.fastq.gz'] },
+                { assert a.outputs.removed_reads.read_filter.files.size() == 3 },
+                { assert a.outputs.removed_reads.read_filter.complete == false },
+                { assert a.outputs.removed_reads.host_removal.files == null },
+                { assert a.outputs.removed_reads.host_removal.reason == 'host reads not retained (deacon/hostile keep none)' },
+                { assert a.outputs.removed_reads.rrna_depletion.files*.path == ['s3://bucket/qqq/results/bbduk/sampleA_illumina.matched_1.fastq.gz', 's3://bucket/qqq/results/bbduk/sampleA_illumina.matched_2.fastq.gz'] },
+                // The sample that lost everything: flagged, and its absence from rasusa's
+                // output reads as "bypassed", not as a failure.
+                { assert b.zero_reads == true },
+                { assert b.steps.downsampling.status == 'bypassed' },
+                { assert b.outputs.clean_reads.step == 'rrna_depletion' },
+                { assert b.outputs.removed_reads.read_filter.complete == null },
+                { assert report.summary.samples_zero_reads_ids == ['sampleB_nanopore'] },
+                // Arguments come from the tools' own reports where they record them.
+                { assert report.tools.find { t -> t.name == 'fastp' }.arguments[0].arguments == '--thread 2 --detect_adapter_for_pe' },
+                { assert report.tools.find { t -> t.name == 'deacon' }.arguments[0].settings.k == 31 },
+                { assert report.databases.find { d -> d.role == 'host_index' }.parameters.reported_by_tool.settings.w == 15 },
+                { assert html.contains('sampleB_nanopore') && html.contains('prefers-color-scheme') },
+                // generated_at and the Python version differ by run and image, so the
+                // snapshot takes everything derived from the inputs and nothing else.
+                { assert snapshot(
+                    report.samples,
+                    report.summary,
+                    report.databases,
+                    report.tools.findAll { t -> t.name != 'python' },
+                    process.out.versions_python
+                ).match() }
+            )
+        }
+    }
+
+    test("two samples - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = file("${moduleDir}/tests/fixtures/manifest.json", checkIfExists: true)
+                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt}").findAll { f -> f.name != 'manifest.json' }
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

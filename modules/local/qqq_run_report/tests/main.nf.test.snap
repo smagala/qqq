@@ -1,0 +1,537 @@
+{
+    "two samples - every step - json and html": {
+        "content": [
+            [
+                {
+                    "id": "sampleA_illumina",
+                    "single_end": false,
+                    "platform": "illumina",
+                    "read_type": "short",
+                    "runs": [
+                        {
+                            "id": "sampleA_illumina_run1",
+                            "input_files": [
+                                "s3://bucket/raw/A_R1.fastq.gz",
+                                "s3://bucket/raw/A_R2.fastq.gz"
+                            ]
+                        }
+                    ],
+                    "input_reads": 55442,
+                    "input_bases": 16571632,
+                    "output_reads": 20000,
+                    "retained_fraction": 0.3607373471375491,
+                    "zero_reads": false,
+                    "steps": {
+                        "read_filter": {
+                            "status": "ran",
+                            "tool": "fastp",
+                            "reason": null,
+                            "input_reads": 55442,
+                            "removed_reads": 746,
+                            "output_reads": 54696,
+                            "input_bases": 16571632,
+                            "output_bases": 16349804,
+                            "adapter_trimmed_reads": 24,
+                            "adapter_trimmed_bases": 1687,
+                            "removed_by_reason": {
+                                "low_quality": 746,
+                                "too_many_N": 0,
+                                "adapter_dimer": 0,
+                                "too_short": 0,
+                                "too_long": 0
+                            },
+                            "adapter_trimming_effective": true,
+                            "runs": [
+                                {
+                                    "run": "sampleA_illumina_run1",
+                                    "report": "sampleA_illumina_run1.fastp.json",
+                                    "command": "fastp --in1 sampleA_illumina_run1_R1.fastq.gz --in2 sampleA_illumina_run1_R2.fastq.gz --out1 sampleA_illumina_run1_R1.fastp.fastq.gz --out2 sampleA_illumina_run1_R2.fastp.fastq.gz --json sampleA_illumina_run1.fastp.json --html sampleA_illumina_run1.fastp.html --failed_out sampleA_illumina_run1.paired.fail.fastq.gz --unpaired1 sampleA_illumina_run1_R1.fail.fastq.gz --unpaired2 sampleA_illumina_run1_R2.fail.fastq.gz --thread 2 --detect_adapter_for_pe",
+                                    "input_reads": 55442,
+                                    "input_bases": 16571632,
+                                    "output_reads": 54696,
+                                    "output_bases": 16349804,
+                                    "adapter_trimmed_reads": 24,
+                                    "adapter_trimmed_bases": 1687,
+                                    "removed_by_reason": {
+                                        "low_quality": 746,
+                                        "too_many_N": 0,
+                                        "adapter_dimer": 0,
+                                        "too_short": 0,
+                                        "too_long": 0
+                                    }
+                                }
+                            ]
+                        },
+                        "host_removal": {
+                            "status": "ran",
+                            "tool": "deacon",
+                            "reason": null,
+                            "input_reads": 54696,
+                            "removed_reads": 4000,
+                            "output_reads": 50696,
+                            "input_bases": 16349804,
+                            "output_bases": 15749804,
+                            "removed_bases": 600000,
+                            "report": "sampleA_illumina.deacon.json"
+                        },
+                        "rrna_depletion": {
+                            "status": "ran",
+                            "tool": "bbduk",
+                            "reason": null,
+                            "input_reads": 50696,
+                            "removed_reads": 30000,
+                            "output_reads": 20696,
+                            "report": "sampleA_illumina.bbduk.txt",
+                            "exact": false,
+                            "note": "paired-end: from bbduk #Matched, which counts per-read matches; bbduk removes the whole pair, so removed_reads is a slight undercount"
+                        },
+                        "downsampling": {
+                            "status": "ran",
+                            "tool": "rasusa",
+                            "reason": null,
+                            "input_reads": 20696,
+                            "removed_reads": 696,
+                            "output_reads": 20000,
+                            "derived": true,
+                            "cap_reads": 20000
+                        }
+                    },
+                    "outputs": {
+                        "clean_reads": {
+                            "step": "downsampling",
+                            "files": [
+                                {
+                                    "path": "s3://bucket/qqq/results/rasusa/sampleA_illumina_1.downsampled.fastq.gz",
+                                    "relative_path": "rasusa/sampleA_illumina_1.downsampled.fastq.gz"
+                                },
+                                {
+                                    "path": "s3://bucket/qqq/results/rasusa/sampleA_illumina_2.downsampled.fastq.gz",
+                                    "relative_path": "rasusa/sampleA_illumina_2.downsampled.fastq.gz"
+                                }
+                            ],
+                            "reason": null
+                        },
+                        "removed_reads": {
+                            "read_filter": {
+                                "files": [
+                                    {
+                                        "path": "s3://bucket/qqq/results/fastp/sampleA_illumina_run1.paired.fail.fastq.gz",
+                                        "relative_path": "fastp/sampleA_illumina_run1.paired.fail.fastq.gz"
+                                    },
+                                    {
+                                        "path": "s3://bucket/qqq/results/fastp/sampleA_illumina_run1_R1.fail.fastq.gz",
+                                        "relative_path": "fastp/sampleA_illumina_run1_R1.fail.fastq.gz"
+                                    },
+                                    {
+                                        "path": "s3://bucket/qqq/results/fastp/sampleA_illumina_run1_R2.fail.fastq.gz",
+                                        "relative_path": "fastp/sampleA_illumina_run1_R2.fail.fastq.gz"
+                                    }
+                                ],
+                                "reason": null,
+                                "complete": false,
+                                "note": "paired-end fastp does not write pairs in which both mates fail, so these files can hold fewer reads than removed_reads"
+                            },
+                            "host_removal": {
+                                "files": null,
+                                "reason": "host reads not retained (deacon/hostile keep none)"
+                            },
+                            "rrna_depletion": {
+                                "files": [
+                                    {
+                                        "path": "s3://bucket/qqq/results/bbduk/sampleA_illumina.matched_1.fastq.gz",
+                                        "relative_path": "bbduk/sampleA_illumina.matched_1.fastq.gz"
+                                    },
+                                    {
+                                        "path": "s3://bucket/qqq/results/bbduk/sampleA_illumina.matched_2.fastq.gz",
+                                        "relative_path": "bbduk/sampleA_illumina.matched_2.fastq.gz"
+                                    }
+                                ],
+                                "reason": null
+                            },
+                            "downsampling": {
+                                "files": null,
+                                "reason": "rasusa writes only the reads it keeps; the complete pre-downsampling reads are the previous step's published output"
+                            }
+                        }
+                    },
+                    "warnings": [
+                        
+                    ]
+                },
+                {
+                    "id": "sampleB_nanopore",
+                    "single_end": true,
+                    "platform": "nanopore",
+                    "read_type": "long",
+                    "runs": [
+                        {
+                            "id": "sampleB_nanopore_run1",
+                            "input_files": [
+                                "s3://bucket/raw/B.fastq.gz"
+                            ]
+                        }
+                    ],
+                    "input_reads": 27721,
+                    "input_bases": 8285732,
+                    "output_reads": 0,
+                    "retained_fraction": 0.0,
+                    "zero_reads": true,
+                    "steps": {
+                        "read_filter": {
+                            "status": "ran",
+                            "tool": "fastplong",
+                            "reason": null,
+                            "input_reads": 27721,
+                            "removed_reads": 35,
+                            "output_reads": 27686,
+                            "input_bases": 8285732,
+                            "output_bases": 8277213,
+                            "adapter_trimmed_reads": 0,
+                            "adapter_trimmed_bases": 0,
+                            "removed_by_reason": {
+                                "low_quality": 35,
+                                "too_many_N": 0,
+                                "too_short": 0,
+                                "too_long": 0
+                            },
+                            "adapter_trimming_effective": false,
+                            "runs": [
+                                {
+                                    "run": "sampleB_nanopore_run1",
+                                    "report": "sampleB_nanopore_run1.fastplong.json",
+                                    "command": "fastplong --in sampleB_nanopore_run1.fastq.gz --out sampleB_nanopore_run1.fastplong.fastq.gz --json sampleB_nanopore_run1.fastplong.json --html sampleB_nanopore_run1.fastplong.html --failed_out sampleB_nanopore_run1.fail.fastq.gz --thread 2 --report_title sampleB_nanopore_run1_fastplong_report",
+                                    "input_reads": 27721,
+                                    "input_bases": 8285732,
+                                    "output_reads": 27686,
+                                    "output_bases": 8277213,
+                                    "adapter_trimmed_reads": 0,
+                                    "adapter_trimmed_bases": 0,
+                                    "removed_by_reason": {
+                                        "low_quality": 35,
+                                        "too_many_N": 0,
+                                        "too_short": 0,
+                                        "too_long": 0
+                                    }
+                                }
+                            ]
+                        },
+                        "host_removal": {
+                            "status": "ran",
+                            "tool": "deacon",
+                            "reason": null,
+                            "input_reads": 27686,
+                            "removed_reads": 27686,
+                            "output_reads": 0,
+                            "input_bases": 8277213,
+                            "output_bases": 0,
+                            "removed_bases": 8277213,
+                            "report": "sampleB_nanopore.deacon.json"
+                        },
+                        "rrna_depletion": {
+                            "status": "ran",
+                            "tool": "bbduk",
+                            "reason": null,
+                            "input_reads": 0,
+                            "removed_reads": 0,
+                            "output_reads": 0,
+                            "report": "sampleB_nanopore.bbduk.txt"
+                        },
+                        "downsampling": {
+                            "status": "bypassed",
+                            "tool": "rasusa",
+                            "reason": "at or under max_reads; not routed to rasusa",
+                            "input_reads": 0,
+                            "removed_reads": 0,
+                            "output_reads": 0,
+                            "cap_reads": 10000
+                        }
+                    },
+                    "outputs": {
+                        "clean_reads": {
+                            "step": "rrna_depletion",
+                            "files": [
+                                {
+                                    "path": "s3://bucket/qqq/results/bbduk/sampleB_nanopore.depleted.fastq.gz",
+                                    "relative_path": "bbduk/sampleB_nanopore.depleted.fastq.gz"
+                                }
+                            ],
+                            "reason": null
+                        },
+                        "removed_reads": {
+                            "read_filter": {
+                                "files": [
+                                    {
+                                        "path": "s3://bucket/qqq/results/fastplong/sampleB_nanopore_run1.fail.fastq.gz",
+                                        "relative_path": "fastplong/sampleB_nanopore_run1.fail.fastq.gz"
+                                    }
+                                ],
+                                "reason": null
+                            },
+                            "host_removal": {
+                                "files": null,
+                                "reason": "host reads not retained (deacon/hostile keep none)"
+                            },
+                            "rrna_depletion": {
+                                "files": [
+                                    {
+                                        "path": "s3://bucket/qqq/results/bbduk/sampleB_nanopore.matched.fastq.gz",
+                                        "relative_path": "bbduk/sampleB_nanopore.matched.fastq.gz"
+                                    }
+                                ],
+                                "reason": null
+                            },
+                            "downsampling": {
+                                "files": null,
+                                "reason": "nothing removed; sample was under max_reads"
+                            }
+                        }
+                    },
+                    "warnings": [
+                        "no reads left after processing"
+                    ]
+                }
+            ],
+            {
+                "samples": 2,
+                "samples_zero_reads": 1,
+                "samples_zero_reads_ids": [
+                    "sampleB_nanopore"
+                ],
+                "samples_with_warnings": 1,
+                "input_reads": 83163,
+                "input_bases": 24857364,
+                "output_reads": 20000,
+                "retained_fraction": 0.2404915647583661,
+                "removed_reads": {
+                    "read_filter": 781,
+                    "host_removal": 31686,
+                    "rrna_depletion": 30000,
+                    "downsampling": 696
+                },
+                "removed_fraction": {
+                    "read_filter": 0.009391195603814196,
+                    "host_removal": 0.38101078604667943,
+                    "rrna_depletion": 0.3607373471375491,
+                    "downsampling": 0.00836910645359114
+                },
+                "read_filter_removed_by_reason": {
+                    "low_quality": 781,
+                    "too_many_N": 0,
+                    "adapter_dimer": 0,
+                    "too_short": 0,
+                    "too_long": 0
+                },
+                "adapter_trimmed_reads": 24,
+                "adapter_trimmed_fraction": 0.0002885898777100393,
+                "adapter_trimmed_bases": 1687
+            },
+            [
+                {
+                    "role": "host_index",
+                    "tool": "deacon",
+                    "path": "s3://assets/deacon/host.k31w15.idx",
+                    "name": "host.k31w15.idx",
+                    "is_directory": false,
+                    "size_bytes": 1234,
+                    "md5": null,
+                    "sha256": null,
+                    "checksum_source": null,
+                    "checksum_note": "no checksum sidecar found, and the file is remote or larger than 64 MiB so it was not hashed",
+                    "parameters": {
+                        "reported_by_tool": {
+                            "index": "host.k31w15.idx",
+                            "settings": {
+                                "abs_threshold": 2,
+                                "check_pairs": false,
+                                "deplete": true,
+                                "k": 31,
+                                "ordered": true,
+                                "prefix_length": 0,
+                                "rel_threshold": 0.01,
+                                "rename": false,
+                                "w": 15
+                            }
+                        }
+                    }
+                },
+                {
+                    "role": "rrna_reference",
+                    "tool": "bbduk",
+                    "path": "s3://assets/bbduk/rrna.fa.gz",
+                    "name": "rrna.fa.gz",
+                    "is_directory": false,
+                    "size_bytes": 5678,
+                    "md5": "d41d8cd98f00b204e9800998ecf8427e",
+                    "sha256": null,
+                    "checksum_source": "s3://assets/bbduk/rrna.fa.gz.md5",
+                    "checksum_note": null,
+                    "parameters": {
+                        "k": 25
+                    }
+                }
+            ],
+            [
+                {
+                    "name": "bbduk",
+                    "version": null,
+                    "versions": [
+                        
+                    ],
+                    "processes": [
+                        "BBMAP_BBDUK"
+                    ],
+                    "arguments": [
+                        {
+                            "process": "BBMAP_BBDUK",
+                            "arguments": "ref=rrna.fa.gz k=25 interleaved=f"
+                        }
+                    ],
+                    "arguments_source": "pipeline_config",
+                    "version_note": "the module's version command returned nothing"
+                },
+                {
+                    "name": "deacon",
+                    "version": "0.17.0",
+                    "versions": [
+                        "0.17.0"
+                    ],
+                    "processes": [
+                        "DEACON_FILTER"
+                    ],
+                    "arguments": [
+                        {
+                            "index": "host.k31w15.idx",
+                            "settings": {
+                                "abs_threshold": 2,
+                                "check_pairs": false,
+                                "deplete": true,
+                                "k": 31,
+                                "ordered": true,
+                                "prefix_length": 0,
+                                "rel_threshold": 0.01,
+                                "rename": false,
+                                "w": 15
+                            },
+                            "samples": 2
+                        }
+                    ],
+                    "arguments_source": "tool_report"
+                },
+                {
+                    "name": "fastp",
+                    "version": "1.3.6",
+                    "versions": [
+                        "1.3.6"
+                    ],
+                    "processes": [
+                        "FASTP"
+                    ],
+                    "arguments": [
+                        {
+                            "arguments": "--thread 2 --detect_adapter_for_pe",
+                            "samples": 1
+                        }
+                    ],
+                    "arguments_source": "tool_report"
+                },
+                {
+                    "name": "fastplong",
+                    "version": "0.4.1",
+                    "versions": [
+                        "0.4.1"
+                    ],
+                    "processes": [
+                        "FASTPLONG"
+                    ],
+                    "arguments": [
+                        {
+                            "arguments": "--thread 2",
+                            "samples": 1
+                        }
+                    ],
+                    "arguments_source": "tool_report"
+                },
+                {
+                    "name": "multiqc",
+                    "version": "1.35",
+                    "versions": [
+                        "1.35"
+                    ],
+                    "processes": [
+                        "MULTIQC"
+                    ],
+                    "arguments": [
+                        
+                    ],
+                    "arguments_source": null
+                },
+                {
+                    "name": "rasusa",
+                    "version": "5.1.0",
+                    "versions": [
+                        "5.1.0"
+                    ],
+                    "processes": [
+                        "RASUSA_READS"
+                    ],
+                    "arguments": [
+                        {
+                            "process": "RASUSA_READS",
+                            "arguments": "--num 10000 --seed 42"
+                        }
+                    ],
+                    "arguments_source": "pipeline_config"
+                }
+            ],
+            [
+                [
+                    "QQQ_RUN_REPORT",
+                    "python",
+                    "3.12.2"
+                ]
+            ]
+        ],
+        "timestamp": "2026-11-08T13:42:54.322033354",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
+    "two samples - stub": {
+        "content": [
+            {
+                "0": [
+                    "qqq_run_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    "qqq_run_report.json:md5,8a80554c91d9fca8acb82f023de02f11"
+                ],
+                "2": [
+                    [
+                        "QQQ_RUN_REPORT",
+                        "python",
+                        "3.12.2"
+                    ]
+                ],
+                "html": [
+                    "qqq_run_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "json": [
+                    "qqq_run_report.json:md5,8a80554c91d9fca8acb82f023de02f11"
+                ],
+                "versions_python": [
+                    [
+                        "QQQ_RUN_REPORT",
+                        "python",
+                        "3.12.2"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-11-08T13:36:51.274014756",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    }
+}

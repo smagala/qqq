@@ -60,6 +60,12 @@ When trimming is enabled, merging occurs after fastp or fastplong. When `--skip_
 
 Trimming results are saved in the `fastp/` and `fastplong/` output directories. Merged reads are saved in `cat/`.
 
+The reads the filter removes are saved beside them by default (`*.fail.fastq.gz`; see [output](output.md#fastp)). They are a few percent of a library at most, so keeping them is cheap, and without them an over-strict filter shows up only as a count. `--save_failed_reads false` turns this off. Host reads are a different matter: deacon and hostile keep none, deliberately, and hostess keeps a BAM only with `--host_bam`.
+
+### Run report
+
+Every run ends with `run_report/qqq_run_report.html` and `run_report/qqq_run_report.json`: what processed the run (tools, versions, arguments, databases), what each step removed from each sample, and where the kept and removed reads were published. The JSON is meant for scripts and agents and has a versioned schema; see [output](output.md#run-report). It needs no parameters.
+
 ### Choosing a dehoster
 
 `--dehoster` selects the host removal implementation, or turns the step off.
