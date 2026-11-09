@@ -60,6 +60,7 @@ process BBMAP_BBDUK {
     tuple val(meta), path("*.bbduk.summary.txt") , emit: stats_mqc
     tuple val(meta), path("*.bbduk.rpkm.txt")    , emit: rpkm
     tuple val(meta), path("*.bbduk.refstats.txt"), emit: refstats
+    tuple val(meta), path("*.bbduk.log")         , emit: log
     tuple val("${task.process}"), val('bbduk'), eval("bbduk.sh --version 2>&1 | sed -n 's/^BBTools version //p' | head -n 1"), topic: versions, emit: versions_bbduk
 
     when:
@@ -113,6 +114,12 @@ process BBMAP_BBDUK {
     // filename a standalone argument and bbduk fails on it. meta.yml documents
     // passing several references, so this has to hold for more than one.
     def ref_arg = [ref].flatten().join(',')
+    // stderr is kept as ${prefix}.bbduk.log because it holds the only exact read
+    // counts bbduk reports. stats= #Matched counts reads whose own k-mers hit, but
+    // bbduk removes a pair when either mate hits, so for paired-end data #Matched
+    // undercounts what was removed: up to a third of the output on clinical mNGS.
+    // The `Total Removed:` and `Result:` lines count the records written. The log is
+    // replayed to stderr afterwards, on failure too, so .command.err still shows it.
     """
     bbduk.sh \\
         ${mem} \\
@@ -123,7 +130,10 @@ process BBMAP_BBDUK {
         rpkm=${prefix}.bbduk.rpkm.txt \\
         refstats=${prefix}.bbduk.refstats.txt \\
         threads=${task.cpus} \\
-        ${args}
+        ${args} \\
+        2> ${prefix}.bbduk.log \\
+        || { rc=\$?; cat ${prefix}.bbduk.log >&2; exit \$rc; }
+    cat ${prefix}.bbduk.log >&2
 
     # Header (4 lines) plus the top `mqc_rows` records. The records are already
     # in descending read order, so this is the head of the distribution, not a
@@ -163,5 +173,10 @@ process BBMAP_BBDUK {
         '#Mapped\t0' \\
         '#References\t0' \\
         '#Name\tLength\tScaffolds\tBases\tCoverage\tReads\tRPKM' > ${prefix}.bbduk.refstats.txt
+
+    printf '%s\\n' \\
+        'Input:                  \t0 reads \t\t0 bases.' \\
+        'Total Removed:          \t0 reads (0.00%) \t0 bases (0.00%)' \\
+        'Result:                 \t0 reads (0.00%) \t0 bases (0.00%)' > ${prefix}.bbduk.log
     """
 }

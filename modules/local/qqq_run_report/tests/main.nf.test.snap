@@ -79,18 +79,21 @@
                             "tool": "bbduk",
                             "reason": null,
                             "input_reads": 50696,
-                            "removed_reads": 30000,
-                            "output_reads": 20696,
+                            "removed_reads": 30400,
+                            "output_reads": 20296,
+                            "input_bases": 15749804,
+                            "removed_bases": 9445000,
+                            "output_bases": 6304804,
+                            "matched_reads": 30000,
                             "report": "sampleA_illumina.bbduk.txt",
-                            "exact": false,
-                            "note": "paired-end: from bbduk #Matched, which counts per-read matches; bbduk removes the whole pair, so removed_reads is a slight undercount"
+                            "log": "sampleA_illumina.bbduk.log"
                         },
                         "downsampling": {
                             "status": "ran",
                             "tool": "rasusa",
                             "reason": null,
-                            "input_reads": 20696,
-                            "removed_reads": 696,
+                            "input_reads": 20296,
+                            "removed_reads": 296,
                             "output_reads": 20000,
                             "derived": true,
                             "cap_reads": 20000
@@ -305,14 +308,14 @@
                 "removed_reads": {
                     "read_filter": 781,
                     "host_removal": 31686,
-                    "rrna_depletion": 30000,
-                    "downsampling": 696
+                    "rrna_depletion": 30400,
+                    "downsampling": 296
                 },
                 "removed_fraction": {
                     "read_filter": 0.009391195603814196,
                     "host_removal": 0.38101078604667943,
-                    "rrna_depletion": 0.3607373471375491,
-                    "downsampling": 0.00836910645359114
+                    "rrna_depletion": 0.36554717843271645,
+                    "downsampling": 0.003559275158423818
                 },
                 "read_filter_removed_by_reason": {
                     "low_quality": 781,
@@ -491,7 +494,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-11-08T13:42:54.322033354",
+        "timestamp": "2026-11-09T11:05:38.590357141",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"

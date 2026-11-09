@@ -743,12 +743,14 @@ workflow QQQ {
         // The full file and the per-record rpkm stay in the results.
         ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { meta, txt -> txt })
 
-        // For the run report: the complete stats file, whose header carries the
-        // #Total and #Matched counts. `bbduk/` is the explicit publishDir for
-        // BBMAP_BBDUK in conf/modules.config.
+        // For the run report: the stderr log, whose `Total Removed:`/`Result:` lines
+        // are the exact record counts, and the complete stats file for #Total and
+        // #Matched. #Matched alone undercounts paired-end removal (one matching mate
+        // removes the pair). `bbduk/` is the explicit publishDir for BBMAP_BBDUK in
+        // conf/modules.config.
         ch_report_records = ch_report_records
-            .mix(BBMAP_BBDUK.out.stats.map { meta, txt ->
-                [ [ kind: 'rrna_report', sample: meta.id, file: txt.name ], [ txt ] ]
+            .mix(BBMAP_BBDUK.out.stats.join(BBMAP_BBDUK.out.log).map { meta, txt, log ->
+                [ [ kind: 'rrna_report', sample: meta.id, file: txt.name, log: log.name ], [ txt, log ] ]
             })
             .mix(BBMAP_BBDUK.out.matched.map { meta, reads ->
                 [ [ kind: 'rrna_matched', sample: meta.id, files: reportPublished('bbduk', reads) ], [] ]

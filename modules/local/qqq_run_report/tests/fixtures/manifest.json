@@ -277,7 +277,8 @@
   {
    "kind": "rrna_report",
    "sample": "sampleA_illumina",
-   "file": "sampleA_illumina.bbduk.txt"
+   "file": "sampleA_illumina.bbduk.txt",
+   "log": "sampleA_illumina.bbduk.log"
   },
   {
    "kind": "rrna_report",

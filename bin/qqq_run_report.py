@@ -159,6 +159,31 @@ def parse_bbduk(path):
             "output_reads": None if matched is None else total - matched}
 
 
+BBDUK_LOG_LINE = re.compile(r"^(Input|Total Removed|Result):\s+(\d+) reads\b.*?(\d+) bases")
+
+
+def parse_bbduk_log(path):
+    """bbduk stderr -> exact record and base counts.
+
+    `Total Removed:` and `Result:` count the records bbduk actually wrote, pairs
+    removed together. The stats file's #Matched counts reads whose own k-mers hit,
+    which undercounts paired-end removal; this is the figure to prefer."""
+    got = {}
+    try:
+        with open(path) as fh:
+            for line in fh:
+                m = BBDUK_LOG_LINE.match(line.strip())
+                if m:
+                    got[m.group(1)] = (int(m.group(2)), int(m.group(3)))
+    except OSError:
+        return None
+    if not all(k in got for k in ("Input", "Total Removed", "Result")):
+        return None
+    return {"input_reads": got["Input"][0], "removed_reads": got["Total Removed"][0],
+            "output_reads": got["Result"][0], "input_bases": got["Input"][1],
+            "removed_bases": got["Total Removed"][1], "output_bases": got["Result"][1]}
+
+
 def fastp_arguments(command):
     """`fastp --in1 a --out1 b --thread 2 --detect_adapter_for_pe` -> `--thread 2 --detect_adapter_for_pe`."""
     if not command:
@@ -296,18 +321,33 @@ def build_samples(manifest, reports_dir):
             st = step_skeleton("ran", tool="bbduk")
             rr = next((r for r in recs if r["kind"] == "rrna_report"), None)
             p = parse_bbduk(report_path(rr["file"])) if rr else None
-            if p:
+            lg = parse_bbduk_log(report_path(rr["log"])) if rr and rr.get("log") else None
+            if lg:
+                # Exact counts from bbduk's stderr. #Matched is kept separately: it is
+                # the reads with a hit of their own, which for paired-end data is fewer
+                # than were removed, since a hit on one mate removes both.
+                st.update(lg)
+                st["matched_reads"] = p["removed_reads"] if p else None
+                st["report"] = rr["file"]
+                st["log"] = rr["log"]
+                if p and p["input_reads"] != lg["input_reads"]:
+                    warn.append(f"bbduk stats #Total {p['input_reads']} != log Input {lg['input_reads']}")
+                if lg["input_reads"] != lg["removed_reads"] + lg["output_reads"]:
+                    warn.append("bbduk log: Input != Total Removed + Result")
+                if single_end is False and lg["output_reads"] % 2:
+                    warn.append(f"paired-end but bbduk kept an odd number of reads ({lg['output_reads']})")
+            elif p:
                 st.update(p)
                 st["report"] = rr["file"]
                 if single_end is False:
-                    # #Matched counts reads whose own k-mers hit the reference, but bbduk
-                    # splits pairs together: one matching mate removes both. So for paired-end
-                    # data the records actually removed run slightly higher (216 against 210
-                    # on the test sample; 0.27-0.28% on the validation library). The exact
-                    # figure is only in bbduk's stderr, which the module does not keep.
+                    # No log (runs before the module kept stderr). #Matched counts reads
+                    # whose own k-mers hit the reference, but bbduk removes the whole pair
+                    # when either mate hits, so removed_reads undercounts and output_reads
+                    # overcounts -- by up to a third of the output on clinical mNGS.
                     st["exact"] = False
-                    st["note"] = ("paired-end: from bbduk #Matched, which counts per-read matches; bbduk "
-                                  "removes the whole pair, so removed_reads is a slight undercount")
+                    st["note"] = ("paired-end without bbduk's log: from #Matched, which counts per-read "
+                                  "matches; bbduk removes the whole pair, so removed_reads is an "
+                                  "undercount and output_reads an overcount")
             else:
                 warn.append("bbduk stats file missing or unparseable; counts unknown")
             steps["rrna_depletion"] = st

@@ -13,7 +13,9 @@ nextflow_process {
     //
     //   sampleA_illumina  paired-end, fastp -> deacon -> bbduk -> rasusa (downsampled)
     //   sampleB_nanopore  single-end, fastplong -> deacon removes everything -> bbduk
-    //                     on zero reads; under the cap, so it bypasses rasusa
+    //                     on zero reads; under the cap, so it bypasses rasusa. It has
+    //                     no bbduk log, as in runs before the module kept one, so it
+    //                     covers the stats-file fallback.
     //
     // Between them they cover every step status the report can give (ran, bypassed),
     // the chain of counts from step to step, the zero-reads flag, the priority rule
@@ -25,7 +27,7 @@ nextflow_process {
             process {
                 """
                 input[0] = file("${moduleDir}/tests/fixtures/manifest.json", checkIfExists: true)
-                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt}").findAll { f -> f.name != 'manifest.json' }
+                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt,log}").findAll { f -> f.name != 'manifest.json' }
                 """
             }
         }
@@ -44,7 +46,14 @@ nextflow_process {
                 { assert a.steps.read_filter.removed_reads == 746 },
                 { assert a.steps.host_removal.input_reads == a.steps.read_filter.output_reads },
                 { assert a.steps.rrna_depletion.input_reads == a.steps.host_removal.output_reads },
-                { assert a.steps.rrna_depletion.removed_reads == 30000 },
+                // Counts come from bbduk's log, which is pair-aware: 30400 records removed,
+                // where the stats file's #Matched (30000) counts only reads with a hit of
+                // their own. The output is even, as a paired library's must be.
+                { assert a.steps.rrna_depletion.removed_reads == 30400 },
+                { assert a.steps.rrna_depletion.matched_reads == 30000 },
+                { assert a.steps.rrna_depletion.output_reads == 20296 },
+                { assert a.steps.rrna_depletion.log == 'sampleA_illumina.bbduk.log' },
+                { assert a.steps.rrna_depletion.exact == null },
                 // rasusa keeps exactly max_reads pairs: 10000 pairs, 20000 records.
                 { assert a.steps.downsampling.status == 'ran' },
                 { assert a.steps.downsampling.output_reads == 20000 },
@@ -92,7 +101,7 @@ nextflow_process {
             process {
                 """
                 input[0] = file("${moduleDir}/tests/fixtures/manifest.json", checkIfExists: true)
-                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt}").findAll { f -> f.name != 'manifest.json' }
+                input[1] = files("${moduleDir}/tests/fixtures/*.{json,txt,log}").findAll { f -> f.name != 'manifest.json' }
                 """
             }
         }

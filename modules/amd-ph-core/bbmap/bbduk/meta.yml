@@ -158,6 +158,19 @@ output:
             caller passes several references.
           pattern: "*.bbduk.refstats.txt"
           ontologies: []
+  log:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information
+      - "*.bbduk.log":
+          type: file
+          description: |
+            bbduk's stderr. Its `Total Removed:` and `Result:` lines are the exact
+            record counts removed and written. For paired-end input the stats file's
+            #Matched is not: it counts reads whose own k-mers hit, while bbduk removes
+            the whole pair when either mate hits.
+          pattern: "*.bbduk.log"
+          ontologies: []
   versions_bbduk:
     - - ${task.process}:
           type: string

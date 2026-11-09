@@ -158,6 +158,7 @@ Dehosting statistics are collected into the MultiQC report.
   - `*.bbduk.summary.txt`: The same header plus the top 20 records only. **This is what MultiQC reads**, not the complete file -- see below.
   - `*.bbduk.rpkm.txt`: Per-reference-record length, bases, coverage, read count and RPKM. Prefer this over `*.bbduk.txt` for anything quantitative: it carries the record length, without which read counts over-weight long references, since 23S is roughly twice 16S.
   - `*.bbduk.refstats.txt`: One row per reference *file*, so with a single `--rrna_ref` it is a one-line summary of reads and bases matched.
+  - `*.bbduk.log`: bbduk's stderr. Its `Total Removed:` and `Result:` lines are the exact record counts removed and kept, and the run report reads them from here.
 
 </details>
 
@@ -183,9 +184,9 @@ One parsing caveat: splitting a SILVA lineage on `;` and taking field *n* is rig
 
 MultiQC writes every row of the file it parses into its own outputs. `*.bbduk.txt` has one row per matched reference record, and against a reference large enough to be worth using that is a lot of rows -- 93,601 on the validation library, which cost 13 MB of `bbmap.txt` and 23 MB of `multiqc_data.json` for a **single sample**. A hundred-sample run would be a gigabyte of JSON. `*.bbduk.summary.txt` parses identically, because MultiQC's `bbmap/stats` pattern matches on the file header rather than its name, and yields the same percent-filtered figure from 38 KB.
 
-bbduk's stderr log is deliberately not wired into MultiQC at all: its `bbduk` pattern looks for `Executing jgi.BBDuk`, which BBTools renamed to `bbduk.BBDukS` in 39.76, and which the JVM puts on line three where the pattern allows two. It matches no version this pipeline runs.
+bbduk's stderr log (`*.bbduk.log`) is published but deliberately not wired into MultiQC: its `bbduk` pattern looks for `Executing jgi.BBDuk`, which BBTools renamed to `bbduk.BBDukS` in 39.76, and which the JVM puts on line three where the pattern allows two. It matches no version this pipeline runs.
 
-A counts footnote: `#Matched` in the stats file runs 0.27-0.28% below the `Contaminants` figure bbduk reports to its log. The split is pair-aware -- one matching mate removes both -- while attribution is per-mate evidence. Neither is wrong; they answer different questions.
+A counts footnote: **for paired-end data, `#Matched` in the stats file is not the number of reads removed.** It counts reads whose own k-mers hit the reference, but bbduk removes a pair when either mate hits, so the partner of a matching read is removed without being counted. `Total Removed:` in `*.bbduk.log` is the pair-aware figure. On the validation library the gap was 0.27-0.28%, but on clinical mNGS, where many pairs have one rRNA mate, it is large: on the 2026-11-08 arbovirus run, `#Total - #Matched` overstated the kept reads by more than 1% in 30 of 197 libraries and by up to 52% in one. Use `#Matched` for attribution (which records the reads hit), and the log for counts.
 
 ### rasusa
 
@@ -279,7 +280,7 @@ Each `steps.<step>` has `status` (`ran`, `skipped` -- off for the run, with `rea
 
 - `read_filter`: `input_bases`, `output_bases`, `removed_by_reason` (fastp's `filtering_result`: `low_quality`, `too_many_N`, `too_short`, ...), `adapter_trimmed_reads`, `adapter_trimmed_bases`, `adapter_trimming_effective` (whether adapter removal cut anything at all), and `runs`, the per-run figures and full fastp command. Summed over runs for a merged sample.
 - `host_removal`: `input_bases`, `output_bases`, `removed_bases` (deacon only; hostile and hostess do not report bases), `report`.
-- `rrna_depletion`: from the bbduk stats header, `#Total` in and `#Matched` removed; `report`. For paired-end samples it also carries `exact: false` and a `note`: `#Matched` counts reads whose own k-mers matched, but bbduk removes the whole pair, so the records actually removed run slightly higher -- 216 against 210 on the test sample, 0.27-0.28% on the validation library (see the counts footnote under [BBDuk](#bbduk)). The pair-aware figure is printed only to bbduk's stderr, which the module does not keep.
+- `rrna_depletion`: from bbduk's log (`Input:`, `Total Removed:`, `Result:`), the exact records and bases in, removed and kept; `matched_reads`, the stats file's `#Matched` (reads with a hit of their own, which for paired-end data is fewer than were removed -- see the counts footnote under [BBDuk](#bbduk)); `report` and `log`. A paired-end sample that keeps an odd number of reads, or whose counts do not add up, gets a warning. Runs made before the module kept the log fall back to the stats header (`#Total` in, `#Matched` removed) and, for paired-end samples, carry `exact: false` and a `note`: removal is undercounted and output overcounted.
 - `downsampling`: `cap_reads` (max_reads in records), and `derived: true`. rasusa writes no report; its counts follow from `rasusa reads --num` keeping exactly the cap, or everything when the input is under it, which the module's nf-test pins.
 
 `outputs.clean_reads` is `{step, files, reason}`: the step that last wrote the sample's reads and the published files. When no step rewrote them (a single-run sample with every step off) `files` is `null`, `reason` says so, and `source_files` gives the samplesheet inputs.
