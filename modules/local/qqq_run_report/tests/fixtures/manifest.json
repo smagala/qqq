@@ -20,7 +20,13 @@
   "dehoster": "deacon",
   "host_bam": true,
   "rrna_depletion": true,
-  "max_reads": 10000
+  "max_reads": 10000,
+  "step_order": [
+   "read_filter",
+   "rrna_depletion",
+   "host_removal",
+   "downsampling"
+  ]
  },
  "run_outputs": {
   "run_report_json": {
@@ -248,7 +254,7 @@
    "kind": "reads",
    "sample": "sampleA_illumina",
    "step": "host_removal",
-   "priority": 3,
+   "priority": 4,
    "published": true,
    "files": [
     {
@@ -265,7 +271,7 @@
    "kind": "reads",
    "sample": "sampleB_nanopore",
    "step": "host_removal",
-   "priority": 3,
+   "priority": 4,
    "published": true,
    "files": [
     {
@@ -313,7 +319,7 @@
    "kind": "reads",
    "sample": "sampleA_illumina",
    "step": "rrna_depletion",
-   "priority": 4,
+   "priority": 3,
    "published": true,
    "files": [
     {
@@ -330,7 +336,7 @@
    "kind": "reads",
    "sample": "sampleB_nanopore",
    "step": "rrna_depletion",
-   "priority": 4,
+   "priority": 3,
    "published": true,
    "files": [
     {

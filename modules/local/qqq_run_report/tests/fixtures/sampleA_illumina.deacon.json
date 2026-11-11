@@ -11,11 +11,11 @@
   "ordered": true,
   "check_pairs": false,
   "input": "input_reads/x_1",
-  "seqs_in": 54696,
-  "seqs_out": 50696,
+  "seqs_in": 24296,
+  "seqs_out": 20296,
   "seqs_removed": 4000,
-  "bp_in": 16349804,
-  "bp_out": 15749804,
+  "bp_in": 6904804,
+  "bp_out": 6304804,
   "bp_removed": 600000,
   "time": 1.0
 }

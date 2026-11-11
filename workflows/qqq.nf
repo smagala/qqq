@@ -351,6 +351,107 @@ workflow QQQ {
         .mix(ch_reads_grouped.single)
 
     //
+    // MODULE: BBDuk — ribosomal RNA depletion (optional)
+    //
+    // Off unless --rrna_ref names a panel: there is no sensible built-in
+    // reference, and silently depleting nothing would be worse than not running.
+    //
+    // It runs BEFORE dehosting, and before downsampling.
+    //
+    // Before dehosting, because rRNA is the most conserved sequence there is, so
+    // a host index takes more than host rRNA. deacon removes a read on shared
+    // minimizers, and conserved 18S minimizers are human ones: on simulated
+    // reads it removed 51-53% of fungal 18S (Candida albicans, Aspergillus
+    // fumigatus), 10% of Plasmodium falciparum 18S and 9% of nematode 18S, and
+    // keeps none of what it removes. Run first, bbduk takes all of it, from
+    // every domain, and keeps it as the matched stream, so non-human eukaryotic
+    // rRNA is characterisable instead of silently gone. It also makes the two
+    // report columns mean what they say: "rRNA" is rRNA of any origin, human
+    // included, and "host" is host reads that are not rRNA.
+    //
+    // The price is that bbduk now reads the host reads too. On the 198-sample
+    // arbovirus mNGS run (2026-11-08) bbduk's realtime fit 47 s + 10 s per Gbase
+    // of input (r = 0.89), the 47 s being the reference load, which does not
+    // move. Moving it ahead of deacon adds an estimated 0.38 CPU-hours to the
+    // run's 2.98, a median of 0.2 min for samples over half host, and 2.0 min
+    // for the worst, a 13.6 Gbase library that was 79% host. Peak RSS follows
+    // the reference, not the reads.
+    //
+    // A consequence for the matched stream: it now carries host rRNA, including
+    // mitochondrial 12S/16S, and the mate of any read that hit -- bbduk moves
+    // the pair. Treat bbduk/*.matched* as containing human sequence.
+    //
+    // Before downsampling, because after it the cap would already have been
+    // spent on ribosomes, which on an RNA library is most of the sample -- 94%
+    // of the wastewater library this was built against -- so a 1M-read cap would
+    // leave ~60k reads of anything else.
+    //
+    // k-mer matching rather than alignment, because on a panel of tens of
+    // thousands of near-identical rRNA records a minimizer aligner discards
+    // exactly the seeds that identify the right record: measured at 24.5% of a
+    // library against blastn's 68.4% at the identical identity threshold, where
+    // bbduk k=25 takes 94.1%. The module's meta.yml has the numbers.
+    //
+    // The reference to point this at is a versioned, checksummed build-time
+    // asset, not a panel assembled per run; see the rrna_ref help text for the
+    // one AMDP publishes and what it removes. Its README is the authority on
+    // what the per-record outputs may and may not be read as.
+    //
+    // The matched reads are kept rather than dropped. They are the input to rRNA
+    // characterisation, and they are also the only way an over-aggressive panel
+    // shows up in the output instead of as a quietly smaller library.
+    //
+    // bbduk takes plain [meta, reads], and the hostile/hostess routing below
+    // needs `route` (short vs long), so it is rejoined on meta.id afterwards.
+    //
+    if (params.rrna_ref) {
+        BBMAP_BBDUK (
+            ch_merged_reads.map { meta, _route, reads -> [ meta, reads ] },
+            file(params.rrna_ref, checkIfExists: true)
+        )
+        ch_predehost_reads = BBMAP_BBDUK.out.reads
+            .map { meta, reads -> [ meta.id, meta, reads ] }
+            .join(ch_merged_reads.map { meta, route, _reads -> [ meta.id, route ] })
+            .map { _id, meta, reads, route -> [ meta, route, reads ] }
+        ch_rrna_reads     = BBMAP_BBDUK.out.matched
+        // MultiQC reads this with its `bbmap/stats` pattern, which content-matches
+        // the file's own header rather than a filename or a tool banner. bbduk's
+        // stderr log is deliberately not wired in: MultiQC's `bbduk` pattern looks
+        // for "Executing jgi.BBDuk", which BBTools 39.76 renamed to
+        // `bbduk.BBDukS`, and which the JVM puts on line three where the pattern
+        // allows two. It matches neither version.
+        // The TRUNCATED stats copy, not the full one. MultiQC writes every row
+        // of what it parses into its own outputs, and the full file has one row
+        // per matched reference record -- 93,601 of them against SILVA SSU+LSU
+        // NR99, which costs 23 MB of multiqc_data.json for a single sample. The
+        // truncated copy parses identically (the `bbmap/stats` pattern matches
+        // on the header) and gives the same percent-filtered figure from 38 KB.
+        // The full file and the per-record rpkm stay in the results.
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { meta, txt -> txt })
+
+        // For the run report: the stderr log, whose `Total Removed:`/`Result:` lines
+        // are the exact record counts, and the complete stats file for #Total and
+        // #Matched. #Matched alone undercounts paired-end removal (one matching mate
+        // removes the pair). `bbduk/` is the explicit publishDir for BBMAP_BBDUK in
+        // conf/modules.config.
+        ch_report_records = ch_report_records
+            .mix(BBMAP_BBDUK.out.stats.join(BBMAP_BBDUK.out.log).map { meta, txt, log ->
+                [ [ kind: 'rrna_report', sample: meta.id, file: txt.name, log: log.name ], [ txt, log ] ]
+            })
+            .mix(BBMAP_BBDUK.out.matched.map { meta, reads ->
+                [ [ kind: 'rrna_matched', sample: meta.id, files: reportPublished('bbduk', reads) ], [] ]
+            })
+            .mix(BBMAP_BBDUK.out.reads.map { meta, reads ->
+                [ reportReads(meta.id, 'rrna_depletion', 3, 'bbduk', reads), [] ]
+            })
+    }
+    else {
+        ch_predehost_reads = ch_merged_reads
+        ch_rrna_reads      = channel.empty()
+    }
+
+
+    //
     // Read removal
     //
     // --dehoster selects the implementation, or turns the step off entirely.
@@ -359,7 +460,7 @@ workflow QQQ {
     // index in that case, so index resolution is inside each branch — asking
     // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
-        ch_dehosted_fastq = ch_merged_reads.map { meta, route, reads -> [ meta, reads ] }
+        ch_dehosted_fastq = ch_predehost_reads.map { meta, route, reads -> [ meta, reads ] }
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
@@ -435,7 +536,7 @@ workflow QQQ {
         // hardcodes them, and the module itself is untouched.
         // deacon does not care short from long, so `route` is dropped on the way
         // in and the branch is on input size alone.
-        ch_deacon_sized = ch_merged_reads
+        ch_deacon_sized = ch_predehost_reads
             .map { meta, route, reads -> [ meta, reads ] }
             .branch { meta, reads ->
                 large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
@@ -519,7 +620,7 @@ workflow QQQ {
         // Sized first, then split short from long. `route` is carried through
         // both branches and dropped on the way into each alias, so the four
         // aliases below receive the plain [meta, reads] every module expects.
-        ch_sized = ch_merged_reads.branch { meta, route, reads ->
+        ch_sized = ch_predehost_reads.branch { meta, route, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
@@ -647,7 +748,7 @@ workflow QQQ {
             [ [ kind: 'host_report', sample: meta.id, tool: params.dehoster, file: json.name ], [ json ] ]
         })
         .mix(ch_host_clean.map { meta, reads ->
-            [ reportReads(meta.id, 'host_removal', 3, params.dehoster, reads), [] ]
+            [ reportReads(meta.id, 'host_removal', 4, params.dehoster, reads), [] ]
         })
         .mix(ch_host_bam.mix(ch_host_bai).map { meta, bam ->
             [ [ kind: 'host_bam', sample: meta.id, files: reportPublished('hostess', bam) ], [] ]
@@ -694,76 +795,6 @@ workflow QQQ {
     )
 
     //
-    // MODULE: BBDuk — ribosomal RNA depletion (optional)
-    //
-    // Off unless --rrna_ref names a panel: there is no sensible built-in
-    // reference, and silently depleting nothing would be worse than not running.
-    //
-    // It sits after dehosting and before downsampling on purpose. Before
-    // dehosting it would spend its pass on host reads that are about to be
-    // thrown away. After downsampling the cap would already have been spent on
-    // ribosomes, which on an RNA library is most of the sample — 94% of the
-    // wastewater library this was built against — so a 1M-read cap would leave
-    // ~60k reads of anything else.
-    //
-    // k-mer matching rather than alignment, because on a panel of tens of
-    // thousands of near-identical rRNA records a minimizer aligner discards
-    // exactly the seeds that identify the right record: measured at 24.5% of a
-    // library against blastn's 68.4% at the identical identity threshold, where
-    // bbduk k=25 takes 94.1%. The module's meta.yml has the numbers.
-    //
-    // The reference to point this at is a versioned, checksummed build-time
-    // asset, not a panel assembled per run; see the rrna_ref help text for the
-    // one AMDP publishes and what it removes. Its README is the authority on
-    // what the per-record outputs may and may not be read as.
-    //
-    // The matched reads are kept rather than dropped. They are the input to rRNA
-    // characterisation, and they are also the only way an over-aggressive panel
-    // shows up in the output instead of as a quietly smaller library.
-    //
-    if (params.rrna_ref) {
-        BBMAP_BBDUK (
-            ch_dehosted_fastq,
-            file(params.rrna_ref, checkIfExists: true)
-        )
-        ch_dehosted_fastq = BBMAP_BBDUK.out.reads
-        ch_rrna_reads     = BBMAP_BBDUK.out.matched
-        // MultiQC reads this with its `bbmap/stats` pattern, which content-matches
-        // the file's own header rather than a filename or a tool banner. bbduk's
-        // stderr log is deliberately not wired in: MultiQC's `bbduk` pattern looks
-        // for "Executing jgi.BBDuk", which BBTools 39.76 renamed to
-        // `bbduk.BBDukS`, and which the JVM puts on line three where the pattern
-        // allows two. It matches neither version.
-        // The TRUNCATED stats copy, not the full one. MultiQC writes every row
-        // of what it parses into its own outputs, and the full file has one row
-        // per matched reference record -- 93,601 of them against SILVA SSU+LSU
-        // NR99, which costs 23 MB of multiqc_data.json for a single sample. The
-        // truncated copy parses identically (the `bbmap/stats` pattern matches
-        // on the header) and gives the same percent-filtered figure from 38 KB.
-        // The full file and the per-record rpkm stay in the results.
-        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { meta, txt -> txt })
-
-        // For the run report: the stderr log, whose `Total Removed:`/`Result:` lines
-        // are the exact record counts, and the complete stats file for #Total and
-        // #Matched. #Matched alone undercounts paired-end removal (one matching mate
-        // removes the pair). `bbduk/` is the explicit publishDir for BBMAP_BBDUK in
-        // conf/modules.config.
-        ch_report_records = ch_report_records
-            .mix(BBMAP_BBDUK.out.stats.join(BBMAP_BBDUK.out.log).map { meta, txt, log ->
-                [ [ kind: 'rrna_report', sample: meta.id, file: txt.name, log: log.name ], [ txt, log ] ]
-            })
-            .mix(BBMAP_BBDUK.out.matched.map { meta, reads ->
-                [ [ kind: 'rrna_matched', sample: meta.id, files: reportPublished('bbduk', reads) ], [] ]
-            })
-            .mix(BBMAP_BBDUK.out.reads.map { meta, reads ->
-                [ reportReads(meta.id, 'rrna_depletion', 4, 'bbduk', reads), [] ]
-            })
-    }
-    else {
-        ch_rrna_reads = channel.empty()
-    }
-
-    //
     // MODULE: rasusa — cap depth of the dehosted reads (optional)
     //
     // Disabled when params.max_reads is null or 0, which is the default.
@@ -785,7 +816,9 @@ workflow QQQ {
         // rasusa; everything else bypasses the module and is merged back after.
         // The gate is an optimisation rather than a correctness requirement --
         // an input under the cap comes out of rasusa whole -- so a count that
-        // has gone stale costs a pass over the FASTQs and nothing else.
+        // has gone stale costs a pass over the FASTQs and nothing else. With
+        // rRNA depletion ahead of dehosting, the dehoster is the last step to
+        // touch the reads, so its count is now the exact input to rasusa.
         ch_read_counts = ch_dehosted_json
             .map { meta, json ->
                 // The dehoster stubs emit an empty report. Treat that as "under
@@ -1284,6 +1317,9 @@ def qqqReportManifest(records, versions, multiqc_report) {
             dehoster         : params.dehoster,
             host_bam         : params.host_bam,
             rrna_depletion   : params.rrna_ref as boolean,
+            // The order reads pass through the removal steps; the report chains
+            // each step's input to the previous step's output in this order.
+            step_order       : [ 'read_filter', 'rrna_depletion', 'host_removal', 'downsampling' ],
             max_reads        : params.max_reads ?: null,
         ],
         // Run-level files, at the directories conf/modules.config publishes to.

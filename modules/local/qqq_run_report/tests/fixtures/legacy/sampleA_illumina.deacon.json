@@ -1,0 +1,21 @@
+{
+  "version": "deacon 0.17.0",
+  "index": "host.k31w15.idx",
+  "k": 31,
+  "w": 15,
+  "abs_threshold": 2,
+  "rel_threshold": 0.01,
+  "prefix_length": 0,
+  "deplete": true,
+  "rename": false,
+  "ordered": true,
+  "check_pairs": false,
+  "input": "input_reads/x_1",
+  "seqs_in": 54696,
+  "seqs_out": 50696,
+  "seqs_removed": 4000,
+  "bp_in": 16349804,
+  "bp_out": 15749804,
+  "bp_removed": 600000,
+  "time": 1.0
+}

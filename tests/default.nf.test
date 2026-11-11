@@ -199,4 +199,78 @@ nextflow_pipeline {
             )
         }
     }
+
+    //
+    // rRNA depletion runs ahead of the dehoster. The rRNA reference here is the
+    // SARS-CoV-2 transcriptome: it hits the amplicon reads in the test sheet, and
+    // the test profile's host is the SARS-CoV-2 genome, so bbduk takes most of
+    // them and the dehoster takes what bbduk left -- both steps remove something.
+    // Asserts the order end to end: each step's input is the previous step's
+    // output in the report, the final reads come from the dehoster, and every
+    // path the report names exists. Run under deacon, which drops `route`, and
+    // under hostile, whose short/long split needs `route` rejoined after bbduk.
+    //
+    test("-profile test, --rrna_ref (rRNA depletion before dehosting)") {
+        when {
+            params {
+                outdir   = "$outputDir"
+                rrna_ref = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/transcriptome.fasta'
+            }
+        }
+        then {
+            assert workflow.success
+            def report = path("${params.outdir}/run_report/qqq_run_report.json").json
+            def published = []
+            def walk
+            walk = { node ->
+                if (node instanceof Map) {
+                    if (node.containsKey('relative_path')) {
+                        published << node.path
+                    }
+                    node.values().each { v -> walk(v) }
+                }
+                else if (node instanceof List) {
+                    node.each { v -> walk(v) }
+                }
+            }
+            walk(report)
+            assertAll(
+                { assert report.step_order == ['read_filter', 'rrna_depletion', 'host_removal', 'downsampling'] },
+                { assert published.findAll { p -> !new File(p.toString()).exists() } == [] },
+                { assert report.samples*.id == ['test2_illumina', 'test_illumina', 'test_long_nanopore'] },
+                { assert report.samples.every { s -> s.steps.rrna_depletion.input_reads == s.steps.read_filter.output_reads } },
+                { assert report.samples.every { s -> s.steps.host_removal.input_reads == s.steps.rrna_depletion.output_reads } },
+                { assert report.samples.every { s -> s.output_reads == s.steps.host_removal.output_reads } },
+                { assert report.summary.removed_reads.rrna_depletion > 0 },
+                { assert report.summary.removed_reads.host_removal > 0 },
+                { assert report.samples.every { s -> s.warnings == [] } },
+                { assert report.samples.every { s -> s.outputs.clean_reads.step == 'host_removal' && s.outputs.clean_reads.files[0].relative_path.startsWith('deacon/') } },
+                { assert report.samples.every { s -> s.outputs.removed_reads.rrna_depletion.files[0].relative_path.startsWith('bbduk/') } }
+            )
+        }
+    }
+
+    test("-profile test, --dehoster hostile, --rrna_ref") {
+        config "tests/hostile.config"
+        when {
+            params {
+                outdir   = "$outputDir"
+                rrna_ref = 'https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/genome/transcriptome.fasta'
+            }
+        }
+        then {
+            assert workflow.success
+            def report = path("${params.outdir}/run_report/qqq_run_report.json").json
+            def long_sample = report.samples.find { s -> s.id == 'test_long_nanopore' }
+            assertAll(
+                { assert report.samples.every { s -> s.steps.host_removal.tool == 'hostile' } },
+                { assert report.samples.every { s -> s.steps.host_removal.input_reads == s.steps.rrna_depletion.output_reads } },
+                { assert report.samples.every { s -> s.warnings == [] } },
+                // The long-read sample still reaches hostile's minimap2 tier: the
+                // short/long split reads `route`, which bbduk does not carry.
+                { assert long_sample.outputs.clean_reads.step == 'host_removal' },
+                { assert long_sample.outputs.clean_reads.files*.relative_path.every { p -> p.startsWith('hostile/') } }
+            )
+        }
+    }
 }

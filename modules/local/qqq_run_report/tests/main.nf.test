@@ -11,11 +11,15 @@ nextflow_process {
     // The fixtures are a two-sample run built from trimmed real reports (fastp and
     // fastplong JSON from -profile test) with synthetic dehost and bbduk counts:
     //
-    //   sampleA_illumina  paired-end, fastp -> deacon -> bbduk -> rasusa (downsampled)
-    //   sampleB_nanopore  single-end, fastplong -> deacon removes everything -> bbduk
-    //                     on zero reads; under the cap, so it bypasses rasusa. It has
-    //                     no bbduk log, as in runs before the module kept one, so it
-    //                     covers the stats-file fallback.
+    //   sampleA_illumina  paired-end, fastp -> bbduk -> deacon -> rasusa (downsampled)
+    //   sampleB_nanopore  single-end, fastplong -> bbduk removes nothing -> deacon
+    //                     removes everything; under the cap, so it bypasses rasusa.
+    //                     It has no bbduk log, as in runs before the module kept
+    //                     one, so it covers the stats-file fallback.
+    //
+    // fixtures/legacy/ is the same run in the order qqq ran before rRNA depletion
+    // moved ahead of host removal, with a manifest that carries no step_order, as
+    // manifests from those runs do not. The report must still chain it correctly.
     //
     // Between them they cover every step status the report can give (ran, bypassed),
     // the chain of counts from step to step, the zero-reads flag, the priority rule
@@ -40,18 +44,21 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert report.schema_version == '1.0.0' },
+                { assert report.step_order == ['read_filter', 'rrna_depletion', 'host_removal', 'downsampling'] },
                 // The chain: each step starts where the previous one ended, and the
                 // sample's own totals are the ends of it.
                 { assert a.steps.read_filter.input_reads == 55442 },
                 { assert a.steps.read_filter.removed_reads == 746 },
-                { assert a.steps.host_removal.input_reads == a.steps.read_filter.output_reads },
-                { assert a.steps.rrna_depletion.input_reads == a.steps.host_removal.output_reads },
+                { assert a.steps.rrna_depletion.input_reads == a.steps.read_filter.output_reads },
+                { assert a.steps.host_removal.input_reads == a.steps.rrna_depletion.output_reads },
+                { assert a.steps.downsampling.input_reads == a.steps.host_removal.output_reads },
                 // Counts come from bbduk's log, which is pair-aware: 30400 records removed,
                 // where the stats file's #Matched (30000) counts only reads with a hit of
                 // their own. The output is even, as a paired library's must be.
                 { assert a.steps.rrna_depletion.removed_reads == 30400 },
                 { assert a.steps.rrna_depletion.matched_reads == 30000 },
-                { assert a.steps.rrna_depletion.output_reads == 20296 },
+                { assert a.steps.rrna_depletion.output_reads == 24296 },
+                { assert a.steps.host_removal.output_reads == 20296 },
                 { assert a.steps.rrna_depletion.log == 'sampleA_illumina.bbduk.log' },
                 { assert a.steps.rrna_depletion.exact == null },
                 // rasusa keeps exactly max_reads pairs: 10000 pairs, 20000 records.
@@ -72,7 +79,8 @@ nextflow_process {
                 // output reads as "bypassed", not as a failure.
                 { assert b.zero_reads == true },
                 { assert b.steps.downsampling.status == 'bypassed' },
-                { assert b.outputs.clean_reads.step == 'rrna_depletion' },
+                { assert b.outputs.clean_reads.step == 'host_removal' },
+                { assert b.warnings == ['no reads left after processing'] },
                 { assert b.outputs.removed_reads.read_filter.complete == null },
                 { assert report.summary.samples_zero_reads_ids == ['sampleB_nanopore'] },
                 // Arguments come from the tools' own reports where they record them.
@@ -80,6 +88,8 @@ nextflow_process {
                 { assert report.tools.find { t -> t.name == 'deacon' }.arguments[0].settings.k == 31 },
                 { assert report.databases.find { d -> d.role == 'host_index' }.parameters.reported_by_tool.settings.w == 15 },
                 { assert html.contains('sampleB_nanopore') && html.contains('prefers-color-scheme') },
+                // Columns and bar segments follow the run's step order.
+                { assert html.indexOf('<th data-type="num">rRNA</th>') < html.indexOf('<th data-type="num">Host</th>') },
                 // generated_at and the Python version differ by run and image, so the
                 // snapshot takes everything derived from the inputs and nothing else.
                 { assert snapshot(
@@ -89,6 +99,37 @@ nextflow_process {
                     report.tools.findAll { t -> t.name != 'python' },
                     process.out.versions_python
                 ).match() }
+            )
+        }
+    }
+
+    test("legacy manifest - host removal before rRNA depletion") {
+
+        when {
+            process {
+                """
+                input[0] = file("${moduleDir}/tests/fixtures/legacy/manifest.json", checkIfExists: true)
+                input[1] = files("${moduleDir}/tests/fixtures/legacy/*.{json,txt,log}").findAll { f -> f.name != 'manifest.json' }
+                """
+            }
+        }
+
+        then {
+            def report = path(process.out.json[0]).json
+            def a = report.samples.find { s -> s.id == 'sampleA_illumina' }
+            def b = report.samples.find { s -> s.id == 'sampleB_nanopore' }
+            def html = path(process.out.html[0]).text
+            assertAll(
+                { assert process.success },
+                { assert report.step_order == ['read_filter', 'host_removal', 'rrna_depletion', 'downsampling'] },
+                { assert a.steps.host_removal.input_reads == a.steps.read_filter.output_reads },
+                { assert a.steps.rrna_depletion.input_reads == a.steps.host_removal.output_reads },
+                { assert a.steps.downsampling.input_reads == a.steps.rrna_depletion.output_reads },
+                { assert a.steps.rrna_depletion.output_reads == 20296 },
+                { assert a.output_reads == 20000 },
+                { assert a.warnings == [] },
+                { assert b.outputs.clean_reads.step == 'rrna_depletion' },
+                { assert html.indexOf('<th data-type="num">Host</th>') < html.indexOf('<th data-type="num">rRNA</th>') }
             )
         }
     }

@@ -1,14 +1,14 @@
-java -ea -Xmx6963m -Xms6963m -cp /opt/bbmap/current/ jgi.BBDuk in=input_reads/sampleA_illumina.clean_1.fq.gz in2=input_reads/sampleA_illumina.clean_2.fq.gz
+java -ea -Xmx6963m -Xms6963m -cp /opt/bbmap/current/ jgi.BBDuk in=input_reads/sampleA_illumina.run1_R1.fastp.fastq.gz in2=input_reads/sampleA_illumina.run1_R2.fastp.fastq.gz
 Executing jgi.BBDuk
 Version 40.05
 
 Input is being processed as paired
 Processing time:   		0.512 seconds.
 
-Input:                  	50696 reads 		15749804 bases.
-Contaminants:           	30400 reads (59.97%) 	9445000 bases (59.97%)
-Total Removed:          	30400 reads (59.97%) 	9445000 bases (59.97%)
-Result:                 	20296 reads (40.03%) 	6304804 bases (40.03%)
+Input:                  	54696 reads 		16349804 bases.
+Contaminants:           	30400 reads (55.58%) 	9445000 bases (57.77%)
+Total Removed:          	30400 reads (55.58%) 	9445000 bases (57.77%)
+Result:                 	24296 reads (44.42%) 	6904804 bases (42.23%)
 
 Time:                         	0.731 seconds.
-Reads Processed:       50696 	69.35k reads/sec
+Reads Processed:       54696 	74.82k reads/sec

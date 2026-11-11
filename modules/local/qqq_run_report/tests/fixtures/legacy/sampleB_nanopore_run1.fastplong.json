@@ -1,0 +1,39 @@
+{
+ "summary": {
+  "fastplong_version": "0.4.1",
+  "before_filtering": {
+   "total_reads": 27721,
+   "total_bases": 8285732,
+   "q20_bases": 8214123,
+   "q30_bases": 8089763,
+   "q20_rate": 0.991358,
+   "q30_rate": 0.976349,
+   "read_mean_length": 298,
+   "gc_content": 0.385169
+  },
+  "after_filtering": {
+   "total_reads": 27686,
+   "total_bases": 8277213,
+   "q20_bases": 8210136,
+   "q30_bases": 8087526,
+   "q20_rate": 0.991896,
+   "q30_rate": 0.977083,
+   "read_mean_length": 298,
+   "gc_content": 0.385206
+  }
+ },
+ "filtering_result": {
+  "passed_filter_reads": 27686,
+  "low_quality_reads": 35,
+  "too_many_N_reads": 0,
+  "too_short_reads": 0,
+  "too_long_reads": 0
+ },
+ "adapter_cutting": {
+  "adapter_trimmed_reads": 0,
+  "adapter_trimmed_bases": 0,
+  "read_start_adapter": "unspecified",
+  "read_end_adapter": "unspecified"
+ },
+ "command": "fastplong --in sampleB_nanopore_run1.fastq.gz --out sampleB_nanopore_run1.fastplong.fastq.gz --json sampleB_nanopore_run1.fastplong.json --html sampleB_nanopore_run1.fastplong.html --failed_out sampleB_nanopore_run1.fail.fastq.gz --thread 2 --report_title sampleB_nanopore_run1_fastplong_report"
+}

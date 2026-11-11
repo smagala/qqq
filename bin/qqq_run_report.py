@@ -42,8 +42,11 @@ import sys
 SCHEMA_VERSION = "1.0.0"
 
 # Order matters: it is the order the steps run in, and the order a sample's reads flow
-# through them. Each step's input should be the previous step's output.
-STEP_ORDER = ["read_filter", "host_removal", "rrna_depletion", "downsampling"]
+# through them. Each step's input should be the previous step's output. The workflow
+# writes the order it ran into the manifest's settings.step_order; manifests from before
+# rRNA depletion moved ahead of host removal carry none and ran LEGACY_STEP_ORDER.
+STEP_ORDER = ["read_filter", "rrna_depletion", "host_removal", "downsampling"]
+LEGACY_STEP_ORDER = ["read_filter", "host_removal", "rrna_depletion", "downsampling"]
 STEP_LABEL = {
     "read_filter": "Read filter",
     "host_removal": "Host removal",
@@ -231,8 +234,19 @@ def step_skeleton(status, tool=None, reason=None):
             "removed_reads": None, "output_reads": None}
 
 
+def step_order(settings):
+    order = settings.get("step_order")
+    if order is None:
+        return list(LEGACY_STEP_ORDER)
+    if sorted(order) != sorted(STEP_ORDER) or order[-1] != "downsampling":
+        sys.exit(f"manifest settings.step_order {order!r} is not an ordering of {STEP_ORDER} "
+                 "ending in downsampling")
+    return list(order)
+
+
 def build_samples(manifest, reports_dir):
     settings = manifest.get("settings", {})
+    order = step_order(settings)
     recs_by_sample = {}
     for r in manifest.get("records", []):
         recs_by_sample.setdefault(r["sample"], []).append(r)
@@ -357,7 +371,7 @@ def build_samples(manifest, reports_dir):
         # when the input is under it. The module's nf-test pins that contract.
         max_reads = settings.get("max_reads")
         prev_out = None
-        for s in ("rrna_depletion", "host_removal", "read_filter"):
+        for s in reversed(order[:-1]):
             if steps[s]["status"] == "ran":
                 prev_out = steps[s]["output_reads"]
                 break
@@ -384,7 +398,7 @@ def build_samples(manifest, reports_dir):
 
         # ---- chain checks: each step should start where the previous one ended
         last_out, last_name = None, None
-        for s in STEP_ORDER:
+        for s in order:
             st = steps[s]
             if st["status"] not in ("ran", "bypassed"):
                 continue
@@ -394,13 +408,13 @@ def build_samples(manifest, reports_dir):
                 last_out, last_name = st["output_reads"], s
 
         input_reads = input_bases = None
-        for s in STEP_ORDER:
+        for s in order:
             if steps[s]["status"] == "ran":
                 input_reads = steps[s]["input_reads"]
                 input_bases = steps[s].get("input_bases")
                 break
         output_reads = None
-        for s in reversed(STEP_ORDER):
+        for s in reversed(order):
             if steps[s]["status"] in ("ran", "bypassed"):
                 output_reads = steps[s]["output_reads"]
                 break
@@ -562,13 +576,13 @@ def build_databases(manifest, evidence):
     return dbs
 
 
-def build_summary(samples):
+def build_summary(samples, order):
     def tot(key, step=None):
         vals = [(s["steps"][step][key] if step else s[key]) for s in samples
                 if (s["steps"][step]["status"] in ("ran", "bypassed") if step else True)]
         return sum_known(vals)
     inp, out = tot("input_reads"), tot("output_reads")
-    removed = {s: tot("removed_reads", s) for s in STEP_ORDER}
+    removed = {s: tot("removed_reads", s) for s in order}
     trimmed = sum_known(s["steps"]["read_filter"].get("adapter_trimmed_reads")
                         for s in samples if s["steps"]["read_filter"]["status"] == "ran")
     fp_in = tot("input_reads", "read_filter")
@@ -597,16 +611,17 @@ def build_summary(samples):
 
 def build(manifest, reports_dir):
     samples, evidence = build_samples(manifest, reports_dir)
+    order = step_order(manifest.get("settings", {}))
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "generator": {"script": "qqq_run_report.py", "python": platform.python_version()},
         "units": "reads are sequence records; paired-end mates are counted separately",
-        "step_order": STEP_ORDER,
+        "step_order": order,
         "run": manifest.get("run", {}),
         "tools": build_tools(manifest, evidence),
         "databases": build_databases(manifest, evidence),
-        "summary": build_summary(samples),
+        "summary": build_summary(samples, order),
         "outputs": manifest.get("run_outputs", {}),
         "samples": samples,
     }
@@ -651,17 +666,25 @@ def kv(d):
     return " ".join(x for x in out if x)
 
 
-SEGMENTS = [("read_filter", "seg-filter"), ("host_removal", "seg-host"),
-            ("rrna_depletion", "seg-rrna"), ("downsampling", "seg-down")]
+# Colour key per step; drawn in the run's own step_order.
+SEG_KEY = {"read_filter": "filter", "host_removal": "host", "rrna_depletion": "rrna",
+           "downsampling": "down"}
+SEG_LEGEND = {"read_filter": "read filter", "host_removal": "host", "rrna_depletion": "rRNA",
+              "downsampling": "downsampling"}
+REMOVED_AS = {"read_filter": "removed by read filter", "host_removal": "removed as host",
+              "rrna_depletion": "removed as rRNA", "downsampling": "removed by downsampling"}
+STEP_COLUMN = {"read_filter": "Read filter", "host_removal": "Host", "rrna_depletion": "rRNA",
+               "downsampling": "Downsampled"}
 
 
-def comp_bar(s, width=150):
+def comp_bar(s, order, width=150):
     """Stacked bar of where a sample's input reads went: removed per step, then retained."""
     inp = s["input_reads"]
     if not inp:
         return '<span class="sub">–</span>'
     x, parts = 0.0, []
-    for step, cls in SEGMENTS:
+    for step in order:
+        cls = f"seg-{SEG_KEY[step]}"
         v = s["steps"][step]["removed_reads"] or 0
         w = width * v / inp
         if w > 0:
@@ -670,7 +693,7 @@ def comp_bar(s, width=150):
     keep = width * (s["output_reads"] or 0) / inp
     parts.append(f'<rect x="{x:.1f}" width="{keep:.1f}" height="10" class="seg-keep"/>')
     title = "; ".join(f"{STEP_LABEL[st]} {pct(frac(s['steps'][st]['removed_reads'], inp))}"
-                      for st, _ in SEGMENTS if s["steps"][st]["removed_reads"])
+                      for st in order if s["steps"][st]["removed_reads"])
     return (f'<svg width="{width}" height="10" class="bar" role="img" aria-label="{esc(title)}">'
             f'<title>{esc(title or "nothing removed")}</title>'
             f'<rect width="{width}" height="10" rx="2" class="track"/>{"".join(parts)}</svg>')
@@ -777,6 +800,7 @@ return asc?r:-r;});rows.forEach(r=>body.appendChild(r));}));
 
 def render(rep):
     run, summ, samples = rep["run"], rep["summary"], rep["samples"]
+    order = rep["step_order"]
     title = "qqq run report"
     P = []
     commit = run.get("commit") or "unknown commit"
@@ -795,10 +819,10 @@ def render(rep):
         (pct(summ["adapter_trimmed_fraction"]), "reads adapter-trimmed",
          f"{human(summ['adapter_trimmed_reads'])} reads · {human(summ['adapter_trimmed_bases'])} bases"
          if summ["adapter_trimmed_reads"] is not None else "read filter off", "var(--line)"),
-        (human(rm["read_filter"]), "removed by read filter", pct(summ["removed_fraction"]["read_filter"]), "var(--filter)"),
-        (human(rm["host_removal"]), "removed as host", pct(summ["removed_fraction"]["host_removal"]), "var(--host)"),
-        (human(rm["rrna_depletion"]), "removed as rRNA", pct(summ["removed_fraction"]["rrna_depletion"]), "var(--rrna)"),
-        (human(rm["downsampling"]), "removed by downsampling", pct(summ["removed_fraction"]["downsampling"]), "var(--down)"),
+    ] + [
+        (human(rm[st]), REMOVED_AS[st], pct(summ["removed_fraction"][st]), f"var(--{SEG_KEY[st]})")
+        for st in order
+    ] + [
         (human(summ["output_reads"]), "final reads", f"{pct(summ['retained_fraction'])} of input", "var(--keep)"),
         (summ["samples_zero_reads"], "samples with zero reads left",
          ", ".join(summ["samples_zero_reads_ids"][:5]) or None, "var(--warn)" if summ["samples_zero_reads"] else "var(--line)"),
@@ -819,14 +843,14 @@ def render(rep):
              '<label><input type="checkbox" id="warn"> with warnings</label><span class="sub" id="nshown"></span>'
              '<div class="legend">'
              + "".join(f'<span><span class="sw" style="background:var(--{c})"></span>{lbl}</span>'
-                       for c, lbl in (("filter", "read filter"), ("host", "host"), ("rrna", "rRNA"),
-                                      ("down", "downsampling"), ("keep", "retained")))
+                       for c, lbl in [(SEG_KEY[st], SEG_LEGEND[st]) for st in order] + [("keep", "retained")])
              + "</div></div>")
     P.append('<p class="note">Counts are reads (paired-end mates counted separately); the small figure is the '
              'share of the sample\'s input. Click a column to sort. Hover a count for the exact number.</p>')
     P.append('<div class="tw"><table id="t"><thead><tr><th>Sample</th><th data-type="num">Input reads</th>'
-             '<th data-type="num">Adapter-trimmed</th><th data-type="num">Read filter</th><th data-type="num">Host</th>'
-             '<th data-type="num">rRNA</th><th data-type="num">Downsampled</th><th data-type="num">Final reads</th>'
+             '<th data-type="num">Adapter-trimmed</th>'
+             + "".join(f'<th data-type="num">{STEP_COLUMN[st]}</th>' for st in order)
+             + '<th data-type="num">Final reads</th>'
              '<th>Where the input went</th><th>Flags</th></tr></thead><tbody>')
     for s in samples:
         rf = s["steps"]["read_filter"]
@@ -844,10 +868,9 @@ def render(rep):
             f'<td class="id">{esc(s["id"])}<div class="sub">{"SE" if s["single_end"] else "PE"} · '
             f'{esc(s.get("platform") or "")} · {len(s["runs"])} run{"s" if len(s["runs"]) != 1 else ""}</div></td>'
             + count_cell(s["input_reads"], None, f"{s['input_reads']:,} reads" if s["input_reads"] is not None else "")
-            + at_cell + step_cell(s, "read_filter") + step_cell(s, "host_removal")
-            + step_cell(s, "rrna_depletion") + step_cell(s, "downsampling")
+            + at_cell + "".join(step_cell(s, st) for st in order)
             + count_cell(s["output_reads"], s["input_reads"])
-            + f"<td>{comp_bar(s)}</td><td>{flags}</td></tr>")
+            + f"<td>{comp_bar(s, order)}</td><td>{flags}</td></tr>")
     P.append("</tbody></table></div>")
 
     # ---- processing
@@ -905,14 +928,14 @@ def render(rep):
              'and the JSON carries both. Host reads are deliberately not kept unless hostess was run with '
              '<code>--host_bam</code>.</p>')
     P.append('<div class="tw"><table><thead><tr><th>Sample</th><th>Final reads</th>'
-             + "".join(f"<th>Removed: {STEP_LABEL[s]}</th>" for s in STEP_ORDER) + "</tr></thead><tbody>")
+             + "".join(f"<th>Removed: {STEP_LABEL[s]}</th>" for s in order) + "</tr></thead><tbody>")
     for s in samples:
         o = s["outputs"]
         cr = o["clean_reads"]
         cr_html = path_list(cr) + (f'<div class="sub">from {esc(STEP_LABEL.get(cr["step"], cr["step"]))}</div>'
                                    if cr and cr.get("step") in STEP_LABEL else "")
         P.append(f'<tr><td class="id">{esc(s["id"])}</td><td>{cr_html}</td>'
-                 + "".join(f"<td>{path_list(o['removed_reads'][st])}</td>" for st in STEP_ORDER) + "</tr>")
+                 + "".join(f"<td>{path_list(o['removed_reads'][st])}</td>" for st in order) + "</tr>")
     P.append("</tbody></table></div>")
 
     # ---- run

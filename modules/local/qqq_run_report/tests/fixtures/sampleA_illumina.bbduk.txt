@@ -1,5 +1,5 @@
-#File	input_reads/sampleA_illumina.clean_1.fq.gz	input_reads/sampleA_illumina.clean_2.fq.gz
-#Total	50696
-#Matched	30000	59.17627%
+#File	input_reads/sampleA_illumina_run1_R1.fastp.fastq.gz	input_reads/sampleA_illumina_run1_R2.fastp.fastq.gz
+#Total	54696
+#Matched	30000	54.84862%
 #Name	Reads	ReadsPct
-REC1 Bacteria;x	30000	59.17627%
+REC1 Bacteria;x	30000	54.84862%

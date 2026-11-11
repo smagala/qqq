@@ -66,11 +66,11 @@
                             "status": "ran",
                             "tool": "deacon",
                             "reason": null,
-                            "input_reads": 54696,
+                            "input_reads": 24296,
                             "removed_reads": 4000,
-                            "output_reads": 50696,
-                            "input_bases": 16349804,
-                            "output_bases": 15749804,
+                            "output_reads": 20296,
+                            "input_bases": 6904804,
+                            "output_bases": 6304804,
                             "removed_bases": 600000,
                             "report": "sampleA_illumina.deacon.json"
                         },
@@ -78,12 +78,12 @@
                             "status": "ran",
                             "tool": "bbduk",
                             "reason": null,
-                            "input_reads": 50696,
+                            "input_reads": 54696,
                             "removed_reads": 30400,
-                            "output_reads": 20296,
-                            "input_bases": 15749804,
+                            "output_reads": 24296,
+                            "input_bases": 16349804,
                             "removed_bases": 9445000,
-                            "output_bases": 6304804,
+                            "output_bases": 6904804,
                             "matched_reads": 30000,
                             "report": "sampleA_illumina.bbduk.txt",
                             "log": "sampleA_illumina.bbduk.log"
@@ -234,9 +234,9 @@
                             "status": "ran",
                             "tool": "bbduk",
                             "reason": null,
-                            "input_reads": 0,
+                            "input_reads": 27686,
                             "removed_reads": 0,
-                            "output_reads": 0,
+                            "output_reads": 27686,
                             "report": "sampleB_nanopore.bbduk.txt"
                         },
                         "downsampling": {
@@ -251,11 +251,11 @@
                     },
                     "outputs": {
                         "clean_reads": {
-                            "step": "rrna_depletion",
+                            "step": "host_removal",
                             "files": [
                                 {
-                                    "path": "s3://bucket/qqq/results/bbduk/sampleB_nanopore.depleted.fastq.gz",
-                                    "relative_path": "bbduk/sampleB_nanopore.depleted.fastq.gz"
+                                    "path": "s3://bucket/qqq/results/deacon/sampleB_nanopore.clean.fq.gz",
+                                    "relative_path": "deacon/sampleB_nanopore.clean.fq.gz"
                                 }
                             ],
                             "reason": null
@@ -307,14 +307,14 @@
                 "retained_fraction": 0.2404915647583661,
                 "removed_reads": {
                     "read_filter": 781,
-                    "host_removal": 31686,
                     "rrna_depletion": 30400,
+                    "host_removal": 31686,
                     "downsampling": 296
                 },
                 "removed_fraction": {
                     "read_filter": 0.009391195603814196,
-                    "host_removal": 0.38101078604667943,
                     "rrna_depletion": 0.36554717843271645,
+                    "host_removal": 0.38101078604667943,
                     "downsampling": 0.003559275158423818
                 },
                 "read_filter_removed_by_reason": {
@@ -494,7 +494,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-11-09T11:05:38.590357141",
+        "timestamp": "2026-11-11T13:33:53.280934269",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
