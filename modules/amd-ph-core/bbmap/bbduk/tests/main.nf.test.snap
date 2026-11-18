@@ -58,9 +58,27 @@
                 ],
                 "6": [
                     [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.bbduk.log:md5,4b11f8d7dd7e38e430f5c8250e81d906"
+                    ]
+                ],
+                "7": [
+                    [
                         "BBMAP_BBDUK",
                         "bbduk",
                         "40.05"
+                    ]
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": true
+                        },
+                        "test.bbduk.log:md5,4b11f8d7dd7e38e430f5c8250e81d906"
                     ]
                 ],
                 "matched": [
@@ -126,7 +144,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-10-20T11:34:48.90029225",
+        "timestamp": "2026-11-18T12:38:13.101097378",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
@@ -207,9 +225,27 @@
                 ],
                 "6": [
                     [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bbduk.log:md5,4b11f8d7dd7e38e430f5c8250e81d906"
+                    ]
+                ],
+                "7": [
+                    [
                         "BBMAP_BBDUK",
                         "bbduk",
                         "40.05"
+                    ]
+                ],
+                "log": [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        },
+                        "test.bbduk.log:md5,4b11f8d7dd7e38e430f5c8250e81d906"
                     ]
                 ],
                 "matched": [
@@ -281,7 +317,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-10-20T11:34:45.295574582",
+        "timestamp": "2026-11-18T12:38:09.252191619",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"

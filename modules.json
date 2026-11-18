@@ -6,8 +6,8 @@
             "modules": {
                 "amd-ph-core": {
                     "bbmap/bbduk": {
-                        "branch": "main",
-                        "git_sha": "5202ca1c7eda5f53f35bc9cb8db1eb9e22db0806",
+                        "branch": "feat/bbduk-stderr-log",
+                        "git_sha": "18f2bf6dae5cd8def29db2f492e2b95736e58df0",
                         "installed_by": ["modules"]
                     },
                     "deacon/filter": {
@@ -22,12 +22,12 @@
                     },
                     "falco": {
                         "branch": "main",
-                        "git_sha": "f7a98c1a9f582663ec670efa60907b2556156933",
+                        "git_sha": "395a288ca41fbb8fcc0b44db7acf0655bbad7fee",
                         "installed_by": ["modules"]
                     },
                     "hostess": {
                         "branch": "main",
-                        "git_sha": "1345f870a8b6bbc68457a05efb9ee1e333424b73",
+                        "git_sha": "5e505d80f875d5646306e2baf22904b53b8f023d",
                         "installed_by": ["modules"]
                     },
                     "rasusa/reads": {
@@ -43,39 +43,38 @@
                 "nf-core": {
                     "bowtie2/build": {
                         "branch": "master",
-                        "git_sha": "a0961c41021561ac7cf139f86bd7812a2f99e994",
+                        "git_sha": "796f2973ba567710522580d4d8e4ab18ce8a08cc",
                         "installed_by": ["modules"]
                     },
                     "cat/fastq": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
-                        "installed_by": ["modules"],
-                        "patch": "modules/nf-core/cat/fastq/cat-fastq.diff"
+                        "git_sha": "3ed7dbab112fa8802f0affff345b8fa2ac935e5c",
+                        "installed_by": ["modules"]
                     },
                     "fastp": {
                         "branch": "master",
-                        "git_sha": "826a9b28d6da61097d60e1923bb8a2e51de3c5b4",
+                        "git_sha": "697192edd1bd7a330a5edbc4eb2f0f69ecfbb6ce",
                         "installed_by": ["modules"]
                     },
                     "fastplong": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "7b3452a23773f687ededb4befd037920e5a51341",
                         "installed_by": ["modules"]
                     },
                     "hostile/clean": {
                         "branch": "master",
-                        "git_sha": "14295214ba15060cf1e65bdba3e0c4b3a450d5b1",
+                        "git_sha": "7b3452a23773f687ededb4befd037920e5a51341",
                         "installed_by": ["modules"],
                         "patch": "modules/nf-core/hostile/clean/hostile-clean.diff"
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "98403d15b0e50edae1f3fec5eae5e24982f1fade",
+                        "git_sha": "868791e991feaaeff234b79f7910b6b442627529",
                         "installed_by": ["modules"]
                     },
                     "samtools/bam2fq": {
                         "branch": "master",
-                        "git_sha": "9339809fcb90af8a8b7051e6cd914894d5c52002",
+                        "git_sha": "efe94a0ea5cad01b5cad21f7112644bfab4ea2b7",
                         "installed_by": ["modules"]
                     }
                 }

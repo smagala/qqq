@@ -36,7 +36,14 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "7": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ],
                 "bai": [
@@ -73,15 +80,22 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "versions_hostile": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-08-10T14:24:47.029581188",
+        "timestamp": "2026-11-01T18:28:03.393178969",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
         }
     },
     "sarscov2 - fastq - paired_end - bam - stub": {
@@ -148,7 +162,14 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "7": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ],
                 "bai": [
@@ -212,15 +233,22 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "versions_hostile": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-08-10T14:24:43.26481059",
+        "timestamp": "2026-11-01T18:27:59.590749379",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
         }
     },
     "sarscov2 - fastq - single_end - minimap2 - stub": {
@@ -260,7 +288,14 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "7": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ],
                 "bai": [
@@ -297,12 +332,19 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "versions_hostile": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-10-20T13:20:18.665001969",
+        "timestamp": "2026-11-01T18:28:07.288810559",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
@@ -348,7 +390,14 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "7": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ],
                 "bai": [
@@ -388,15 +437,22 @@
                     [
                         "HOSTESS",
                         "hostess",
-                        ""
+                        "unknown"
+                    ]
+                ],
+                "versions_hostile": [
+                    [
+                        "HOSTESS",
+                        "hostile",
+                        "unknown"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-08-10T14:24:39.555462654",
+        "timestamp": "2026-11-01T18:27:55.88343327",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "25.10.4"
+            "nextflow": "26.04.6"
         }
     }
 }

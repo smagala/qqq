@@ -24,7 +24,24 @@ process HOSTESS {
     tuple val(meta), path("*.host.bam.bai")        , emit: bai     , optional: true
     tuple val(meta), path("*.host.flagstat.txt")   , emit: flagstat, optional: true
     tuple val(meta), path("*.host.stats.txt")      , emit: stats   , optional: true
-    tuple val("${task.process}"), val('hostess'), eval("hostess --version | sed 's/.* //'"), topic: versions, emit: versions_hostess
+    // Both tools are reported, because `hostess` is a thin wrapper and `hostile` is
+    // what actually dehosts: recording only the wrapper's 0.1.0 omits the version
+    // of the software that produced the result.
+    //
+    // The `| grep .` is load-bearing, not decoration. In a pipeline the exit status
+    // is the LAST command's, so when the binary is absent `hostess: command not
+    // found` goes to stderr, sed reads empty stdin, and the pipeline exits 0 -- the
+    // version is recorded as an empty string with no error anywhere. A trailing
+    // `|| echo unknown` does NOT fix that, because there is no failure for it to
+    // catch; `grep .` supplies one by exiting non-zero on empty input. That empty
+    // string is what the committed snapshot held, and the stub tests run in a plain
+    // ubuntu image where neither binary exists, so it was reproducing silently.
+    //
+    // `sed -n "1s/^[^0-9]*//p"` strips any leading tool name and handles both output
+    // shapes: `hostess 0.1.0` and hostile's bare `2.0.2`. The previous
+    // `sed 's/.* //'` required a space and would have returned hostile's whole line.
+    tuple val("${task.process}"), val('hostess'), eval('hostess --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown'), topic: versions, emit: versions_hostess
+    tuple val("${task.process}"), val('hostile'), eval('hostile --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown'), topic: versions, emit: versions_hostile
 
     when:
     task.ext.when == null || task.ext.when

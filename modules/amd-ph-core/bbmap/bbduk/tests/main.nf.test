@@ -40,6 +40,12 @@ nextflow_process {
             // looks like success. These counts are what distinguishes them.
             def depleted_n = path(process.out.reads[0][1][0]).linesGzip.size().intdiv(4)
             def matched_n  = path(process.out.matched[0][1][0]).linesGzip.size().intdiv(4)
+            // The log's `Result:` and `Total Removed:` count records written, both mates, which
+            // is why it is emitted: #Matched undercounts paired-end removal.
+            def log_count = { label ->
+                Long.parseLong(path(process.out.log[0][1]).text.readLines()
+                    .find { line -> line.startsWith(label) }.split('\t')[1].trim().tokenize(' ')[0])
+            }
             assertAll(
                 { assert process.success },
                 { assert process.out.reads[0][1].size() == 2 },
@@ -53,6 +59,8 @@ nextflow_process {
                 // And the streams must agree with the stats file, which is what
                 // ties the emitted files to the reference matching.
                 { assert matched_n + depleted_n > 0 },
+                { assert log_count('Result:') == 2 * depleted_n },
+                { assert log_count('Total Removed:') == 2 * matched_n },
                 { assert snapshot(stats).match("stats_real") }
             )
         }

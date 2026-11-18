@@ -3,7 +3,7 @@
         "content": [
             {
                 "0": [
-
+                    
                 ],
                 "1": [
                     [
@@ -33,16 +33,16 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -73,27 +73,27 @@
                     ]
                 ],
                 "reads": [
-
+                    
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:56.864151",
+        "timestamp": "2026-10-20T07:29:53.124949",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end": {
@@ -111,25 +111,25 @@
                 ]
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:04.967568",
+        "timestamp": "2026-10-20T07:28:40.30845",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_merged_adapterlist": {
@@ -147,7 +147,7 @@
                 ]
             ],
             [
-
+                
             ],
             [
                 [
@@ -163,51 +163,51 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:24.635687",
+        "timestamp": "2026-10-20T07:29:05.571571",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_single_end_qc_only": {
         "content": [
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:28.028482",
+        "timestamp": "2026-10-20T07:29:11.437128",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_trim_fail": {
@@ -238,22 +238,22 @@
                 ]
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:17.244064",
+        "timestamp": "2026-10-20T07:28:55.240459",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "fastp - stub test_fastp_interleaved": {
@@ -296,16 +296,16 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -345,24 +345,24 @@
                     ]
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:40.981576",
+        "timestamp": "2026-10-20T07:29:30.222789",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_single_end - stub": {
@@ -405,16 +405,16 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -454,24 +454,24 @@
                     ]
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:34.535562",
+        "timestamp": "2026-10-20T07:29:20.872868",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_merged_adapterlist - stub": {
@@ -517,7 +517,7 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
                     [
@@ -532,7 +532,7 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -575,7 +575,7 @@
                     ]
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
                     [
@@ -590,15 +590,15 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:53.745838",
+        "timestamp": "2026-10-20T07:29:48.725604",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_merged - stub": {
@@ -644,7 +644,7 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
                     [
@@ -659,7 +659,7 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -702,7 +702,7 @@
                     ]
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
                     [
@@ -717,15 +717,15 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:50.440269",
+        "timestamp": "2026-10-20T07:29:44.022359",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_merged": {
@@ -743,7 +743,7 @@
                 ]
             ],
             [
-
+                
             ],
             [
                 [
@@ -759,15 +759,15 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:21.026574",
+        "timestamp": "2026-10-20T07:29:00.204217",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end - stub": {
@@ -813,16 +813,16 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -865,24 +865,24 @@
                     ]
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:37.802435",
+        "timestamp": "2026-10-20T07:29:25.727397",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_single_end": {
@@ -897,25 +897,25 @@
                 ]
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:01.184475",
+        "timestamp": "2026-10-20T07:28:34.79259",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_single_end_trim_fail - stub": {
@@ -967,13 +967,13 @@
                     ]
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -1022,21 +1022,21 @@
                     ]
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:44.158414",
+        "timestamp": "2026-10-20T07:29:34.73774",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_trim_fail - stub": {
@@ -1095,13 +1095,13 @@
                     ]
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -1157,21 +1157,21 @@
                     ]
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:47.329995",
+        "timestamp": "2026-10-20T07:29:39.358515",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "fastp test_fastp_interleaved": {
@@ -1190,15 +1190,15 @@
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:09.066984",
+        "timestamp": "2026-10-20T07:28:45.408927",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_single_end_trim_fail": {
@@ -1222,65 +1222,65 @@
                 ]
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:13.177593",
+        "timestamp": "2026-10-20T07:28:50.104094",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_qc_only": {
         "content": [
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             [
-
+                
             ],
             {
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:06:31.289427",
+        "timestamp": "2026-10-20T07:29:16.25113",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     },
     "test_fastp_paired_end_qc_only - stub": {
         "content": [
             {
                 "0": [
-
+                    
                 ],
                 "1": [
                     [
@@ -1310,16 +1310,16 @@
                     ]
                 ],
                 "4": [
-
+                    
                 ],
                 "5": [
-
+                    
                 ],
                 "6": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ],
                 "html": [
@@ -1350,27 +1350,27 @@
                     ]
                 ],
                 "reads": [
-
+                    
                 ],
                 "reads_fail": [
-
+                    
                 ],
                 "reads_merged": [
-
+                    
                 ],
                 "versions_fastp": [
                     [
                         "FASTP",
                         "fastp",
-                        "1.3.6"
+                        "1.4.0"
                     ]
                 ]
             }
         ],
-        "timestamp": "2026-07-31T10:07:00.16477",
+        "timestamp": "2026-10-20T07:29:57.868628",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.7"
         }
     }
 }

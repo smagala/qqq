@@ -50,6 +50,17 @@ nextflow_process {
                 """
             }
         }
+                    ],
+                ]
+                input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
+                // All three cases build a bowtie2 index, so all three declare
+                // bowtie2. Declaring it matters most for the single-end case:
+                // hostile treats single-end input as long reads unless the
+                // aligner is stated.
+                input[2] = 'bowtie2'
+                """
+            }
+        }
 
         then {
             assertAll(
@@ -77,11 +88,6 @@ nextflow_process {
                     ],
                 ]
                 input[1] = BOWTIE2_BUILD.out.index.map { ['genome', it[1]] }
-                // All three cases build a bowtie2 index, so all three declare
-                // bowtie2. Declaring it matters most for the single-end case:
-                // hostile treats single-end input as long reads unless the
-                // aligner is stated.
-                input[2] = 'bowtie2'
                 """
             }
         }

@@ -42,7 +42,7 @@ input:
           files for paired-end input.
         pattern: "*.{fastq,fq}{,.gz}"
         ontologies:
-          - edam: http://edamontology.org/format_1930
+          - edam: http://edamontology.org/format_1930 # FASTQ
   - - reference_name:
         type: string
         description: |
@@ -80,6 +80,7 @@ output:
           pattern: "*.clean*.fastq.gz"
           ontologies:
             - edam: http://edamontology.org/format_1930
+            - edam: http://edamontology.org/format_3989 # GZIP format
   json:
     - - meta:
           type: map
@@ -92,7 +93,8 @@ output:
             Read counts and run parameters. Matches the shape MultiQC's Hostile
             module expects, so it is parsed with no extra configuration.
           pattern: "*.hostess.json"
-          ontologies: []
+          ontologies:
+            - edam: http://edamontology.org/format_3464 # JSON
   bam:
     - - meta:
           type: map
@@ -146,26 +148,49 @@ output:
           pattern: "*.host.stats.txt"
           ontologies: []
   versions_hostess:
-    - - "${task.process}":
+    - - ${task.process}:
           type: string
           description: Process name, emitted to the `versions` topic channel
       - hostess:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - hostess --version | sed 's/.* //':
+      - hostess --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
+
+  versions_hostile:
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - hostile:
+          type: string
+          description: The name of the tool
+      - hostile --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+
 topics:
   versions:
-    - - "${task.process}":
+    - - ${task.process}:
           type: string
           description: Process name, emitted to the `versions` topic channel
       - hostess:
           type: string
           description: Tool name, emitted to the `versions` topic channel
-      - hostess --version | sed 's/.* //':
+      - hostess --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown:
           type: eval
           description: The expression to obtain the version of the tool
+
+    - - ${task.process}:
+          type: string
+          description: Process name, emitted to the `versions` topic channel
+      - hostile:
+          type: string
+          description: The name of the tool
+      - hostile --version 2>/dev/null | sed -n "1s/^[^0-9]*//p" | grep . || echo unknown:
+          type: eval
+          description: The expression to obtain the version of the tool
+
 authors:
   - "@smagala"
 maintainers:
