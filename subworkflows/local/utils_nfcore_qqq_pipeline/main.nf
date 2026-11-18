@@ -263,7 +263,7 @@ def normalisePlatform(row) {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (merge_id, metas, fastqs) = input
+    def (_merge_id, metas, fastqs) = input
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1

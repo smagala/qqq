@@ -130,7 +130,7 @@ workflow QQQ {
     // samplesheet inputs, which nothing publishes. Only a single-run sample with
     // every step turned off ends up here.
     ch_report_records = ch_report_records.mix(
-        ch_input_runs.map { meta, route, reads ->
+        ch_input_runs.map { _meta, route, reads ->
             [
                 [
                     kind: 'reads', sample: route.merge_id, step: 'input', priority: 0, published: false,
@@ -141,7 +141,7 @@ workflow QQQ {
         }
     )
     // run id -> the sample it is merged into, for re-keying per-run fastp output.
-    ch_run_to_sample = ch_input_runs.map { meta, route, reads -> [ meta.id, route.merge_id ] }
+    ch_run_to_sample = ch_input_runs.map { meta, route, _reads -> [ meta.id, route.merge_id ] }
 
 
     //
@@ -155,20 +155,20 @@ workflow QQQ {
     // come from the data files too, so the summary files are not needed here.
     //
     FALCO (
-        ch_reads_mix.map { meta, route, reads -> [ meta, reads ] }
+        ch_reads_mix.map { meta, _route, reads -> [ meta, reads ] }
     )
-    ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { meta, txt -> txt })
+    ch_multiqc_files = ch_multiqc_files.mix(FALCO.out.txt.collect { _meta, txt -> txt })
 
     // MODULE: Fastp / Fastplong
     // Quality control and trimming
     //
     if (!params.skip_fastp) {
 
-        ch_short_reads = ch_reads_mix.filter { meta, route, reads ->
+        ch_short_reads = ch_reads_mix.filter { _meta, route, _reads ->
             route.type == 'short'
         }
 
-        ch_long_reads = ch_reads_mix.filter { meta, route, reads ->
+        ch_long_reads = ch_reads_mix.filter { _meta, route, _reads ->
             route.type == 'long'
         }
 
@@ -185,7 +185,7 @@ workflow QQQ {
         // --unpaired1/2. Single-end fastp and fastplong write every failed read.
         // The run report marks the paired-end entries incomplete for this reason.
         FASTP (
-            ch_short_reads.map { meta, route, reads ->
+            ch_short_reads.map { meta, _route, reads ->
                 tuple(meta, reads, [])
             },
             false,
@@ -194,7 +194,7 @@ workflow QQQ {
         )
 
         FASTPLONG (
-            ch_long_reads.map { meta, route, reads ->
+            ch_long_reads.map { meta, _route, reads ->
                 tuple(meta, reads)
             },
             [],
@@ -226,7 +226,7 @@ workflow QQQ {
                 FASTP.out.reads.map { meta, reads -> [ meta.id, 'fastp', reads ] }
                     .mix(FASTPLONG.out.reads.map { meta, reads -> [ meta.id, 'fastplong', reads ] })
                     .combine(ch_run_to_sample, by: 0)
-                    .map { run, dir, reads, sample ->
+                    .map { _run, dir, reads, sample ->
                         [ reportReads(sample, 'read_filter', 1, dir, reads), [] ]
                     }
             )
@@ -234,13 +234,13 @@ workflow QQQ {
         // fastp drops `route`, so it is rejoined on meta.id. The join is keyed
         // rather than re-derived: at this point each id is still per-run and
         // unique, and fastp emits one record per input.
-        ch_route_by_id = ch_reads_mix.map { meta, route, reads -> [ meta.id, route ] }
+        ch_route_by_id = ch_reads_mix.map { meta, route, _reads -> [ meta.id, route ] }
 
         ch_reads_mix = FASTP.out.reads
             .mix(FASTPLONG.out.reads)
             .map { meta, reads -> [ meta.id, meta, reads ] }
             .join(ch_route_by_id)
-            .map { id, meta, reads, route -> [ meta, route, reads ] }
+            .map { _id, meta, reads, route -> [ meta, route, reads ] }
     }
 
     //
@@ -320,7 +320,7 @@ workflow QQQ {
                 return [
                     [ id: merge_id, single_end: metas[0].single_end ],
                     [ platform: routes[0].platform, type: routes[0].type, merge_id: merge_id ],
-                    orderedRuns.collect { it.reads }.flatten()
+                    orderedRuns.collect { run -> run.reads }.flatten()
                 ]
         }
         .set { ch_reads_grouped }
@@ -330,7 +330,7 @@ workflow QQQ {
     // Merge samples that have multiple runs
     //
     CAT_FASTQ (
-        ch_reads_grouped.multiple.map { meta, route, reads -> [ meta, reads ] }
+        ch_reads_grouped.multiple.map { meta, _route, reads -> [ meta, reads ] }
     )
     ch_report_records = ch_report_records.mix(
         CAT_FASTQ.out.reads.map { meta, reads -> [ reportReads(meta.id, 'merge', 2, 'cat', reads), [] ] }
@@ -346,8 +346,8 @@ workflow QQQ {
     // merged identity and unique per sample.
     ch_merged_reads = CAT_FASTQ.out.reads
         .map { meta, reads -> [ meta.id, meta, reads ] }
-        .join(ch_reads_grouped.multiple.map { meta, route, reads -> [ meta.id, route ] })
-        .map { id, meta, reads, route -> [ meta, route, reads ] }
+        .join(ch_reads_grouped.multiple.map { meta, route, _reads -> [ meta.id, route ] })
+        .map { _id, meta, reads, route -> [ meta, route, reads ] }
         .mix(ch_reads_grouped.single)
 
     //
@@ -427,7 +427,7 @@ workflow QQQ {
         // truncated copy parses identically (the `bbmap/stats` pattern matches
         // on the header) and gives the same percent-filtered figure from 38 KB.
         // The full file and the per-record rpkm stay in the results.
-        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { meta, txt -> txt })
+        ch_multiqc_files = ch_multiqc_files.mix(BBMAP_BBDUK.out.stats_mqc.collect { _meta, txt -> txt })
 
         // For the run report: the stderr log, whose `Total Removed:`/`Result:` lines
         // are the exact record counts, and the complete stats file for #Total and
@@ -460,7 +460,7 @@ workflow QQQ {
     // index in that case, so index resolution is inside each branch — asking
     // for one when no dehosting will happen is how this used to fail.
     if (params.dehoster == 'none') {
-        ch_dehosted_fastq = ch_predehost_reads.map { meta, route, reads -> [ meta, reads ] }
+        ch_dehosted_fastq = ch_predehost_reads.map { meta, _route, reads -> [ meta, reads ] }
         ch_dehosted_json  = channel.empty()
         ch_host_bam       = channel.empty()
         ch_host_bai       = channel.empty()
@@ -486,7 +486,7 @@ workflow QQQ {
                 channel.value([[id: host_fasta.baseName], host_fasta])
             )
             // Already a value channel, since DEACON_INDEX's input is one.
-            ch_deacon_index = DEACON_INDEX.out.index.map { meta, index -> index }
+            ch_deacon_index = DEACON_INDEX.out.index.map { _meta, index -> index }
         }
         else {
             // Same failure mode as hostile_db below: without this the missing
@@ -537,8 +537,8 @@ workflow QQQ {
         // deacon does not care short from long, so `route` is dropped on the way
         // in and the branch is on input size alone.
         ch_deacon_sized = ch_predehost_reads
-            .map { meta, route, reads -> [ meta, reads ] }
-            .branch { meta, reads ->
+            .map { meta, _route, reads -> [ meta, reads ] }
+            .branch { _meta, reads ->
                 large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
                 small: true
             }
@@ -620,28 +620,28 @@ workflow QQQ {
         // Sized first, then split short from long. `route` is carried through
         // both branches and dropped on the way into each alias, so the four
         // aliases below receive the plain [meta, reads] every module expects.
-        ch_sized = ch_predehost_reads.branch { meta, route, reads ->
+        ch_sized = ch_predehost_reads.branch { _meta, _route, reads ->
             large: [reads].flatten().sum { read -> read.size() } > params.hostile_large_input_bytes
             small: true
         }
 
         ch_small = ch_sized.small
-            .branch { meta, route, reads ->
+            .branch { _meta, route, _reads ->
                 short_reads: route.type == 'short'
                 long_reads:  route.type == 'long'
             }
 
         ch_large = ch_sized.large
-            .branch { meta, route, reads ->
+            .branch { _meta, route, _reads ->
                 short_reads: route.type == 'short'
                 long_reads:  route.type == 'long'
             }
 
         // Drop `route` once the routing it exists for has happened.
-        ch_small_short = ch_small.short_reads.map { meta, route, reads -> [ meta, reads ] }
-        ch_small_long  = ch_small.long_reads.map  { meta, route, reads -> [ meta, reads ] }
-        ch_large_short = ch_large.short_reads.map { meta, route, reads -> [ meta, reads ] }
-        ch_large_long  = ch_large.long_reads.map  { meta, route, reads -> [ meta, reads ] }
+        ch_small_short = ch_small.short_reads.map { meta, _route, reads -> [ meta, reads ] }
+        ch_small_long  = ch_small.long_reads.map  { meta, _route, reads -> [ meta, reads ] }
+        ch_large_short = ch_large.short_reads.map { meta, _route, reads -> [ meta, reads ] }
+        ch_large_long  = ch_large.long_reads.map  { meta, _route, reads -> [ meta, reads ] }
 
         // hostess is the default: it removes host reads in one alignment pass and
         // can keep the removed reads as a sorted BAM, which hostile cannot do
@@ -695,7 +695,7 @@ workflow QQQ {
             // section. The file is still produced and published for anyone who
             // wants it.
             ch_multiqc_files = ch_multiqc_files.mix(
-                HOSTESS_SMALL_SHORT.out.stats.mix(HOSTESS_LARGE_SHORT.out.stats).mix(HOSTESS_SMALL_LONG.out.stats).mix(HOSTESS_LARGE_LONG.out.stats).collect { meta, file -> file }.ifEmpty([])
+                HOSTESS_SMALL_SHORT.out.stats.mix(HOSTESS_LARGE_SHORT.out.stats).mix(HOSTESS_SMALL_LONG.out.stats).mix(HOSTESS_LARGE_LONG.out.stats).collect { _meta, file -> file }.ifEmpty([])
             )
         }
         else {
@@ -736,7 +736,7 @@ workflow QQQ {
         }
     }
 
-    ch_multiqc_files = ch_multiqc_files.mix(ch_dehosted_json.collect { meta, json -> json }.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_dehosted_json.collect { _meta, json -> json }.ifEmpty([]))
 
     // For the run report. The dehoster's directory is its own name: that is what
     // the default publishDir rule in conf/modules.config derives from each
@@ -779,7 +779,7 @@ workflow QQQ {
             // The dehoster stubs touch an empty report. A stub run has no counts
             // to put in the table, so it contributes no rows instead of rows of
             // zeroes, and with every report empty no file is written at all.
-            .filter { meta, counts -> counts }
+            .filter { _meta, counts -> counts }
             .map { meta, counts ->
                 // From the counts rather than the tool's own removed proportion,
                 // which is rounded, and to keep an empty input from dividing by zero.
@@ -834,7 +834,7 @@ workflow QQQ {
         ch_gated = ch_dehosted_fastq
             .map { meta, reads -> [meta.id, meta, reads] }
             .join(ch_read_counts)
-            .branch { id, meta, reads, count ->
+            .branch { _id, meta, reads, count ->
                 downsample: count > params.max_reads
                     return [meta, reads]
                 keep: true
@@ -980,7 +980,7 @@ workflow QQQ {
         .toList()
         .map { records -> [ records: records ] }
         .combine(ch_report_versions.map { versions -> [ versions: versions ] })
-        .combine(MULTIQC.out.report.map { meta, report -> [ multiqc: report.name ] })
+        .combine(MULTIQC.out.report.map { _meta, report -> [ multiqc: report.name ] })
 
     ch_report_manifest = ch_report_inputs
         .map { records, versions, multiqc ->
@@ -992,7 +992,7 @@ workflow QQQ {
 
     QQQ_RUN_REPORT (
         ch_report_manifest,
-        ch_report_inputs.map { records, versions, multiqc -> records.records.collectMany { record -> record[1] } }
+        ch_report_inputs.map { records, _versions, _multiqc -> records.records.collectMany { record -> record[1] } }
     )
 
     emit:
@@ -1001,7 +1001,7 @@ workflow QQQ {
     host_bai       = ch_host_bai                                      // channel: [ val(meta), path(bai) ]
     clean_reads    = ch_clean_reads                                   // channel: [ val(meta), path(fastq) ]
     rrna_reads     = ch_rrna_reads                                    // channel: [ val(meta), path(fastq) ]
-    multiqc_report = MULTIQC.out.report.map { meta, report -> report } // channel: /path/to/multiqc_report.html
+    multiqc_report = MULTIQC.out.report.map { _meta, report -> report } // channel: /path/to/multiqc_report.html
 
 }
 
@@ -1126,7 +1126,7 @@ def reportGitCommit() {
         status.waitFor()
         return [ commit: sha, source: 'git rev-parse HEAD in projectDir', dirty: status.exitValue() == 0 ? (changes as boolean) : null ]
     }
-    catch (Exception e) {
+    catch (Exception _e) {
         return [ commit: null, source: null, dirty: null ]
     }
 }
@@ -1221,7 +1221,7 @@ def reportSidecarChecksums(p) {
                 record.call(line.trim().tokenize()[0], sidecar.toUriString())
             }
         }
-        catch (Exception e) {
+        catch (Exception _e) {
             // A sidecar we cannot read is the same as no sidecar.
         }
     }
