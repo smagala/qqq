@@ -15,6 +15,7 @@ repos:
               .*ro-crate-metadata.json$|
               modules/(?!local/).*|
               subworkflows/(?!local/).*|
+              modules/local/qqq_run_report/tests/fixtures/.*|
               .*\.snap$
           )$
       - id: end-of-file-fixer
@@ -23,6 +24,7 @@ repos:
               .*ro-crate-metadata.json$|
               modules/(?!local/).*|
               subworkflows/(?!local/).*|
+              modules/local/qqq_run_report/tests/fixtures/.*|
               .*\.snap$
           )$
       - id: check-added-large-files

@@ -12,3 +12,5 @@ bin/
 ro-crate-metadata.json
 modules/nf-core/
 subworkflows/nf-core/
+modules/amd-ph-core/
+modules/local/qqq_run_report/tests/fixtures/

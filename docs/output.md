@@ -47,7 +47,7 @@ The `_fastqc_data.txt` files are what MultiQC reads. MultiQC has no separate Fal
   - `*.fastp.json`: Quality control and trimming statistics.
   - `*.fastp.html`: HTML quality control report.
   - `*.fastp.log`: Processing log.
-  - `*.paired.fail.fastq.gz`, `*_R1.fail.fastq.gz`, `*_R2.fail.fastq.gz`: Reads the filter removed (paired-end), when `--save_failed_reads` is on (the default). `*.paired.fail.fastq.gz` holds each failing read, its name tagged with the reason (`failed_quality_filter`, `failed_too_short`, ...); `*_R1/_R2.fail.fastq.gz` hold their mates, which passed but were dropped with the pair. **Not complete:** fastp writes no file at all for a pair in which *both* mates fail, while still counting them as removed -- on the test sample 32 of 373 removed pairs. The run report marks these entries `"complete": false`.
+  - `*.paired.fail.fastq.gz`, `*_R1.fail.fastq.gz`, `*_R2.fail.fastq.gz`: Reads the filter removed (paired-end), when `--save_failed_reads` is on (the default). `*.paired.fail.fastq.gz` holds each failing read, its name tagged with the reason (`failed_quality_filter`, `failed_too_short`, ...); `*_R1/_R2.fail.fastq.gz` hold their mates, which passed but were dropped with the pair. **Not complete:** fastp writes no file at all for a pair in which _both_ mates fail, while still counting them as removed -- on the test sample 32 of 373 removed pairs. The run report marks these entries `"complete": false`.
   - `*.fail.fastq.gz`: Reads the filter removed (single-end), when `--save_failed_reads` is on. Complete.
 
 </details>
@@ -91,7 +91,6 @@ Single-run samples bypass this step. Runs from different sequencing platforms ar
 For paired-end reads, R1 and R2 are merged separately.
 
 Merging occurs after trimming when fastp or fastplong is enabled. When `--skip_fastp` is used, the original reads are merged instead.
-
 
 ### Dehosting
 
@@ -157,12 +156,12 @@ Dehosting statistics are collected into the MultiQC report.
   - `*.bbduk.txt`: Per-reference-record hit counts, with the input and matched totals in the header. The complete file.
   - `*.bbduk.summary.txt`: The same header plus the top 20 records only. **This is what MultiQC reads**, not the complete file -- see below.
   - `*.bbduk.rpkm.txt`: Per-reference-record length, bases, coverage, read count and RPKM. Prefer this over `*.bbduk.txt` for anything quantitative: it carries the record length, without which read counts over-weight long references, since 23S is roughly twice 16S.
-  - `*.bbduk.refstats.txt`: One row per reference *file*, so with a single `--rrna_ref` it is a one-line summary of reads and bases matched.
+  - `*.bbduk.refstats.txt`: One row per reference _file_, so with a single `--rrna_ref` it is a one-line summary of reads and bases matched.
   - `*.bbduk.log`: bbduk's stderr. Its `Total Removed:` and `Result:` lines are the exact record counts removed and kept, and the run report reads them from here.
 
 </details>
 
-[BBDuk](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/) splits reads on whether they share a k-mer with a reference. This step runs only when `--rrna_ref` points at an rRNA FASTA, and sits before dehosting and before downsampling. Before dehosting, because rRNA is conserved enough that a host index takes other organisms' rRNA with the host's: on simulated reads deacon removed 51-53% of fungal 18S (*Candida albicans*, *Aspergillus fumigatus*), 10% of *Plasmodium falciparum* 18S and 9% of nematode 18S, and kept none of it. Run first, bbduk removes rRNA of every origin and keeps it as `*.matched*`. Before downsampling, because after it a `--max_reads` cap would already have been spent on ribosomes.
+[BBDuk](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/) splits reads on whether they share a k-mer with a reference. This step runs only when `--rrna_ref` points at an rRNA FASTA, and sits before dehosting and before downsampling. Before dehosting, because rRNA is conserved enough that a host index takes other organisms' rRNA with the host's: on simulated reads deacon removed 51-53% of fungal 18S (_Candida albicans_, _Aspergillus fumigatus_), 10% of _Plasmodium falciparum_ 18S and 9% of nematode 18S, and kept none of it. Run first, bbduk removes rRNA of every origin and keeps it as `*.matched*`. Before downsampling, because after it a `--max_reads` cap would already have been spent on ribosomes.
 
 Two consequences. The matched files contain human sequence: all of a sample's human rRNA, mitochondrial 12S/16S included, plus the mate of any read that matched, since bbduk moves the pair. Handle them as you would host reads. And the dehoster sees no rRNA, so "host removed" counts host reads that are not rRNA, and a hostess `--host_bam` holds no host rRNA. The cost is that bbduk reads the host reads as well; on a 198-sample clinical mNGS run it was estimated at 0.38 CPU-hours over the run and at most 2 minutes for any sample, since loading the reference dominates a bbduk task.
 
@@ -176,11 +175,11 @@ Calibrate the expected removal rate to the library prep rather than to a single 
 
 #### Reading the per-record output
 
-Because SILVA deflines carry the full lineage, each row of `*.bbduk.rpkm.txt` reads as taxonomy. **Treat it as provenance, not as a composition profile.** bbduk credits each read to its best-matching record and breaks ties on reference file order, and on a reference where the right answer is often "one of these 400 near-identical records" the tie-break does most of the work. Reversing the order of all 1,200,640 records -- same reads, same reference content -- moves the composition by 0.25% at domain, 3.1% at phylum, 35.3% at genus and 71.7% at species; a different ambiguity policy moves phylum by 11.9%. Only the domain split is safe to quote. Per-record *coverage* stays meaningful regardless of which record earned the credit.
+Because SILVA deflines carry the full lineage, each row of `*.bbduk.rpkm.txt` reads as taxonomy. **Treat it as provenance, not as a composition profile.** bbduk credits each read to its best-matching record and breaks ties on reference file order, and on a reference where the right answer is often "one of these 400 near-identical records" the tie-break does most of the work. Reversing the order of all 1,200,640 records -- same reads, same reference content -- moves the composition by 0.25% at domain, 3.1% at phylum, 35.3% at genus and 71.7% at species; a different ambiguity policy moves phylum by 11.9%. Only the domain split is safe to quote. Per-record _coverage_ stays meaningful regardless of which record earned the credit.
 
 Depletion itself is unaffected by any of this, because it only asks whether any k-mer matched: reversing all 1.2M records changes the matched count by zero reads. Genus- and species-level claims need a classifier with LCA run on the `*.matched*.fastq.gz` stream, which is why those reads are published.
 
-One parsing caveat: splitting a SILVA lineage on `;` and taking field *n* is right for Bacteria and Archaea, which are six ranks then an organism name, but wrong for Eukaryota, whose lineages are much deeper. Use SILVA's own rank map (`taxonomy/tax_slv_{ssu,lsu}_138.2.txt.gz`) if you need ranks.
+One parsing caveat: splitting a SILVA lineage on `;` and taking field _n_ is right for Bacteria and Archaea, which are six ranks then an organism name, but wrong for Eukaryota, whose lineages are much deeper. Use SILVA's own rank map (`taxonomy/tax_slv_{ssu,lsu}_138.2.txt.gz`) if you need ranks.
 
 #### Why MultiQC gets the truncated file
 
@@ -245,19 +244,19 @@ The schema is versioned by `schema_version`, [semver](https://semver.org/): a ne
 
 Top level:
 
-| Field | Type | Meaning |
-| ----- | ---- | ------- |
-| `schema_version` | string | Version of this schema. |
-| `generated_at` | string | ISO 8601 UTC time the report was written. |
-| `generator` | object | `script` and the `python` version that wrote it. |
-| `units` | string | The counting convention above, in words. |
-| `step_order` | array | `["read_filter", "rrna_depletion", "host_removal", "downsampling"]`: the removal steps in the order reads pass through them. Reports regenerated from runs before rRNA depletion moved ahead of host removal give `["read_filter", "host_removal", "rrna_depletion", "downsampling"]`. |
-| `run` | object | `pipeline`, `pipeline_version`, `commit` (from `workflow.commitId`, or `git rev-parse HEAD` in the project directory when the run was launched from a checkout), `commit_source`, `commit_dirty` (tracked files differed from that commit; `null` when unknown), `revision`, `repository`, `run_name`, `session_id`, `started`, `nextflow_version`, `profile`, `container_engine`, `outdir`, `launch_dir`, `work_dir`, `project_dir`, `command_line`, and `params`: the parameters that decide what the run did. |
-| `tools` | array | One entry per tool: `name`, `version` (`null` when the module's version command returned nothing, with `version_note`), `versions` (all distinct), `processes`, `arguments`, `arguments_source`. |
-| `databases` | array | One entry per database or reference: `role` (`host_index`, `host_reference_fasta`, `rrna_reference`), `tool`, `path` (full), `name` (file or directory name), `is_directory`, `size_bytes`, `md5`, `sha256`, `checksum_source`, `checksum_note`, `parameters`. |
-| `summary` | object | Run totals: `samples`, `samples_zero_reads`, `samples_zero_reads_ids`, `samples_with_warnings`, `input_reads`, `input_bases`, `output_reads`, `retained_fraction`, `removed_reads` and `removed_fraction` keyed by step, `read_filter_removed_by_reason`, `adapter_trimmed_reads`, `adapter_trimmed_fraction`, `adapter_trimmed_bases`. |
-| `outputs` | object | Run-level files: `run_report_json`, `run_report_html`, `multiqc_report`, `software_versions`. |
-| `samples` | array | One entry per sample, below. |
+| Field            | Type   | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema_version` | string | Version of this schema.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `generated_at`   | string | ISO 8601 UTC time the report was written.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `generator`      | object | `script` and the `python` version that wrote it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `units`          | string | The counting convention above, in words.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `step_order`     | array  | `["read_filter", "rrna_depletion", "host_removal", "downsampling"]`: the removal steps in the order reads pass through them. Reports regenerated from runs before rRNA depletion moved ahead of host removal give `["read_filter", "host_removal", "rrna_depletion", "downsampling"]`.                                                                                                                                                                                                                           |
+| `run`            | object | `pipeline`, `pipeline_version`, `commit` (from `workflow.commitId`, or `git rev-parse HEAD` in the project directory when the run was launched from a checkout), `commit_source`, `commit_dirty` (tracked files differed from that commit; `null` when unknown), `revision`, `repository`, `run_name`, `session_id`, `started`, `nextflow_version`, `profile`, `container_engine`, `outdir`, `launch_dir`, `work_dir`, `project_dir`, `command_line`, and `params`: the parameters that decide what the run did. |
+| `tools`          | array  | One entry per tool: `name`, `version` (`null` when the module's version command returned nothing, with `version_note`), `versions` (all distinct), `processes`, `arguments`, `arguments_source`.                                                                                                                                                                                                                                                                                                                 |
+| `databases`      | array  | One entry per database or reference: `role` (`host_index`, `host_reference_fasta`, `rrna_reference`), `tool`, `path` (full), `name` (file or directory name), `is_directory`, `size_bytes`, `md5`, `sha256`, `checksum_source`, `checksum_note`, `parameters`.                                                                                                                                                                                                                                                   |
+| `summary`        | object | Run totals: `samples`, `samples_zero_reads`, `samples_zero_reads_ids`, `samples_with_warnings`, `input_reads`, `input_bases`, `output_reads`, `retained_fraction`, `removed_reads` and `removed_fraction` keyed by step, `read_filter_removed_by_reason`, `adapter_trimmed_reads`, `adapter_trimmed_fraction`, `adapter_trimmed_bases`.                                                                                                                                                                          |
+| `outputs`        | object | Run-level files: `run_report_json`, `run_report_html`, `multiqc_report`, `software_versions`.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `samples`        | array  | One entry per sample, below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Arguments.** `arguments_source` says where an entry came from. `tool_report` means the tool recorded it at runtime: the fastp/fastplong `command` (per-sample file names stripped, one entry per distinct set with a `samples` count), deacon's `k`, `w`, `abs_threshold`, `rel_threshold` and switches, hostile/hostess's aligner, index and options. `pipeline_config` means the pipeline's own `conf/modules.config` or a module input -- bbduk's `k=<rrna_k> interleaved=f`, rasusa's `--num`/`--seed`, hostess's `--bam` -- so a launch-time `-c` override of `ext.args` would not show there.
 
@@ -265,18 +264,18 @@ Top level:
 
 Each `samples[]` entry:
 
-| Field | Type | Meaning |
-| ----- | ---- | ------- |
-| `id` | string | `<sample>_<platform>`, the identity the sample's files are named by. |
-| `single_end`, `platform`, `read_type` | | As routed (`read_type` is `short` or `long`). |
-| `runs` | array | `{id, input_files}` per samplesheet run, with the input FASTQ locations. |
-| `input_reads`, `input_bases` | integer | What entered the first step that ran. |
-| `output_reads` | integer | What left the last step: the final read count. |
-| `retained_fraction` | number | `output_reads / input_reads`. |
-| `zero_reads` | boolean | No reads left. |
-| `steps` | object | Keyed by every name in `step_order`, always all four. |
-| `outputs` | object | `clean_reads` and `removed_reads`, below. |
-| `warnings` | array | Strings: a step whose input does not match the previous step's output, a report that could not be read, zero reads left. |
+| Field                                 | Type    | Meaning                                                                                                                  |
+| ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id`                                  | string  | `<sample>_<platform>`, the identity the sample's files are named by.                                                     |
+| `single_end`, `platform`, `read_type` |         | As routed (`read_type` is `short` or `long`).                                                                            |
+| `runs`                                | array   | `{id, input_files}` per samplesheet run, with the input FASTQ locations.                                                 |
+| `input_reads`, `input_bases`          | integer | What entered the first step that ran.                                                                                    |
+| `output_reads`                        | integer | What left the last step: the final read count.                                                                           |
+| `retained_fraction`                   | number  | `output_reads / input_reads`.                                                                                            |
+| `zero_reads`                          | boolean | No reads left.                                                                                                           |
+| `steps`                               | object  | Keyed by every name in `step_order`, always all four.                                                                    |
+| `outputs`                             | object  | `clean_reads` and `removed_reads`, below.                                                                                |
+| `warnings`                            | array   | Strings: a step whose input does not match the previous step's output, a report that could not be read, zero reads left. |
 
 Each `steps.<step>` has `status` (`ran`, `skipped` -- off for the run, with `reason` -- or, for downsampling only, `bypassed`: the sample was under `max_reads` and never reached rasusa), `tool`, `reason`, `input_reads`, `removed_reads` and `output_reads`. Steps add:
 
@@ -289,44 +288,127 @@ Each `steps.<step>` has `status` (`ran`, `skipped` -- off for the run, with `rea
 
 `outputs.removed_reads.<step>` is `{files, reason}` for every step in `step_order`: either the published files and `reason: null`, or `files: null` and a `reason`:
 
-| Step | Saved | Otherwise |
-| ---- | ----- | --------- |
-| `read_filter` | fastp/fastplong `*.fail.fastq.gz`, all runs, with `--save_failed_reads` (default). Paired-end fastp entries carry `complete: false` and a `note`: see [fastp](#fastp). | `save_failed_reads=false; ...`, or `step skipped (skip_fastp=true)` |
-| `host_removal` | hostess `*.host.bam` and `.bai`, with `--host_bam` | `host reads not retained (deacon/hostile keep none)`, `host_bam=false; ...`, or `step skipped (dehoster=none)` |
-| `rrna_depletion` | bbduk `*.matched*.fastq.gz` | `step skipped (rrna_ref not set)` |
-| `downsampling` | never written | rasusa writes only what it keeps; the complete pre-downsampling reads are the previous step's published output |
+| Step             | Saved                                                                                                                                                                  | Otherwise                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `read_filter`    | fastp/fastplong `*.fail.fastq.gz`, all runs, with `--save_failed_reads` (default). Paired-end fastp entries carry `complete: false` and a `note`: see [fastp](#fastp). | `save_failed_reads=false; ...`, or `step skipped (skip_fastp=true)`                                            |
+| `host_removal`   | hostess `*.host.bam` and `.bai`, with `--host_bam`                                                                                                                     | `host reads not retained (deacon/hostile keep none)`, `host_bam=false; ...`, or `step skipped (dehoster=none)` |
+| `rrna_depletion` | bbduk `*.matched*.fastq.gz`                                                                                                                                            | `step skipped (rrna_ref not set)`                                                                              |
+| `downsampling`   | never written                                                                                                                                                          | rasusa writes only what it keeps; the complete pre-downsampling reads are the previous step's published output |
 
 An abbreviated example:
 
 ```json
 {
   "schema_version": "1.0.0",
-  "run": { "pipeline_version": "1.0.0dev", "commit": "6ae8454d...", "run_name": "pedantic_feynman", "outdir": "s3://bucket/results/run1" },
+  "run": {
+    "pipeline_version": "1.0.0dev",
+    "commit": "6ae8454d...",
+    "run_name": "pedantic_feynman",
+    "outdir": "s3://bucket/results/run1"
+  },
   "tools": [
-    { "name": "deacon", "version": "0.17.0", "processes": ["DEACON_FILTER"], "arguments_source": "tool_report",
-      "arguments": [{ "index": "host.k31w15.idx", "settings": { "k": 31, "w": 15, "abs_threshold": 2, "rel_threshold": 0.01, "ordered": true }, "samples": 48 }] }
+    {
+      "name": "deacon",
+      "version": "0.17.0",
+      "processes": ["DEACON_FILTER"],
+      "arguments_source": "tool_report",
+      "arguments": [
+        {
+          "index": "host.k31w15.idx",
+          "settings": { "k": 31, "w": 15, "abs_threshold": 2, "rel_threshold": 0.01, "ordered": true },
+          "samples": 48
+        }
+      ]
+    }
   ],
   "databases": [
-    { "role": "rrna_reference", "tool": "bbduk", "path": "s3://.../silva138.2-ssu-lsu-nr99_rfam15.1-5s_mask20261023.fa.gz",
-      "name": "silva138.2-ssu-lsu-nr99_rfam15.1-5s_mask20261023.fa.gz", "md5": null, "sha256": null, "parameters": { "k": 25 } }
+    {
+      "role": "rrna_reference",
+      "tool": "bbduk",
+      "path": "s3://.../silva138.2-ssu-lsu-nr99_rfam15.1-5s_mask20261023.fa.gz",
+      "name": "silva138.2-ssu-lsu-nr99_rfam15.1-5s_mask20261023.fa.gz",
+      "md5": null,
+      "sha256": null,
+      "parameters": { "k": 25 }
+    }
   ],
-  "summary": { "samples": 48, "input_reads": 951203110, "output_reads": 40211876, "retained_fraction": 0.0423, "samples_zero_reads": 1 },
+  "summary": {
+    "samples": 48,
+    "input_reads": 951203110,
+    "output_reads": 40211876,
+    "retained_fraction": 0.0423,
+    "samples_zero_reads": 1
+  },
   "samples": [
     {
-      "id": "S1_illumina", "single_end": false, "input_reads": 19860772, "output_reads": 63652, "zero_reads": false,
+      "id": "S1_illumina",
+      "single_end": false,
+      "input_reads": 19860772,
+      "output_reads": 63652,
+      "zero_reads": false,
       "steps": {
-        "read_filter":    { "status": "ran", "tool": "fastp",  "input_reads": 19860772, "removed_reads": 957480,  "output_reads": 18903292, "adapter_trimmed_reads": 11859090 },
-        "host_removal":   { "status": "ran", "tool": "deacon", "input_reads": 18903292, "removed_reads": 9869852, "output_reads": 9033440 },
-        "rrna_depletion": { "status": "ran", "tool": "bbduk",  "input_reads": 9033440,  "removed_reads": 8969788, "output_reads": 63652 },
-        "downsampling":   { "status": "skipped", "reason": "max_reads not set", "input_reads": null, "removed_reads": null, "output_reads": null }
+        "read_filter": {
+          "status": "ran",
+          "tool": "fastp",
+          "input_reads": 19860772,
+          "removed_reads": 957480,
+          "output_reads": 18903292,
+          "adapter_trimmed_reads": 11859090
+        },
+        "host_removal": {
+          "status": "ran",
+          "tool": "deacon",
+          "input_reads": 18903292,
+          "removed_reads": 9869852,
+          "output_reads": 9033440
+        },
+        "rrna_depletion": {
+          "status": "ran",
+          "tool": "bbduk",
+          "input_reads": 9033440,
+          "removed_reads": 8969788,
+          "output_reads": 63652
+        },
+        "downsampling": {
+          "status": "skipped",
+          "reason": "max_reads not set",
+          "input_reads": null,
+          "removed_reads": null,
+          "output_reads": null
+        }
       },
       "outputs": {
-        "clean_reads": { "step": "rrna_depletion", "files": [{ "path": "s3://bucket/results/run1/bbduk/S1_illumina.depleted_1.fastq.gz", "relative_path": "bbduk/S1_illumina.depleted_1.fastq.gz" }, "..."] },
+        "clean_reads": {
+          "step": "rrna_depletion",
+          "files": [
+            {
+              "path": "s3://bucket/results/run1/bbduk/S1_illumina.depleted_1.fastq.gz",
+              "relative_path": "bbduk/S1_illumina.depleted_1.fastq.gz"
+            },
+            "..."
+          ]
+        },
         "removed_reads": {
-          "read_filter":    { "files": [{ "path": "s3://bucket/results/run1/fastp/S1_illumina_run1.paired.fail.fastq.gz", "relative_path": "..." }, "..."], "reason": null, "complete": false },
-          "host_removal":   { "files": null, "reason": "host reads not retained (deacon/hostile keep none)" },
-          "rrna_depletion": { "files": [{ "path": "s3://bucket/results/run1/bbduk/S1_illumina.matched_1.fastq.gz", "relative_path": "..." }, "..."], "reason": null },
-          "downsampling":   { "files": null, "reason": "step skipped (max_reads not set)" }
+          "read_filter": {
+            "files": [
+              {
+                "path": "s3://bucket/results/run1/fastp/S1_illumina_run1.paired.fail.fastq.gz",
+                "relative_path": "..."
+              },
+              "..."
+            ],
+            "reason": null,
+            "complete": false
+          },
+          "host_removal": { "files": null, "reason": "host reads not retained (deacon/hostile keep none)" },
+          "rrna_depletion": {
+            "files": [
+              { "path": "s3://bucket/results/run1/bbduk/S1_illumina.matched_1.fastq.gz", "relative_path": "..." },
+              "..."
+            ],
+            "reason": null
+          },
+          "downsampling": { "files": null, "reason": "step skipped (max_reads not set)" }
         }
       },
       "warnings": []

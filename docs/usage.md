@@ -70,12 +70,12 @@ Every run ends with `run_report/qqq_run_report.html` and `run_report/qqq_run_rep
 
 `--dehoster` selects the host removal implementation, or turns the step off.
 
-| `--dehoster` | Method | Host BAM available? | Notes |
-| ------------ | ------ | ------------------- | ----- |
-| `deacon` | Minimizer-based filtering | No | Default; fast, approximate host filtering |
-| `hostess` | Bowtie2 (short reads) / minimap2 (long reads) | Yes, with `--host_bam` | Alignment-based host removal |
-| `hostile` | Bowtie2 (short reads) / minimap2 (long reads) | No | Alignment-based host removal |
-| `none` | No dehosting | No | Skips host removal; QC, trimming, and merging remain available |
+| `--dehoster` | Method                                        | Host BAM available?    | Notes                                                          |
+| ------------ | --------------------------------------------- | ---------------------- | -------------------------------------------------------------- |
+| `deacon`     | Minimizer-based filtering                     | No                     | Default; fast, approximate host filtering                      |
+| `hostess`    | Bowtie2 (short reads) / minimap2 (long reads) | Yes, with `--host_bam` | Alignment-based host removal                                   |
+| `hostile`    | Bowtie2 (short reads) / minimap2 (long reads) | No                     | Alignment-based host removal                                   |
+| `none`       | No dehosting                                  | No                     | Skips host removal; QC, trimming, and merging remain available |
 
 `deacon` does not align. It counts how many of each read's minimizers appear in a
 prebuilt index and drops the read when enough of them do, which is why it is so
@@ -91,14 +91,14 @@ Two consequences are worth knowing before switching:
   Use `--dehoster hostess` if you need the removed reads as a BAM.
 - **The reference matters, and it is yours to choose.** The pipeline ships no
   default index: `--deacon_db` and `--hostile_db` are unset unless a deployment
-  config supplies them. Point every dehoster at builds of the *same* reference
+  config supplies them. Point every dehoster at builds of the _same_ reference
   unless you have a reason not to, or `% Host` will not be comparable between
   them. AMDP deployments do exactly that, via `oamd-bio-nf-configs`.
 - **`deacon` will not agree with the aligners exactly, even on one reference.**
   It is approximate by design. Measured across the 49-sample talos set with all
   three reading the same masked reference, deacon kept about 0.5% fewer reads
   than `hostile`/`hostess`, and 0.36% fewer on the worst single sample. Reading
-  `panhuman-1` instead — a *different* reference, masked less aggressively —
+  `panhuman-1` instead — a _different_ reference, masked less aggressively —
   roughly doubled that gap, to 0.7–0.95% typical and 1.54% worst-case.
   `hostile` and `hostess` agree with each other read for read.
 
@@ -124,7 +124,6 @@ sampling reproducible. Only samples above the cap are downsampled, and the
 decision reuses the read counts the dehoster already reports. Leave it unset to
 disable the step entirely.
 
-
 ## Samplesheet input
 
 The pipeline accepts a CSV samplesheet containing information about the sequencing data.
@@ -139,12 +138,12 @@ The `platform` column is optional. If it is not provided, the pipeline defaults 
 
 ### Samplesheet columns
 
-| Column | Description |
-| ------ | ----------- |
-| `sample` | Sample ID. Multiple sequencing runs from the same sample should use the same ID. |
-| `fastq_1` | Required FASTQ file for read 1 or a single-end/long-read run. |
-| `fastq_2` | FASTQ file for read 2 in paired-end sequencing. Leave empty for single-end and long-read data. |
-| `platform` | Optional sequencing platform. Defaults to `illumina` if not provided. |
+| Column     | Description                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| `sample`   | Sample ID. Multiple sequencing runs from the same sample should use the same ID.               |
+| `fastq_1`  | Required FASTQ file for read 1 or a single-end/long-read run.                                  |
+| `fastq_2`  | FASTQ file for read 2 in paired-end sequencing. Leave empty for single-end and long-read data. |
+| `platform` | Optional sequencing platform. Defaults to `illumina` if not provided.                          |
 
 FASTQ input files must be gzipped and use the `.fastq.gz` or `.fq.gz` extension.
 
