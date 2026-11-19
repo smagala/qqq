@@ -4,6 +4,9 @@ nf_core_version: 4.1.0
 
 lint:
   files_unchanged:
+    # MIT-0 (MIT No Attribution), as the other OAMD pipelines: this is a U.S. Government work. The
+    # template's LICENSE is MIT with a copyright line, which ph-core does not allow.
+    - LICENSE
     - CODE_OF_CONDUCT.md
     - assets/nf-core-oamd-bio-qqq_logo_light.png
     - docs/images/nf-core-oamd-bio-qqq_logo_light.png

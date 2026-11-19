@@ -87,7 +87,7 @@
                 }
             ],
             "isBasedOn": "https://github.com/cdcent/oamd-bio-qqq",
-            "license": "MIT",
+            "license": "MIT-0",
             "mainEntity": {
                 "@id": "main.nf"
             },
@@ -128,7 +128,7 @@
                 "nextflow"
             ],
             "license": [
-                "MIT"
+                "MIT-0"
             ],
             "name": [
                 "cdcent/oamd-bio-qqq"
@@ -248,7 +248,7 @@
         {
             "@id": "LICENSE",
             "@type": "File",
-            "description": "The license - should be MIT"
+            "description": "The license - MIT-0 (MIT No Attribution)"
         },
         {
             "@id": "CITATIONS.md",
