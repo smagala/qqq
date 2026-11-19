@@ -72,7 +72,8 @@ workflow PIPELINE_INITIALISATION {
         before_text,
         after_text,
         command,
-        false
+        null    // cli_typecast: nf-schema's default, which casts command-line values using the schema. On
+                // Nextflow 26.04 they arrive as strings; `false` made every boolean or integer flag fail validation.
     )
 
     //
