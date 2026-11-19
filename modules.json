@@ -6,7 +6,7 @@
             "modules": {
                 "amd-ph-core": {
                     "bbmap/bbduk": {
-                        "branch": "feat/bbduk-stderr-log",
+                        "branch": "main",
                         "git_sha": "18f2bf6dae5cd8def29db2f492e2b95736e58df0",
                         "installed_by": ["modules"]
                     },
