@@ -23,16 +23,9 @@ lint:
     # unconditional read of one raised FileNotFoundException whenever --email was
     # used. The image part is now emitted only when the file exists.
     - assets/sendmail_template.txt
-    # Diverges deliberately, and the divergence is a security fix: the template's
-    # privileged comment poster reads the target pull request number out of an
-    # artifact written by the untrusted producer run and checks only that it is
-    # numeric, so a fork pull request can redirect the comment -- and this
-    # workflow's `pull-requests: write` token -- at any pull request in the
-    # repository. Ours resolves the number from the triggering workflow_run and
-    # treats the artifact's copy as a cross-check only. The vulnerable version is
-    # upstream code, verbatim in nf-core/tools 4.1.0, so a template update will
-    # want reviewing rather than accepting.
-    - .github/workflows/pr-comment.yml
+    # Calls the shared cdcent/oamd-bio-gh-actions lint workflow, as the other
+    # OAMD pipelines do, in place of the template's self-contained job.
+    - .github/workflows/linting.yml
     - docs/README.md
   nextflow_config:
     - manifest.name
@@ -52,6 +45,18 @@ lint:
     - .github/ISSUE_TEMPLATE/config.yml
     - .github/workflows/awstest.yml
     - .github/workflows/awsfulltest.yml
+    # CI runs through the shared cdcent/oamd-bio-gh-actions workflows, which
+    # replace the template's nf-test composite actions and its branch.yml, as in
+    # the other OAMD pipelines. pr-comment.yml only posted for those jobs; do not
+    # take it back from a template sync without review, since the upstream
+    # poster lets a fork PR aim its write token at any PR in the repository.
+    - .github/workflows/branch.yml
+    - .github/workflows/pr-comment.yml
+    - .github/actions/get-shards/action.yml
+    - .github/actions/nf-test/action.yml
+    # Template files of nf-core/tools 3.x, checked only when linting with 3.x.
+    - .github/CONTRIBUTING.md
+    - .github/workflows/linting_comment.yml
 
 template:
   org: cdcent

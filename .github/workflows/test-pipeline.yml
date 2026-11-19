@@ -1,0 +1,34 @@
+name: Run Pipeline Tests CI/CD
+# Pipeline tests (tests/*.nf.test) through the shared OAMD workflow, on AWS
+# Batch with the oamd-bio-nf-configs dev profile and the DEV ECR images.
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: "Comma-separated pipeline tests to run (e.g. tests/default.nf.test)"
+        required: false
+        default: "tests/default.nf.test"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline-test:
+    uses: cdcent/oamd-bio-gh-actions/.github/workflows/nf-test.yml@main
+    with:
+      component_type: "pipeline"
+      run_on_aws: true
+      aws_s3_bucket: "amdp-dev-bio-development-work"
+      max_parallel: 2
+      run_tests: ${{ inputs.run_tests || 'tests/default.nf.test' }}
+      nft_profile: "test,dev"
+      nf_pipeline_repo: "oamd-bio-qqq"
+      nxf_version: "26.04.6"
+      nxf_syntax_parser: "v2" # 26.04's default; the shared workflow would force v1
+    secrets: inherit

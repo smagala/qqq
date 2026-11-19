@@ -79,7 +79,9 @@ For more information about linting tests, see [nf-core/tools API documentation](
 Each nf-core pipeline should be set up with a minimal set of test data.
 GitHub Actions runs the pipeline on this data to ensure it runs through and exits successfully.
 If there are any failures then the automated tests fail.
-These tests are run with the latest available version of Nextflow and the minimum required version specified in the pipeline code.
+CI uses the shared [`cdcent/oamd-bio-gh-actions`](https://github.com/cdcent/oamd-bio-gh-actions) workflows, so tests run against `oamd-bio-nf-configs` and the DEV ECR images:
+local module tests on pull requests to `dev`, with the minimum required Nextflow version and the current one,
+and the pipeline tests (`tests/*.nf.test`) on AWS Batch on pull requests to `main`, or on demand from the _Run Pipeline Tests CI/CD_ workflow.
 
 ### Patch release
 
