@@ -9,6 +9,7 @@ nextflow_pipeline {
         when {
             params {
                 outdir = "$outputDir"
+                rrna_ref = null    // assumes rRNA depletion off; CI loads nf-configs, which turns it on, and test params outrank it
             }
         }
 
@@ -75,6 +76,7 @@ nextflow_pipeline {
         when {
             params {
                 outdir = "$outputDir"
+                rrna_ref = null    // assumes rRNA depletion off; CI loads nf-configs, which turns it on, and test params outrank it
                 }
             }
         then {
@@ -116,6 +118,7 @@ nextflow_pipeline {
         when {
         params {
             outdir = "$outputDir"
+            rrna_ref = null    // assumes rRNA depletion off; CI loads nf-configs, which turns it on, and test params outrank it
             skip_fastp = true
             dehoster = "none"
             }
@@ -161,6 +164,7 @@ nextflow_pipeline {
         when {
         params {
             outdir = "$outputDir"
+            rrna_ref = null    // assumes rRNA depletion off; CI loads nf-configs, which turns it on, and test params outrank it
             max_reads = 1000
             }
         }
