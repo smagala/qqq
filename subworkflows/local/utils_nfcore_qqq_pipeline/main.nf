@@ -278,6 +278,19 @@ def validateInputSamplesheet(input) {
         error( "Please check input samplesheet -> Duplicate FASTQ files detected for sample: ${metas[0].id}")
         }
 
+    // A sample may be split over several files (lanes, re-sequencing runs) and they are merged.
+    // But the same file stored twice -- e.g. a BaseSpace dataset copy (`.../ds.<id>/<lane file>`)
+    // listed alongside the original -- would merge every read in it twice. Two files with the same
+    // name and the same size are taken to be one file stored twice. The same name with a different
+    // size is allowed: a re-sequencing run of one library reuses the instrument's file names.
+    def copies = all_fastqs
+        .groupBy { fq -> [ fq.name, fq.size() ] }
+        .findAll { _key, files -> files.size() > 1 }
+    if (copies) {
+        def listed = copies.collect { key, files -> "  ${key[0]} (${key[1]} bytes):\n" + files.collect { f -> "    ${f.toUriString()}" }.join("\n") }.join("\n")
+        error( "Please check input samplesheet -> sample ${metas[0].id} lists the same file more than once (same name and size, different paths); its reads would be merged twice. Keep one copy of each:\n${listed}")
+        }
+
     return [ metas[0], fastqs ]
 }
 

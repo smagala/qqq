@@ -285,4 +285,29 @@ nextflow_pipeline {
             )
         }
     }
+
+    // A sample split over several files is merged, but one file stored twice (a BaseSpace
+    // dataset copy listed beside the original) must be refused: its reads would be merged twice.
+    // The same public FASTQ under two URLs stands in for the copy: same name, same size.
+    test("-profile test, a lane file listed twice under different paths is refused") {
+        when {
+            params {
+                def fq = 'test_1.fastq.gz'
+                def ss = new File("${outputDir}/copied_lane.samplesheet.csv")
+                ss.parentFile.mkdirs()
+                ss.text = [
+                    'sample,fastq_1,fastq_2,platform',
+                    "S1,https://raw.githubusercontent.com/nf-core/test-datasets/modules/data/genomics/sarscov2/illumina/fastq/${fq},,illumina",
+                    "S1,https://raw.githubusercontent.com/nf-core/test-datasets/refs/heads/modules/data/genomics/sarscov2/illumina/fastq/${fq},,illumina",
+                ].join('\n') + '\n'
+                input    = ss.absolutePath
+                outdir   = "$outputDir"
+                rrna_ref = null
+            }
+        }
+        then {
+            assert workflow.failed
+            assert workflow.stdout.any { line -> line.contains('lists the same file more than once') }
+        }
+    }
 }
