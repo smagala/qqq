@@ -153,7 +153,7 @@
                             },
                             "downsampling": {
                                 "files": null,
-                                "reason": "rasusa writes only the reads it keeps; the complete pre-downsampling reads are the previous step's published output"
+                                "reason": "rasusa writes only the reads it keeps; the complete pre-downsampling reads are not published (only each sample's final reads are, in reads/)"
                             }
                         }
                     },
@@ -494,7 +494,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-11-19T11:54:03.445826864",
+        "timestamp": "2026-11-19T22:15:13.345982791",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"

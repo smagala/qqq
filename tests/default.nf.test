@@ -46,7 +46,12 @@ nextflow_pipeline {
                 // the counts chain into host removal without a gap.
                 { assert test_illumina.steps.read_filter.runs.size() == 2 },
                 { assert test_illumina.steps.host_removal.input_reads == test_illumina.steps.read_filter.output_reads },
-                { assert test_illumina.outputs.clean_reads.files*.relative_path == ['deacon/test_illumina.clean_1.fq.gz', 'deacon/test_illumina.clean_2.fq.gz'] },
+                { assert test_illumina.outputs.clean_reads.files*.relative_path == ['reads/test_illumina.clean_1.fq.gz', 'reads/test_illumina.clean_2.fq.gz'] },
+                // One copy of each sample's reads: the final ones, in reads/. The only
+                // other reads published are fastp's failed reads (and, with rRNA
+                // depletion on, bbduk's matched reads).
+                { assert stable_path*.toString().findAll { p -> p ==~ /.*\.(fastq|fq)\.gz/ && !p.startsWith('reads/') && !(p ==~ /.*\.(matched|fail)[._].*/) } == [] },
+                { assert stable_path*.toString().findAll { p -> p.startsWith('reads/') && p ==~ /.*\.(fastq|fq)\.gz/ }.size() == 5 },
                 { assert test_illumina.outputs.removed_reads.read_filter.files.size() == 6 },
                 { assert test_illumina.outputs.removed_reads.host_removal.reason == 'host reads not retained (deacon/hostile keep none)' },
                 { assert report.samples.every { s -> s.warnings == [] } },
@@ -105,7 +110,7 @@ nextflow_pipeline {
                 { assert published.findAll { p -> !new File(p.toString()).exists() } == [] },
                 // hostile's array-shaped report reaches the same fields deacon's does.
                 { assert report.samples.every { s -> s.steps.host_removal.tool == 'hostile' && s.steps.host_removal.input_reads > 0 } },
-                { assert report.samples.every { s -> s.outputs.clean_reads.step == 'host_removal' && s.outputs.clean_reads.files[0].relative_path.startsWith('hostile/') } },
+                { assert report.samples.every { s -> s.outputs.clean_reads.step == 'host_removal' && s.outputs.clean_reads.files[0].relative_path.startsWith('reads/') } },
                 { assert snapshot(
                     removeNextflowVersion("$outputDir/pipeline_info/qqq_software_mqc_versions.yml"),
                     stable_path,
@@ -137,16 +142,19 @@ nextflow_pipeline {
         assert !stable_path.any {
             it.toString().contains(".fastp.json")
             }
-        // Nothing rewrites a single-run sample's reads here, so the report must
-        // say they were not published rather than invent a path; the merged
-        // samples' final reads are the CAT_FASTQ output.
+        // Nothing rewrites a single-run sample's reads here, and Nextflow does not
+        // publish pipeline inputs, so the report must say they were not published
+        // rather than invent a path; the merged sample's final reads are the
+        // CAT_FASTQ output, published only in reads/.
         def report = path("${params.outdir}/run_report/qqq_run_report.json").json
         def test2 = report.samples.find { s -> s.id == 'test2_illumina' }
         def test1 = report.samples.find { s -> s.id == 'test_illumina' }
         assert test2.steps.read_filter.status == 'skipped'
+        assert test2.outputs.clean_reads.step == 'input'
         assert test2.outputs.clean_reads.files == null
         assert test2.outputs.clean_reads.source_files.size() == 2
-        assert test1.outputs.clean_reads.files*.relative_path == ['cat/test_illumina_1.merged.fastq.gz', 'cat/test_illumina_2.merged.fastq.gz']
+        assert test1.outputs.clean_reads.files*.relative_path == ['reads/test_illumina_1.merged.fastq.gz', 'reads/test_illumina_2.merged.fastq.gz']
+        assert !stable_path.any { it.toString().startsWith('cat/') && it.toString().endsWith('.fastq.gz') }
         assert test1.outputs.clean_reads.files.every { f -> new File(f.path.toString()).exists() }
         assert snapshot(stable_path).match()
         }
@@ -248,7 +256,7 @@ nextflow_pipeline {
                 { assert report.summary.removed_reads.rrna_depletion > 0 },
                 { assert report.summary.removed_reads.host_removal > 0 },
                 { assert report.samples.every { s -> s.warnings == [] } },
-                { assert report.samples.every { s -> s.outputs.clean_reads.step == 'host_removal' && s.outputs.clean_reads.files[0].relative_path.startsWith('deacon/') } },
+                { assert report.samples.every { s -> s.outputs.clean_reads.step == 'host_removal' && s.outputs.clean_reads.files[0].relative_path.startsWith('reads/') } },
                 { assert report.samples.every { s -> s.outputs.removed_reads.rrna_depletion.files[0].relative_path.startsWith('bbduk/') } }
             )
         }
@@ -273,7 +281,7 @@ nextflow_pipeline {
                 // The long-read sample still reaches hostile's minimap2 tier: the
                 // short/long split reads `route`, which bbduk does not carry.
                 { assert long_sample.outputs.clean_reads.step == 'host_removal' },
-                { assert long_sample.outputs.clean_reads.files*.relative_path.every { p -> p.startsWith('hostile/') } }
+                { assert long_sample.outputs.clean_reads.files*.relative_path.every { p -> p.startsWith('reads/') } }
             )
         }
     }

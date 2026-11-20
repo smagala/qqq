@@ -126,9 +126,11 @@ workflow QQQ {
             [],
         ]
     }
-    // The lowest-priority answer to "where are this sample's final reads": the
-    // samplesheet inputs, which nothing publishes. Only a single-run sample with
-    // every step turned off ends up here.
+    // The lowest-priority answer to "which step last wrote this sample's reads":
+    // none, so they are the samplesheet inputs. Only a single-run sample with
+    // every step turned off ends up here. Nextflow publishes only files a task
+    // wrote, never pipeline inputs, so reads/ has no copy of these; the report
+    // gives the samplesheet paths instead.
     ch_report_records = ch_report_records.mix(
         ch_input_runs.map { _meta, route, reads ->
             [
@@ -226,8 +228,8 @@ workflow QQQ {
                 FASTP.out.reads.map { meta, reads -> [ meta.id, 'fastp', reads ] }
                     .mix(FASTPLONG.out.reads.map { meta, reads -> [ meta.id, 'fastplong', reads ] })
                     .combine(ch_run_to_sample, by: 0)
-                    .map { _run, dir, reads, sample ->
-                        [ reportReads(sample, 'read_filter', 1, dir, reads), [] ]
+                    .map { _run, _dir, reads, sample ->
+                        [ reportReads(sample, 'read_filter', 1, reads), [] ]
                     }
             )
 
@@ -333,7 +335,7 @@ workflow QQQ {
         ch_reads_grouped.multiple.map { meta, _route, reads -> [ meta, reads ] }
     )
     ch_report_records = ch_report_records.mix(
-        CAT_FASTQ.out.reads.map { meta, reads -> [ reportReads(meta.id, 'merge', 2, 'cat', reads), [] ] }
+        CAT_FASTQ.out.reads.map { meta, reads -> [ reportReads(meta.id, 'merge', 2, reads), [] ] }
     )
 
 
@@ -442,7 +444,7 @@ workflow QQQ {
                 [ [ kind: 'rrna_matched', sample: meta.id, files: reportPublished('bbduk', reads) ], [] ]
             })
             .mix(BBMAP_BBDUK.out.reads.map { meta, reads ->
-                [ reportReads(meta.id, 'rrna_depletion', 3, 'bbduk', reads), [] ]
+                [ reportReads(meta.id, 'rrna_depletion', 3, reads), [] ]
             })
     }
     else {
@@ -740,15 +742,15 @@ workflow QQQ {
 
     // For the run report. The dehoster's directory is its own name: that is what
     // the default publishDir rule in conf/modules.config derives from each
-    // alias (DEACON_FILTER_SMALL -> deacon, HOSTILE_CLEAN_LARGE_LONG -> hostile),
-    // and what oamd-bio-nf-configs sets explicitly. Host reads are published
+    // alias (DEACON_FILTER_SMALL -> deacon, HOSTILE_CLEAN_LARGE_LONG -> hostile).
+    // The dehosted reads themselves go to reads/, not here. Host reads are published
     // only as hostess's BAM; deacon and hostile keep none, deliberately.
     ch_report_records = ch_report_records
         .mix(ch_dehosted_json.map { meta, json ->
             [ [ kind: 'host_report', sample: meta.id, tool: params.dehoster, file: json.name ], [ json ] ]
         })
         .mix(ch_host_clean.map { meta, reads ->
-            [ reportReads(meta.id, 'host_removal', 4, params.dehoster, reads), [] ]
+            [ reportReads(meta.id, 'host_removal', 4, reads), [] ]
         })
         .mix(ch_host_bam.mix(ch_host_bai).map { meta, bam ->
             [ [ kind: 'host_bam', sample: meta.id, files: reportPublished('hostess', bam) ], [] ]
@@ -858,7 +860,7 @@ workflow QQQ {
     if (params.max_reads) {
         ch_report_records = ch_report_records.mix(
             RASUSA_READS.out.reads.map { meta, reads ->
-                [ reportReads(meta.id, 'downsampling', 5, 'rasusa', reads), [] ]
+                [ reportReads(meta.id, 'downsampling', 5, reads), [] ]
             }
         )
     }
@@ -1094,13 +1096,17 @@ def reportPublished(dir, files) {
 }
 
 //
-// One candidate answer to "where are this sample's final reads". The report
-// takes the highest priority it sees per sample; the priorities are the order
-// the steps run in, so whichever step touched the reads last wins.
+// One candidate answer to "which step last wrote this sample's reads". The
+// report takes the highest priority it sees per sample; the priorities are the
+// order the steps run in, so whichever step touched the reads last wins. That
+// step's output is what main.nf publishes to reads/ (from ch_clean_reads), and
+// nothing else publishes reads, so every candidate points there and only the
+// winner's files exist. (The lowest candidate, the samplesheet input, is the
+// exception: it is not a task output, so it is not published; see above.)
 //
-def reportReads(sample, step, priority, dir, reads) {
+def reportReads(sample, step, priority, reads) {
     return [ kind: 'reads', sample: sample, step: step, priority: priority, published: true,
-             files: reportPublished(dir, reads) ]
+             files: reportPublished('reads', reads) ]
 }
 
 //

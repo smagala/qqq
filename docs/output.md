@@ -10,6 +10,7 @@ The directories listed below will be created in the results directory after the 
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
+- [Final reads](#final-reads) - Each sample's reads after every step that ran, in `reads/`
 - [Falco](#falco) - Raw read quality control
 - [fastp](#fastp) - Short-read trimming and quality control
 - [fastplong](#fastplong) - Long-read trimming and quality control
@@ -20,6 +21,20 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [MultiQC](#multiqc) - Aggregate quality control report
 - [Run report](#run-report) - What processed the run, what each step removed, and where every read went
 - [Pipeline information](#pipeline-information) - Workflow execution reports
+
+### Final reads
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `reads/`
+  - Each sample's final reads: the output of the last step that rewrote them. File names keep the producing step's suffix, for example `*.clean_1.fq.gz` (deacon), `*.clean_1.fastq.gz` (hostile, hostess), `*.downsampled.fastq.gz` (rasusa), `*.depleted_1.fastq.gz` (bbduk, with `--dehoster none`).
+
+</details>
+
+This is the only copy of a sample's reads that the pipeline publishes, and the input for downstream analysis such as TALOS. Every step writes a full copy of the reads it passes on, but those intermediate copies stay in the work directory: which step comes last depends on `--dehoster`, `--rrna_ref`, `--skip_fastp`, and on `--max_reads` per sample, so `reads/` is the one fixed place to look. The run report's `outputs.clean_reads` names the step that produced each sample's files. The one exception is a single-run sample with every step off (`--skip_fastp`, `--dehoster none`, no `--rrna_ref`, under `--max_reads`): nothing rewrote its reads, Nextflow does not publish pipeline inputs, so it has no file here and the run report gives its samplesheet paths instead.
+
+The step sections below list the reads each step writes, for reference; apart from bbduk's matched reads and fastp's failed reads, none of them is published in that step's directory.
 
 ### Falco
 
@@ -43,7 +58,7 @@ The `_fastqc_data.txt` files are what MultiQC reads. MultiQC has no separate Fal
 <summary>Output files</summary>
 
 - `fastp/`
-  - `*.fastp.fastq.gz`: Trimmed and filtered short reads.
+  - `*.fastp.fastq.gz`: Trimmed and filtered short reads. Not published; see [Final reads](#final-reads).
   - `*.fastp.json`: Quality control and trimming statistics.
   - `*.fastp.html`: HTML quality control report.
   - `*.fastp.log`: Processing log.
@@ -62,7 +77,7 @@ Each sequencing run is processed separately before merging. This step is enabled
 <summary>Output files</summary>
 
 - `fastplong/`
-  - `*.fastplong.fastq.gz`: Trimmed and filtered long reads.
+  - `*.fastplong.fastq.gz`: Trimmed and filtered long reads. Not published; see [Final reads](#final-reads).
   - `*.fastplong.json`: Quality control and trimming statistics.
   - `*.fastplong.html`: HTML quality control report.
   - `*.fastplong.log`: Processing log.
@@ -80,7 +95,7 @@ Each sequencing run is processed separately before merging. This step is enabled
 <summary>Output files</summary>
 
 - `cat/`
-  - `*.merged.fastq.gz`: Merged FASTQ files from multiple sequencing runs.
+  - `*.merged.fastq.gz`: Merged FASTQ files from multiple sequencing runs. Not published; see [Final reads](#final-reads).
 
 </details>
 
@@ -106,7 +121,7 @@ Dehosting can be disabled using `--dehoster none`.
 <summary>Output files</summary>
 
 - `deacon/`
-  - `*.clean*.fq.gz`: Dehosted reads.
+  - `*.clean*.fq.gz`: Dehosted reads. Not published here; see [Final reads](#final-reads).
   - `*.deacon.json`: Dehosting statistics.
 
 </details>
@@ -119,7 +134,7 @@ Dehosting can be disabled using `--dehoster none`.
 <summary>Output files</summary>
 
 - `hostile/`
-  - `*.clean*.fastq.gz`: Dehosted reads.
+  - `*.clean*.fastq.gz`: Dehosted reads. Not published here; see [Final reads](#final-reads).
   - `*.json`: Dehosting statistics.
 
 </details>
@@ -132,7 +147,7 @@ Dehosting can be disabled using `--dehoster none`.
 <summary>Output files</summary>
 
 - `hostess/`
-  - `*.clean*.fastq.gz`: Dehosted reads.
+  - `*.clean*.fastq.gz`: Dehosted reads. Not published here; see [Final reads](#final-reads).
   - `*.hostess.json`: Dehosting statistics.
   - `*.host.bam`: Host-aligned reads, when `--host_bam` is enabled.
   - `*.host.bam.bai`: BAM index, when host BAM output is enabled.
@@ -151,7 +166,7 @@ Dehosting statistics are collected into the MultiQC report.
 <summary>Output files</summary>
 
 - `bbduk/`
-  - `*.depleted*.fastq.gz`: Reads that shared no k-mer with the rRNA reference. These continue through the pipeline.
+  - `*.depleted*.fastq.gz`: Reads that shared no k-mer with the rRNA reference. These continue through the pipeline. Not published here; see [Final reads](#final-reads).
   - `*.matched*.fastq.gz`: Reads that did. These are a deliverable, not a byproduct -- they are the input to rRNA characterisation, and they are the only way an over-aggressive reference shows up as something other than a quietly smaller library.
   - `*.bbduk.txt`: Per-reference-record hit counts, with the input and matched totals in the header. The complete file.
   - `*.bbduk.summary.txt`: The same header plus the top 20 records only. **This is what MultiQC reads**, not the complete file -- see below.
@@ -169,7 +184,7 @@ k-mer matching rather than alignment is the point. On a reference of tens of tho
 
 #### The reference
 
-The reference is a versioned build-time asset, not something to assemble per run. The one AMDP publishes, and the oamd-bio-nf-configs default, is at `s3://amdp-prd-analysis-static-assets/bbduk/silva138.2-ssu-lsu-nr99_rfam15.1-5s_mask20261023/`: SILVA 138.2 SSU+LSU Ref NR99 truncated exports plus Rfam 15.1 5S, U->T converted, 1,200,640 records, with 4,299 bp of audited non-ribosomal blocks in 10 records masked to `N` (`PANEL_CARD.md` beside it). The unmasked 2026-10-20 build stays at `.../silva138.2-ssu-lsu-nr99_rfam15.1-5s_20261020/`, and its `README.md` is the authority on how the base was built, what was deliberately left out, and what the per-record outputs may be read as. On an un-depleted total-RNA wastewater library the unmasked build removes **95.75%** at 0.16% false positives.
+The reference is a versioned build-time asset, not something to assemble per run. The one AMDP publishes, and the oamd-bio-nf-configs default, is at `s3://amdp-prd-analysis-static-assets/qqq/panels/silva138.2-ssu-lsu-nr99_rfam15.1-5s_2026111701/`: SILVA 138.2 SSU+LSU Ref NR99 truncated exports plus Rfam 15.1 5S, U->T converted, 1,200,640 records. Audited non-ribosomal blocks are masked to `N`, as is every 25-mer shared with the RPIP target panel that occurs in 100 rRNA records or fewer (the mask protects RPIP only; screen other panels before relying on it). Its `README.md` and asset card are beside it. It replaces the retired `bbduk/...mask20261023` reference. The unmasked 2026-10-20 build stays at `.../silva138.2-ssu-lsu-nr99_rfam15.1-5s_20261020/`, and its `README.md` is the authority on how the base was built, what was deliberately left out, and what the per-record outputs may be read as. On an un-depleted total-RNA wastewater library the unmasked build removes **95.75%** at 0.16% false positives.
 
 Calibrate the expected removal rate to the library prep rather than to a single number: roughly 95% for un-depleted total RNA, single digits to ~15% for a bench-depleted RNA library, and ~0.5% for DNA, where the rRNA operon is a small fraction of a genome. A rate far outside the range for the stated prep is a sample-identity signal, not a tuning problem.
 
@@ -195,7 +210,7 @@ A counts footnote: **for paired-end data, `#Matched` in the stats file is not th
 <summary>Output files</summary>
 
 - `rasusa/`
-  - `*.downsampled.fastq.gz`: Downsampled reads.
+  - `*.downsampled.fastq.gz`: Downsampled reads. Not published here; see [Final reads](#final-reads).
 
 </details>
 
@@ -284,7 +299,7 @@ Each `steps.<step>` has `status` (`ran`, `skipped` -- off for the run, with `rea
 - `rrna_depletion`: from bbduk's log (`Input:`, `Total Removed:`, `Result:`), the exact records and bases in, removed and kept; `matched_reads`, the stats file's `#Matched` (reads with a hit of their own, which for paired-end data is fewer than were removed -- see the counts footnote under [BBDuk](#bbduk)); `report` and `log`. A paired-end sample that keeps an odd number of reads, or whose counts do not add up, gets a warning. Runs made before the module kept the log fall back to the stats header (`#Total` in, `#Matched` removed) and, for paired-end samples, carry `exact: false` and a `note`: removal is undercounted and output overcounted.
 - `downsampling`: `cap_reads` (max_reads in records), and `derived: true`. rasusa writes no report; its counts follow from `rasusa reads --num` keeping exactly the cap, or everything when the input is under it, which the module's nf-test pins.
 
-`outputs.clean_reads` is `{step, files, reason}`: the step that last wrote the sample's reads and the published files. When no step rewrote them (a single-run sample with every step off) `files` is `null`, `reason` says so, and `source_files` gives the samplesheet inputs.
+`outputs.clean_reads` is `{step, files, reason}`: the step that last wrote the sample's reads, and its files as published in `reads/`. When no step rewrote them (a single-run sample with every step off) `files` is `null`, `reason` says so, and `source_files` gives the samplesheet inputs.
 
 `outputs.removed_reads.<step>` is `{files, reason}` for every step in `step_order`: either the published files and `reason: null`, or `files: null` and a `reason`:
 
@@ -293,7 +308,7 @@ Each `steps.<step>` has `status` (`ran`, `skipped` -- off for the run, with `rea
 | `read_filter`    | fastp/fastplong `*.fail.fastq.gz`, all runs, with `--save_failed_reads` (default). Paired-end fastp entries carry `complete: false` and a `note`: see [fastp](#fastp). | `save_failed_reads=false; ...`, or `step skipped (skip_fastp=true)`                                            |
 | `host_removal`   | hostess `*.host.bam` and `.bai`, with `--host_bam`                                                                                                                     | `host reads not retained (deacon/hostile keep none)`, `host_bam=false; ...`, or `step skipped (dehoster=none)` |
 | `rrna_depletion` | bbduk `*.matched*.fastq.gz`                                                                                                                                            | `step skipped (rrna_ref not set)`                                                                              |
-| `downsampling`   | never written                                                                                                                                                          | rasusa writes only what it keeps; the complete pre-downsampling reads are the previous step's published output |
+| `downsampling`   | never written                                                                                                                                                          | rasusa writes only what it keeps; the complete pre-downsampling reads are not published                        |
 
 An abbreviated example:
 
@@ -382,8 +397,8 @@ An abbreviated example:
           "step": "rrna_depletion",
           "files": [
             {
-              "path": "s3://bucket/results/run1/bbduk/S1_illumina.depleted_1.fastq.gz",
-              "relative_path": "bbduk/S1_illumina.depleted_1.fastq.gz"
+              "path": "s3://bucket/results/run1/reads/S1_illumina.depleted_1.fastq.gz",
+              "relative_path": "reads/S1_illumina.depleted_1.fastq.gz"
             },
             "..."
           ]

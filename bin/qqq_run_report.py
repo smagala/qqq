@@ -517,7 +517,7 @@ def build_outputs(recs, steps, settings):
     else:
         removed["downsampling"] = located(
             None, "rasusa writes only the reads it keeps; the complete pre-downsampling reads "
-                  "are the previous step's published output")
+                  "are not published (only each sample's final reads are, in reads/)")
     return {"clean_reads": clean, "removed_reads": removed}
 
 

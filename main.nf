@@ -58,6 +58,24 @@ workflow {
         params.monochrome_logs,
         QQQ.out.multiqc_report
     )
+
+    publish:
+    clean_reads = QQQ.out.clean_reads
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    WORKFLOW OUTPUTS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+output {
+    // Each sample's final reads, after every step that ran, in one fixed place.
+    // The per-step publish rules in conf/modules.config no longer publish reads,
+    // so this is the only copy. workflows/qqq.nf points the run report here.
+    clean_reads {
+        path 'reads'
+    }
 }
 
 /*
